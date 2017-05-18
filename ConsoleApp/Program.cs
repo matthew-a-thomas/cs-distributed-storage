@@ -2,50 +2,108 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Text;
     using DistributedStorage;
+    using DistributedStorage.Serialization;
 
     // ReSharper disable once UnusedMember.Global
     internal class Program
     {
         // ReSharper disable once UnusedMember.Local
+        [SuppressMessage("ReSharper", "FunctionNeverReturns")]
         private static void Main()
         {
-            using (var distributedStorage = new DistributedStorage())
+            "What to do?".Choose(new Dictionary<string, Action>
             {
-                const int numSlices = 5;
-                var data = Encoding.ASCII.GetBytes("Hello world!");
-                var manifest = distributedStorage.CreateManifestFrom(data, numSlices);
-                var parts = data.SplitInto(numSlices);
-                var generator = distributedStorage.CreateGeneratorFor(parts);
-                var solver = distributedStorage.CreateSolverFor(manifest);
-                
-                byte[] solution = null;
-                var solved = false;
-                while (true)
                 {
-                    var slice = generator.Next();
-
-                    "Generated slice.".Choose(new Dictionary<string, Action>
+                    "Play with individual encoding symbols",
+                    () =>
                     {
-                        { "Use it", () => solved = solver.TrySolve(slice, out solution) },
+                        using (var distributedStorage = new DistributedStorage())
                         {
-                            "Scramble it",
-                            () =>
-                            {
-                                for (var i = 0; i < slice.EncodingSymbol.Length; ++i)
-                                    slice.EncodingSymbol[i] += 2;
-                                solved = solver.TrySolve(slice, out solution);
-                            }
-                        },
-                        { "Toss it", () => { } }
-                    });
+                            const int numSlices = 5;
+                            var data = Encoding.ASCII.GetBytes("Hello world!");
+                            var manifest = distributedStorage.CreateManifestFrom(data, numSlices);
+                            var parts = data.SplitInto(numSlices);
+                            var generator = distributedStorage.CreateGeneratorFor(parts);
+                            var solver = distributedStorage.CreateSolverFor(manifest);
 
-                    (solution != null && solved ? "Solved!" : solution != null ? "Corrupt" : "Not solved").Say();
-                    Encoding.ASCII.GetString(solution ?? new byte[0]).Say();
+                            byte[] solution = null;
+                            var solved = false;
+                            while (true)
+                            {
+                                var slice = generator.Next();
+
+                                "Generated encoding symbol.".Choose(new Dictionary<string, Action>
+                                {
+                                    { "Use it", () => solved = solver.TrySolve(slice, out solution) },
+                                    {
+                                        "Scramble it",
+                                        () =>
+                                        {
+                                            for (var i = 0; i < slice.EncodingSymbol.Length; ++i)
+                                                slice.EncodingSymbol[i] += 2;
+                                            solved = solver.TrySolve(slice, out solution);
+                                        }
+                                    },
+                                    { "Toss it", () => { } }
+                                });
+
+                                (solution != null && solved ? "Solved!" : solution != null ? "Corrupt" : "Not solved").Say();
+                                Encoding.ASCII.GetString(solution ?? new byte[0]).Say();
+                            }
+                        }
+                    }
+                },
+                {
+                    "Generate encoding symbols from file",
+                    () =>
+                    {
+                        $"You are currently in {Directory.GetCurrentDirectory()}".Say();
+
+                        var filename = "File name?".Ask();
+                        "Reading...".Say();
+                        var data = File.ReadAllBytes(filename);
+                        $"Read {data.Length} bytes".Say();
+
+                        if (!int.TryParse("How many chunks?".Ask(), out var numChunks))
+                            numChunks = 10;
+                        $"Will use {numChunks} chunks".Say();
+
+                        using (var distributedStorage = new DistributedStorage())
+                        {
+                            "Generating manifest...".Say();
+                            var manifest = distributedStorage.CreateManifestFrom(data, numChunks);
+                            var manifestOutputFileName = $"{filename}.manifest";
+                            using (var manifestOutputFile = File.OpenWrite(manifestOutputFileName))
+                            {
+                                manifest.SerializeTo(manifestOutputFile);
+                            }
+                            manifestOutputFileName.Say();
+
+                            "Splitting data into chunks...".Say();
+                            var parts = data.SplitInto(numChunks);
+
+                            "Creating encoding symbol generator...".Say();
+                            var generator = distributedStorage.CreateGeneratorFor(parts);
+
+                            for (var i = 0; ; ++i)
+                            {
+                                "Press any key to generate an encoding symbol...".Wait();
+
+                                var slice = generator.Next();
+                                var outputFilename = $"{filename}.{i}";
+                                using (var stream = File.OpenWrite(outputFilename))
+                                    slice.SerializeTo(stream);
+
+                                outputFilename.Say();
+                            }
+                        }
+                    }
                 }
-            }
-            // ReSharper disable once FunctionNeverReturns
+            });
         }
     }
 }
