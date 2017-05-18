@@ -36,5 +36,11 @@
         }
 
         public static void Say(this string message) => Console.WriteLine(message);
+
+        public static void Wait(this string message)
+        {
+            message.Say();
+            Console.ReadKey(true);
+        }
     }
 }
