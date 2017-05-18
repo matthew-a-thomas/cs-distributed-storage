@@ -22,7 +22,7 @@
                 
                 byte[] solution = null;
                 var solved = false;
-                while (!solved && solution == null)
+                while (true)
                 {
                     var slice = generator.Next();
 
@@ -40,13 +40,13 @@
                         },
                         { "Toss it", () => { } }
                     });
+
+
+                    (solution != null && solved ? "Solved!" : solution != null ? "Corrupt" : "Not solved").Say();
+                    Encoding.ASCII.GetString(solution ?? new byte[0]).Say();
                 }
-
-                (solution == null ? "Solved!" : "Corrupt").Say();
-                Encoding.ASCII.GetString(solution).Say();
-
-                Console.ReadKey(true);
             }
+            // ReSharper disable once FunctionNeverReturns
         }
     }
 }
