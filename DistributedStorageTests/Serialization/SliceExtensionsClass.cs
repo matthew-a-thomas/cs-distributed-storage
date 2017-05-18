@@ -1,10 +1,10 @@
-﻿namespace DistributedStorageTests
+﻿namespace DistributedStorageTests.Serialization
 {
     using System.IO;
     using System.Linq;
     using DistributedStorage;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using DistributedStorage.Serialization;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class SliceExtensionsClass
