@@ -41,7 +41,6 @@
                         { "Toss it", () => { } }
                     });
 
-
                     (solution != null && solved ? "Solved!" : solution != null ? "Corrupt" : "Not solved").Say();
                     Encoding.ASCII.GetString(solution ?? new byte[0]).Say();
                 }
