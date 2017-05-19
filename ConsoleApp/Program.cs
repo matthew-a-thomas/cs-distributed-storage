@@ -1,4 +1,7 @@
-﻿namespace ConsoleApp
+﻿using System.Linq;
+using Newtonsoft.Json;
+
+namespace ConsoleApp
 {
     using System;
     using System.Collections.Generic;
@@ -102,8 +105,61 @@
                             }
                         }
                     }
+                },
+                {
+                    "Read encoding symbols",
+                    () =>
+                    {
+                        $"You are currently in {Directory.GetCurrentDirectory()}".Say();
+                        var manifestFileInfo = new FileInfo("Manifest?".Ask());
+                        Manifest manifest;
+                        using (var stream = manifestFileInfo.OpenRead())
+                        {
+                            manifest = stream.GetManifest();
+                        }
+
+                        using (var distributedStorage = new DistributedStorage())
+                        {
+                            var solver = distributedStorage.CreateSolverFor(manifest);
+                            var solution = default(byte[]);
+                            var solved = false;
+                            var originalFileName = Path.GetFileNameWithoutExtension(manifestFileInfo.Name);
+                            foreach (var file in
+                                manifestFileInfo
+                                .Directory
+                                .EnumerateFiles($"{originalFileName}.*")
+                            )
+                            {
+                                if (!int.TryParse(file.Extension.Substring(1), out _))
+                                    continue;
+                                $"Using {file.Name}...".Say();
+                                using (var stream = file.OpenRead())
+                                {
+                                    var slice = stream.GetSlice();
+
+                                    // ReSharper disable once AssignmentInConditionalExpression
+                                    if (solved = solver.TrySolve(slice, out solution))
+                                        break;
+                                }
+                            }
+                            if (solution == null)
+                            {
+                                "Not enough slices available".Say();
+                            }
+                            else if (!solved)
+                            {
+                                "Corrupted".Say();
+                            }
+                            else
+                            {
+                                "Valid".Say();
+                            }
+                            JsonConvert.SerializeObject(solution ?? new byte[0]).Say();
+                        }
+                    }
                 }
             });
+            "Press any key to exit . . .".Wait();
         }
     }
 }
