@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace ConsoleApp
 {
@@ -21,7 +20,7 @@ namespace ConsoleApp
             "What to do?".Choose(new Dictionary<string, Action>
             {
                 {
-                    "Play with individual encoding symbols",
+                    "Play with individual slices",
                     () =>
                     {
                         using (var distributedStorage = new DistributedStorage())
@@ -39,7 +38,7 @@ namespace ConsoleApp
                             {
                                 var slice = generator.Next();
 
-                                "Generated encoding symbol.".Choose(new Dictionary<string, Action>
+                                "Generated slice.".Choose(new Dictionary<string, Action>
                                 {
                                     { "Use it", () => solved = solver.TrySolve(slice, out solution) },
                                     {
@@ -61,7 +60,7 @@ namespace ConsoleApp
                     }
                 },
                 {
-                    "Generate encoding symbols from file",
+                    "Generate slices from file",
                     () =>
                     {
                         $"You are currently in {Directory.GetCurrentDirectory()}".Say();
@@ -89,12 +88,12 @@ namespace ConsoleApp
                             "Splitting data into chunks...".Say();
                             var parts = data.SplitInto(numChunks);
 
-                            "Creating encoding symbol generator...".Say();
+                            "Creating slice generator...".Say();
                             var generator = distributedStorage.CreateGeneratorFor(parts);
 
                             for (var i = 0; ; ++i)
                             {
-                                "Press any key to generate an encoding symbol...".Wait();
+                                "Press any key to generate a slice...".Wait();
 
                                 var slice = generator.Next();
                                 var outputFilename = $"{filename}.{i}";
@@ -107,7 +106,7 @@ namespace ConsoleApp
                     }
                 },
                 {
-                    "Read encoding symbols",
+                    "Read slices",
                     () =>
                     {
                         $"You are currently in {Directory.GetCurrentDirectory()}".Say();
