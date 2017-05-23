@@ -14,24 +14,32 @@
 
         public static void Choose(this string prompt, Dictionary<string, Action> choices)
         {
-            prompt.Say();
-            var numberToChoice = choices.Select((kvp, i) => new { Choice = kvp.Key, Number = i }).ToDictionary(x => x.Number, x => x.Choice);
-            int number;
+            while (true)
             {
-                var i = 0;
-                foreach (var choice in choices.Keys)
+                prompt.Say();
+                var numberToChoice = choices.Select((kvp, i) => new { Choice = kvp.Key, Number = i }).ToDictionary(x => x.Number, x => x.Choice);
+                int number;
                 {
-                    ++i;
-                    $"\t{i} - {choice}".Say();
+                    var i = 0;
+                    foreach (var choice in choices.Keys)
+                    {
+                        ++i;
+                        $"\t{i} - {choice}".Say();
+                    }
+                    var response = $"1-{i}?".Ask();
+                    int.TryParse(response, out number);
+                    --number;
                 }
-                var response = $"1-{i}?".Ask();
-                int.TryParse(response, out number);
-                --number;
-            }
-            {
-                var choice = numberToChoice[number];
-                var action = choices[choice];
-                action();
+
+                if (numberToChoice.ContainsKey(number))
+                {
+                    var choice = numberToChoice[number];
+                    var action = choices[choice];
+                    action();
+                    return;
+                }
+
+                "Invalid choice".Say();
             }
         }
 
