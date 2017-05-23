@@ -25,12 +25,16 @@ namespace ConsoleApp
                     {
                         using (var distributedStorage = new DistributedStorage())
                         {
+                            var generatorFactory = distributedStorage.GeneratorFactory;
+                            var manifestFactory = distributedStorage.ManifestFactory;
+                            var solverFactory = distributedStorage.SolverFactory;
+
                             const int numSlices = 5;
                             var data = Encoding.ASCII.GetBytes("Hello world!");
-                            var manifest = distributedStorage.CreateManifestFrom(data, numSlices);
+                            var manifest = manifestFactory.CreateManifestFrom(data, numSlices);
                             var parts = data.SplitInto(numSlices);
-                            var generator = distributedStorage.CreateGeneratorFor(parts);
-                            var solver = distributedStorage.CreateSolverFor(manifest);
+                            var generator = generatorFactory.CreateGeneratorFor(parts);
+                            var solver = solverFactory.CreateSolverFor(manifest);
 
                             byte[] solution = null;
                             var solved = false;
@@ -76,8 +80,11 @@ namespace ConsoleApp
 
                         using (var distributedStorage = new DistributedStorage())
                         {
+                            var generatorFactory = distributedStorage.GeneratorFactory;
+                            var manifestFactory = distributedStorage.ManifestFactory;
+
                             "Generating manifest...".Say();
-                            var manifest = distributedStorage.CreateManifestFrom(data, numChunks);
+                            var manifest = manifestFactory.CreateManifestFrom(data, numChunks);
                             var manifestOutputFileName = $"{filename}.manifest";
                             using (var manifestOutputFile = File.OpenWrite(manifestOutputFileName))
                             {
@@ -89,7 +96,7 @@ namespace ConsoleApp
                             var parts = data.SplitInto(numChunks);
 
                             "Creating slice generator...".Say();
-                            var generator = distributedStorage.CreateGeneratorFor(parts);
+                            var generator = generatorFactory.CreateGeneratorFor(parts);
 
                             for (var i = 0; ; ++i)
                             {
@@ -119,7 +126,9 @@ namespace ConsoleApp
 
                         using (var distributedStorage = new DistributedStorage())
                         {
-                            var solver = distributedStorage.CreateSolverFor(manifest);
+                            var solverFactory = distributedStorage.SolverFactory;
+
+                            var solver = solverFactory.CreateSolverFor(manifest);
                             var solution = default(byte[]);
                             var solved = false;
                             var originalFileName = Path.GetFileNameWithoutExtension(manifestFileInfo.Name);

@@ -1,14 +1,13 @@
 ﻿namespace DistributedStorage
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using Autofac;
 
     /// <summary>
     /// A facade for internal implementations of <see cref="IManifestFactory"/>, <see cref="IGeneratorFactory"/>, and <see cref="ISolverFactory"/>
     /// </summary>
-    public sealed class DistributedStorage : IDisposable, IManifestFactory, IGeneratorFactory, ISolverFactory
+    public sealed class DistributedStorage : IDisposable
     {
         /// <summary>
         /// The thing to dispose when we're through
@@ -18,17 +17,17 @@
         /// <summary>
         /// Our internal implementation of <see cref="IGeneratorFactory"/>
         /// </summary>
-        private IGeneratorFactory _generatorFactory;
+        public IGeneratorFactory GeneratorFactory { get; private set; }
 
         /// <summary>
         /// Our internal implementation of <see cref="IManifestFactory"/>
         /// </summary>
-        private IManifestFactory _manifestFactory;
+        public IManifestFactory ManifestFactory { get; private set; }
 
         /// <summary>
         /// Our internal implementation of <see cref="ISolverFactory"/>
         /// </summary>
-        private ISolverFactory _solverFactory;
+        public ISolverFactory SolverFactory { get; private set; }
 
         /// <summary>
         /// Creates a new facade for internal implementations of <see cref="IManifestFactory"/>, <see cref="IGeneratorFactory"/>, and <see cref="ISolverFactory"/>
@@ -42,26 +41,11 @@
             _disposable = container;
 
             // Resolve
-            _generatorFactory = container.Resolve<IGeneratorFactory>();
-            _manifestFactory = container.Resolve<IManifestFactory>();
-            _solverFactory = container.Resolve<ISolverFactory>();
+            GeneratorFactory = container.Resolve<IGeneratorFactory>();
+            ManifestFactory = container.Resolve<IManifestFactory>();
+            SolverFactory = container.Resolve<ISolverFactory>();
         }
      
-        /// <summary>
-        /// Creates a new <see cref="Manifest"/> for the given data
-        /// </summary>
-        public Manifest CreateManifestFrom(byte[] data, int numSlices = 10) => _manifestFactory.CreateManifestFrom(data, numSlices);
-
-        /// <summary>
-        /// Creates an <see cref="IGenerator"/> for the given data slices
-        /// </summary>
-        public IGenerator CreateGeneratorFor(IReadOnlyList<byte[]> source) => _generatorFactory.CreateGeneratorFor(source);
-
-        /// <summary>
-        /// Creates a new <see cref="ISolver"/> which can solve for the data which produced the given <paramref name="manifest"/>
-        /// </summary>
-        public ISolver CreateSolverFor(Manifest manifest) => _solverFactory.CreateSolverFor(manifest);
-
         /// <summary>
         /// Releases all internal resources
         /// </summary>
@@ -70,9 +54,9 @@
             var disposable = Interlocked.Exchange(ref _disposable, null);
             if (disposable == null)
                 return;
-            _generatorFactory = null;
-            _manifestFactory = null;
-            _solverFactory = null;
+            GeneratorFactory = null;
+            ManifestFactory = null;
+            SolverFactory = null;
             disposable.Dispose();
         }
     }
