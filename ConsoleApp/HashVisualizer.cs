@@ -65,7 +65,7 @@
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.Clear(Color.Transparent);
+                graphics.Clear(Color.White);
                 foreach (var thing in data.Select((x, i) => new
                 {
                     x.Color1,
