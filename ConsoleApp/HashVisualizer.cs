@@ -6,15 +6,27 @@
     using System.Linq;
     using System.Security.Cryptography;
 
+    /// <summary>
+    /// Helps visualize data by rendering its hash code as an image
+    /// </summary>
     internal class HashVisualizer
     {
+        /// <summary>
+        /// Creates a new <see cref="HashAlgorithm"/>
+        /// </summary>
         private readonly Func<HashAlgorithm> _hashFactory;
 
+        /// <summary>
+        /// Creates a new <see cref="HashVisualizer"/>, which helps visualize data by rendering its hash code as an image
+        /// </summary>
         public HashVisualizer(Func<HashAlgorithm> hashFactory)
         {
             _hashFactory = hashFactory;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="Bitmap"/> from the hash code of the given <paramref name="input"/>
+        /// </summary>
         public Bitmap MakeBitmap(byte[] input, int imageSize)
         {
             if (imageSize <= 0)
