@@ -37,6 +37,24 @@
         #region Methods
 
         /// <summary>
+        /// Guides the user through a visual representation of a hash code
+        /// </summary>
+        private void DisplayHashCode()
+        {
+            var message = "Message to hash?".Ask();
+            var data = Encoding.ASCII.GetBytes(message);
+            FileInfo destination;
+            using (var bitmap = _hashVisualizer.MakeBitmap(data, 2048))
+            {
+                $"You are currently in {Directory.GetCurrentDirectory()}".Say();
+                destination = new FileInfo("Destination file name?".Ask());
+                bitmap.Save(destination.FullName);
+            }
+            "Showing image...".Say();
+            new Launcher().Launch(destination);
+        }
+
+        /// <summary>
         /// Guides the user through generating slices from a chosen file
         /// </summary>
         private static void GenerateSlicesFromFile()
@@ -204,6 +222,10 @@
                 {
                     "Read slices",
                     ReadSlices
+                },
+                {
+                    "Display hash code",
+                    DisplayHashCode
                 }
             });
         }
