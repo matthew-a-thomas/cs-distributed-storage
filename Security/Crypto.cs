@@ -23,6 +23,11 @@
         private static byte[] CreateAesIvOrKey() => CreateNonce(256 / 8);
 
         /// <summary>
+        /// Creates a new <see cref="HashAlgorithm"/>
+        /// </summary>
+        internal static HashAlgorithm CreateHashAlgorithm() => SHA512.Create();
+
+        /// <summary>
         /// Creates a new <see cref="HMAC"/>
         /// </summary>
         private static HMAC CreateHmac() => new HMACSHA512();
@@ -211,18 +216,13 @@
         /// </summary>
         internal static RSAParameters SwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours)
         {
+            // TODO: Swap a signed nonce
+
             // Write out our public key
-            underlyingStream.WriteChunk(ours.Exponent);
-            underlyingStream.WriteChunk(ours.Modulus);
+            underlyingStream.Write(ours.ToBytes());
 
             // Read in their public key
-            var remoteExponent = underlyingStream.ReadChunk();
-            var remoteModulus = underlyingStream.ReadChunk();
-            var remotePublicKey = new RSAParameters
-            {
-                Exponent = remoteExponent,
-                Modulus = remoteModulus
-            };
+            var remotePublicKey = underlyingStream.ReadPublicKey();
 
             // Return their public key
             return remotePublicKey;
