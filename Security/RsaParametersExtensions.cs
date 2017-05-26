@@ -12,6 +12,15 @@
                 return hasher.ComputeHash(bytes);
         }
 
+        public static RSA CreateRsa(this RSAParameters key)
+        {
+            var rsa = RSA.Create();
+            rsa.ImportParameters(key);
+            return rsa;
+        }
+
+        public static int GetKeySize(this RSAParameters key) => key.Modulus.Length;
+
         public static RSAParameters ReadPublicKey(this Stream stream)
         {
             var remoteExponent = stream.ReadChunk();
@@ -28,10 +37,15 @@
         {
             using (var buffer = new MemoryStream())
             {
-                buffer.WriteChunk(key.Exponent);
-                buffer.WriteChunk(key.Modulus);
+                buffer.WritePublicKey(key);
                 return buffer.ToArray();
             }
+        }
+
+        public static void WritePublicKey(this Stream stream, RSAParameters key)
+        {
+            stream.WriteChunk(key.Exponent);
+            stream.WriteChunk(key.Modulus);
         }
     }
 }

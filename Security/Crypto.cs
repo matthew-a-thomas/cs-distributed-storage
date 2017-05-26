@@ -4,14 +4,27 @@
     using System.Linq;
     using System.Security.Cryptography;
 
+    /// <summary>
+    /// Contains many cryptographic functions that can be used to build a protocol
+    /// </summary>
     internal static class Crypto
     {
+        internal static readonly RSAEncryptionPadding EncryptionPadding = RSAEncryptionPadding.Pkcs1;
+
+        /// <summary>
+        /// The name of the hash algorithm we'll be working with
+        /// </summary>
+        internal static readonly HashAlgorithmName HashName = HashAlgorithmName.SHA512;
+
+        internal static readonly RSASignaturePadding SignaturePadding = RSASignaturePadding.Pkcs1;
+
         /// <summary>
         /// Creates an <see cref="Aes"/> and sets various parameters
         /// </summary>
         private static Aes CreateAes()
         {
             var aes = Aes.Create();
+            aes.KeySize = 256;
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
             return aes;
@@ -20,7 +33,7 @@
         /// <summary>
         /// Creates a nonce that can be used as either the IV or key of an <see cref="Aes"/>
         /// </summary>
-        private static byte[] CreateAesIvOrKey() => CreateNonce(256 / 8);
+        internal static byte[] CreateAesIvOrKey() => CreateNonce(256 / 8);
 
         /// <summary>
         /// Creates a new <see cref="HashAlgorithm"/>
@@ -70,7 +83,7 @@
         /// <summary>
         /// Returns the given <paramref name="data"/> after being AES-decrypted (and HMAC verified) with the given <paramref name="key"/>
         /// </summary>
-        internal static byte[] Decrypt(byte[] data, byte[] key)
+        internal static byte[] DecryptAes(byte[] data, byte[] key)
         {
             // Set up AES
             using (var aes = CreateAes())
@@ -107,16 +120,12 @@
         /// <summary>
         /// Returns the given <paramref name="data"/> after being RSA decrypted with our private key and after the signature has been verified with their public key
         /// </summary>
-        internal static byte[] Decrypt(byte[] data, RSAParameters ours, RSAParameters theirs)
+        internal static byte[] DecryptRsa(byte[] data, RSAParameters ours, RSAParameters theirs)
         {
-            using (var ourRsa = RSA.Create())
+            using (var ourRsa = ours.CreateRsa())
             {
-                ourRsa.ImportParameters(ours);
-
-                using (var theirRsa = RSA.Create())
+                using (var theirRsa = theirs.CreateRsa())
                 {
-                    theirRsa.ImportParameters(theirs);
-
                     using (var buffer = new MemoryStream(data))
                     {
                         // Pull out the ciphertext
@@ -125,11 +134,11 @@
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
                         var signature = buffer.ReadChunk();
-                        if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1))
+                        if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
                             return null;
 
                         // Decrypt the ciphertext
-                        var plaintext = ourRsa.Decrypt(ciphertext, RSAEncryptionPadding.Pkcs1);
+                        var plaintext = ourRsa.Decrypt(ciphertext, EncryptionPadding);
 
                         // Return the result
                         return plaintext;
@@ -141,7 +150,7 @@
         /// <summary>
         /// Returns the given <paramref name="data"/> after being AES-encrypted and HMAC'ed with the given <paramref name="key"/>
         /// </summary>
-        internal static byte[] Encrypt(byte[] data, byte[] key)
+        internal static byte[] EncryptAes(byte[] data, byte[] key)
         {
             // Set up AES
             using (var aes = CreateAes())
@@ -178,28 +187,24 @@
         /// <summary>
         /// Returns the given <paramref name="data"/> after being RSA encrypted with their public key and signed with our private key
         /// </summary>
-        internal static byte[] Encrypt(byte[] data, RSAParameters ours, RSAParameters theirs)
+        internal static byte[] EncryptRsa(byte[] data, RSAParameters ours, RSAParameters theirs)
         {
             // Set up an RSA with our private key
-            using (var ourRsa = RSA.Create())
+            using (var ourRsa = ours.CreateRsa())
             {
-                ourRsa.ImportParameters(ours);
-
                 // Set up an RSA with their public key
-                using (var theirRsa = RSA.Create())
+                using (var theirRsa = theirs.CreateRsa())
                 {
-                    theirRsa.ImportParameters(theirs);
-
                     using (var buffer = new MemoryStream())
                     {
                         // Encrypt the given data using their public key, then write out the ciphertext length and the ciphertext contents into the buffer memory stream
-                        buffer.WriteChunk(theirRsa.Encrypt(data, RSAEncryptionPadding.Pkcs1));
+                        buffer.WriteChunk(theirRsa.Encrypt(data, EncryptionPadding));
 
                         // Reset the stream's position in preparation of hashing/signing
                         buffer.Position = 0;
 
                         // Sign what we've written
-                        var signature = ourRsa.SignData(buffer, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+                        var signature = ourRsa.SignData(buffer, HashName, SignaturePadding);
 
                         // Now write out our signature
                         buffer.WriteChunk(signature);
@@ -212,20 +217,53 @@
         }
         
         /// <summary>
-        /// Uses the given stream to write out the public part of our RSA key, and read in and returns the public part of their RSA key
+        /// Uses the given stream to write out the public part of our RSA key, and read in and returns the public part of their RSA key.
+        /// This method also verifies that the sending party owns the private key for the public key they're sending.
+        /// It does this by also swapping nonces, and signing/verifying them
         /// </summary>
-        internal static RSAParameters SwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours)
+        internal static bool TrySwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours, out RSAParameters theirs)
         {
-            // TODO: Swap a signed nonce
+            // Send our stuff
+            {
+                // Write out our public key
+                underlyingStream.WritePublicKey(ours);
 
-            // Write out our public key
-            underlyingStream.Write(ours.ToBytes());
+                // Create a nonce and write it out
+                var nonce = CreateNonce(ours.GetKeySize());
+                underlyingStream.WriteChunk(nonce);
 
-            // Read in their public key
-            var remotePublicKey = underlyingStream.ReadPublicKey();
+                // Sign the nonce that we sent, and send that signature
+                using (var rsa = ours.CreateRsa())
+                {
+                    var signature = rsa.SignData(nonce, HashName, SignaturePadding);
+                    underlyingStream.WriteChunk(signature);
+                }
+            }
 
-            // Return their public key
-            return remotePublicKey;
+            // Read and verify their stuff
+            {
+                // Read in what they sent
+                var remotePublicKey = underlyingStream.ReadPublicKey();
+                var nonce = underlyingStream.ReadChunk(); // Read the nonce they sent. We don't actually do anything with that
+
+                // See if the nonce length is valid
+                var isValid = nonce.Length == remotePublicKey.GetKeySize();
+                
+                // Now read out the signature they sent
+                var signature = underlyingStream.ReadChunk();
+
+                // See if the signature of the nonce is good
+                using (var rsa = remotePublicKey.CreateRsa())
+                {
+                    isValid &= rsa.VerifyData(nonce, signature, HashName, SignaturePadding);
+
+                    // Go ahead and output the public key they sent
+                    theirs = remotePublicKey;
+
+                    // Finally, return whether everything is kosher
+                    return isValid;
+                }
+            }
         }
     }
 }
