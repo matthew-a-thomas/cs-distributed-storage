@@ -24,17 +24,18 @@
             }
 
             [TestMethod]
-            public void DoesNotReturnIfBytesAreNotAvailable()
+            public void TimesOutWhenNotEnoughBytes()
             {
                 try
                 {
                     using (var stream = new MemoryStream())
                     {
-                        stream.BlockingRead(1, TimeSpan.FromMilliseconds(500));
+                        stream.BlockingRead(1, TimeSpan.FromMilliseconds(100));
                     }
+                    throw new Exception("Test failed");
                 }
                 catch (TimeoutException)
-                { } // A timeout exception means this test was successful
+                { }
             }
         }
 
