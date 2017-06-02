@@ -1,6 +1,7 @@
 ﻿namespace SecurityTests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
@@ -87,6 +88,32 @@
                         var message = Encoding.ASCII.GetString(data);
                         Assert.AreEqual("Hello world", message);
                     }
+                }
+            }
+        }
+
+        [TestClass]
+        public class TryAcceptConnectionMethod
+        {
+            [TestMethod]
+            public void DoesNotThrowErrorForTimeout()
+            {
+                using (var stream = new MemoryStream())
+                {
+                    SecureStream.TryAcceptConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
+                }
+            }
+        }
+
+        [TestClass]
+        public class TryMakeConnectionMethod
+        {
+            [TestMethod]
+            public void DoesNotThrowErrorForTimeout()
+            {
+                using (var stream = new MemoryStream())
+                {
+                    SecureStream.TryMakeConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
                 }
             }
         }
