@@ -56,6 +56,32 @@
         }
 
         [TestClass]
+        public class TryReadMethod
+        {
+            [TestMethod]
+            public void ReturnsFalseWhenNotEnoughBytes()
+            {
+                using (var stream = new MemoryStream())
+                {
+                    Assert.IsFalse(stream.TryRead(1, out _));
+                }
+            }
+        }
+
+        [TestClass]
+        public class TryReadChunkMethod
+        {
+            [TestMethod]
+            public void ReturnsFalseWhenNotEnoughBytes()
+            {
+                using (var stream = new MemoryStream())
+                {
+                    Assert.IsFalse(stream.TryReadChunk(out _));
+                }
+            }
+        }
+
+        [TestClass]
         public class WriteMethod
         {
             [TestMethod]
