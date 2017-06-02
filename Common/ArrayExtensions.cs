@@ -1,11 +1,9 @@
-﻿namespace DistributedStorage
+﻿namespace Common
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
-    /// <summary>
-    /// Extension methods for primitive type arrays
-    /// </summary>
     public static class ArrayExtensions
     {
         /// <summary>
@@ -40,7 +38,22 @@
             }
             return result;
         }
-        
+
+        /// <summary>
+        /// Combines the given list of byte arrays into one
+        /// </summary>
+        public static byte[] Combine(this IReadOnlyList<byte[]> chunks)
+        {
+            var result = new byte[chunks.Select(chunk => chunk.Length).Sum()];
+            var index = 0;
+            foreach (var chunk in chunks)
+            {
+                chunk.CopyTo(result, index);
+                index += chunk.Length;
+            }
+            return result;
+        }
+
         /// <summary>
         /// Splits the given <paramref name="data"/> into the given <paramref name="numParts"/>
         /// </summary>
@@ -67,7 +80,7 @@
             list[from] = list[to];
             list[to] = temp;
         }
-        
+
         /// <summary>
         /// Modifies this byte array by XOR'ing all the bytes with the given array
         /// </summary>

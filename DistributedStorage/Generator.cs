@@ -1,6 +1,7 @@
 ﻿namespace DistributedStorage
 {
     using System.Collections.Generic;
+    using Common;
 
     /// <summary>
     /// Generates <see cref="Slice"/>s from source data

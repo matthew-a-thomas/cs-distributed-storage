@@ -1,8 +1,8 @@
-﻿namespace DistributedStorageTests
+﻿namespace CommonTests
 {
     using System.Linq;
+    using Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using DistributedStorage;
 
     [TestClass]
     public class ArrayExtensionsClass

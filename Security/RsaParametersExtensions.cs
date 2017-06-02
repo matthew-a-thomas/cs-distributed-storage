@@ -2,6 +2,7 @@
 {
     using System.IO;
     using System.Security.Cryptography;
+    using Common;
 
     internal static class RsaParametersExtensions
     {
@@ -39,6 +40,20 @@
             {
                 buffer.WritePublicKey(key);
                 return buffer.ToArray();
+            }
+        }
+
+        public static RSAParameters ToRsaPublicKey(this byte[] data)
+        {
+            using (var buffer = new MemoryStream(data))
+            {
+                var exponent = buffer.ReadChunk();
+                var modulus = buffer.ReadChunk();
+                return new RSAParameters
+                {
+                    Exponent = exponent,
+                    Modulus = modulus
+                };
             }
         }
 

@@ -3,6 +3,7 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using Common;
 
     /// <summary>
     /// Extension methods for a <see cref="Slice"/> in the context of serialization

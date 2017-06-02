@@ -8,6 +8,7 @@
     using DistributedStorage;
     using DistributedStorage.Serialization;
     using Newtonsoft.Json;
+    using Common;
 
     [SuppressMessage("ReSharper", "FunctionNeverReturns")]
     internal class Application

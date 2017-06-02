@@ -1,5 +1,6 @@
 ﻿namespace DistributedStorage
 {
+    using Common;
     using System;
     using System.Collections.Generic;
 

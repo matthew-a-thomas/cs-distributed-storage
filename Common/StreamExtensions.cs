@@ -1,4 +1,4 @@
-﻿namespace Security
+﻿namespace Common
 {
     using System;
     using System.IO;
