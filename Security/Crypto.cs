@@ -100,7 +100,7 @@
                     var ciphertext = buffer.ReadChunk();
 
                     // Assert that the HMAC is correct
-                    using (var hasher = CreateHmac())
+                    using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
                         var reportedHmac = buffer.ReadChunk();
@@ -179,7 +179,8 @@
                         using (var hasher = CreateHmac(key))
                         {
                             // Write out the HMAC of what we've written so far
-                            buffer.WriteChunk(hasher.ComputeHash(buffer));
+                            var hmac = hasher.ComputeHash(buffer);
+                            buffer.WriteChunk(hmac);
 
                             // Return the result
                             return buffer.ToArray();
