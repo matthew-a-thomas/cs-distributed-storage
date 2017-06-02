@@ -33,7 +33,7 @@
         /// <summary>
         /// Creates a nonce that can be used as the IV of an <see cref="Aes"/>
         /// </summary>
-        internal static byte[] CreateAesIv() => CreateNonce(128 / 8);
+        private static byte[] CreateAesIv() => CreateNonce(128 / 8);
 
         /// <summary>
         /// Creates a nonce that can be used as the key of an <see cref="Aes"/>
@@ -63,7 +63,7 @@
         /// <summary>
         /// Creates a cryptographically-secure random array of bytes
         /// </summary>
-        internal static byte[] CreateNonce(int size)
+        private static byte[] CreateNonce(int size)
         {
             using (var rng = RandomNumberGenerator.Create())
             {
