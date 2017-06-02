@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security", "Security\Securi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityTests", "SecurityTests\SecurityTests.csproj", "{45E2E765-31B9-4D49-BB6D-5B312332F4CD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{DC70A9AE-F845-4F51-AD49-AA340A04CF79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
