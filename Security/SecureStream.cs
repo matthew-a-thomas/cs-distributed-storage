@@ -54,7 +54,7 @@
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be
-            var connectionKey = Crypto.CreateAesIvOrKey(); // First, let's make one up
+            var connectionKey = Crypto.CreateAesKey(); // First, let's make one up
             using (var theirRsa = theirs.CreateRsa())
             {
                 using (var ourRsa = ours.CreateRsa())
@@ -96,7 +96,7 @@
         public void SendDatagram(byte[] data)
         {
             // Create an ephemeral session key
-            var sessionKey = Crypto.CreateAesIvOrKey();
+            var sessionKey = Crypto.CreateAesKey();
             // Encrypt+HMAC the session key using our connection key
             var ciphertextSessionKey = Crypto.EncryptAes(sessionKey, _connectionKey);
             // Encrypt+HMAC the given data using the session key

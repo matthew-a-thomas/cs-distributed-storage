@@ -31,9 +31,14 @@
         }
 
         /// <summary>
-        /// Creates a nonce that can be used as either the IV or key of an <see cref="Aes"/>
+        /// Creates a nonce that can be used as the IV of an <see cref="Aes"/>
         /// </summary>
-        internal static byte[] CreateAesIvOrKey() => CreateNonce(256 / 8);
+        internal static byte[] CreateAesIv() => CreateNonce(128 / 8);
+
+        /// <summary>
+        /// Creates a nonce that can be used as the key of an <see cref="Aes"/>
+        /// </summary>
+        internal static byte[] CreateAesKey() => CreateNonce(256 / 8);
 
         /// <summary>
         /// Creates a new <see cref="HashAlgorithm"/>
@@ -156,7 +161,7 @@
             using (var aes = CreateAes())
             {
                 // Create an initialization vector
-                var iv = CreateAesIvOrKey();
+                var iv = CreateAesIv();
 
                 using (var encryptor = aes.CreateEncryptor(key, iv))
                 {
