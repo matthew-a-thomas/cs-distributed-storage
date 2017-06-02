@@ -43,7 +43,36 @@
             var data = stream.BlockingRead(length, timeout - start.Elapsed);
             return data;
         }
-        
+
+        /// <summary>
+        /// Tries to read the given number of bytes from this <see cref="Stream"/>.
+        /// If that number of bytes is not immediately returned from a call to <see cref="Stream.Read(byte[], int, int)"/>, then false is returned.
+        /// </summary>
+        public static bool TryRead(this Stream stream, int length, out byte[] data)
+        {
+            var buffer = new byte[length];
+            var numBytesRead = stream.Read(buffer, 0, length);
+            if (numBytesRead == length)
+            {
+                data = buffer;
+                return true;
+            }
+            data = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to read the next chunk of data from this <see cref="Stream"/>.
+        /// If an entire chunk is not immediately available, then false is returned.
+        /// </summary>
+        public static bool TryReadChunk(this Stream stream, out byte[] data)
+        {
+            if (stream.TryRead(4, out var lengthBytes) && stream.TryRead(BitConverter.ToInt32(lengthBytes, 0), out data))
+                return true;
+            data = null;
+            return false;
+        }
+
         /// <summary>
         /// Writes the given data out to this stream
         /// </summary>
