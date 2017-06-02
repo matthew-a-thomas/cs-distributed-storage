@@ -23,22 +23,13 @@
 
             // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
             var ciphertext = underlyingStream.BlockingReadChunk();
-            var signature = underlyingStream.BlockingReadChunk();
-            using (var theirRsa = theirs.CreateRsa())
-            {
-                using (var ourRsa = ours.CreateRsa())
-                {
-                    // Verify that their private key signed the ciphertext
-                    if (!theirRsa.VerifyData(ciphertext, signature, Crypto.HashName, Crypto.SignaturePadding))
-                        return false;
-                    // Use our private key to decrypt the ciphertext
-                    var connectionKey = ourRsa.Decrypt(ciphertext, Crypto.EncryptionPadding);
+            var connectionKey = Crypto.DecryptRsa(ciphertext, ours, theirs); // Try decrypting the connection key that they should have sent
+            if (connectionKey == null)
+                return false; // We couldn't decrypt what they sent. Perhaps their signature is wrong, or perhaps something else is wrong
 
-                    // Now we're ready to create a SecureStream
-                    secureStream = new SecureStream(underlyingStream, connectionKey);
-                    return true;
-                }
-            }
+            // Now we're ready to create a SecureStream
+            secureStream = new SecureStream(underlyingStream, connectionKey);
+            return true;
         }
 
         /// <summary>
@@ -56,18 +47,8 @@
 
             // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be
             var connectionKey = Crypto.CreateAesKey(); // First, let's make one up
-            using (var theirRsa = theirs.CreateRsa())
-            {
-                using (var ourRsa = ours.CreateRsa())
-                {
-                    var ciphertext = theirRsa.Encrypt(connectionKey, Crypto.EncryptionPadding); // Encrypt the connection key
-                    var signature = ourRsa.SignData(ciphertext, Crypto.HashName, Crypto.SignaturePadding); // Sign what we encrypted
-
-                    // Send them both the ciphertext and our signature
-                    underlyingStream.WriteChunk(ciphertext);
-                    underlyingStream.WriteChunk(signature);
-                }
-            }
+            var ciphertext = Crypto.EncryptRsa(connectionKey, ours, theirs); // Next let's encrypt and sign it
+            underlyingStream.WriteChunk(ciphertext); // Send it along
 
             // Now we're ready to create a SecureStream
             secureStream = new SecureStream(underlyingStream, connectionKey);
