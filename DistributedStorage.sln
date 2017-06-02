@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityTests", "SecurityTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{DC70A9AE-F845-4F51-AD49-AA340A04CF79}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonTests", "CommonTests\CommonTests.csproj", "{DB7A10AF-459C-4904-AD91-93139E2DC601}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
