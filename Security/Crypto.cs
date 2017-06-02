@@ -99,14 +99,17 @@
                 using (var buffer = new MemoryStream(data))
                 {
                     // Pull out the initialization vector and ciphertext
-                    var iv = buffer.BlockingReadChunk(TimeSpan.MaxValue);
-                    var ciphertext = buffer.BlockingReadChunk(TimeSpan.MaxValue);
+                    if (!buffer.TryReadChunk(out var iv))
+                        return null;
+                    if (!buffer.TryReadChunk(out var ciphertext))
+                        return null;
 
                     // Assert that the HMAC is correct
                     using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
-                        var reportedHmac = buffer.BlockingReadChunk(TimeSpan.MaxValue);
+                        if (!buffer.TryReadChunk(out var reportedHmac))
+                            return null;
                         var computedHmac = hasher.ComputeHash(data, 0, lengthOfFirstPart);
                         if (!computedHmac.SequenceEqual(reportedHmac))
                             return null;
@@ -137,11 +140,13 @@
                     using (var buffer = new MemoryStream(data))
                     {
                         // Pull out the ciphertext
-                        var ciphertext = buffer.BlockingReadChunk(TimeSpan.MaxValue);
+                        if (!buffer.TryReadChunk(out var ciphertext))
+                            return null;
 
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
-                        var signature = buffer.BlockingReadChunk(TimeSpan.MaxValue);
+                        if (!buffer.TryReadChunk(out var signature))
+                            return null;
                         if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
                             return null;
 

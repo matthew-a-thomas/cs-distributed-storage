@@ -46,17 +46,21 @@
             }
         }
 
-        public static RSAParameters ToRsaPublicKey(this byte[] data)
+        public static bool TryToRsaPublicKey(this byte[] data, out RSAParameters key)
         {
+            key = default(RSAParameters);
             using (var buffer = new MemoryStream(data))
             {
-                var exponent = buffer.BlockingReadChunk(TimeSpan.MaxValue);
-                var modulus = buffer.BlockingReadChunk(TimeSpan.MaxValue);
-                return new RSAParameters
+                if (!buffer.TryReadChunk(out var exponent))
+                    return false;
+                if (!buffer.TryReadChunk(out var modulus))
+                    return false;
+                key = new RSAParameters
                 {
                     Exponent = exponent,
                     Modulus = modulus
                 };
+                return true;
             }
         }
 
