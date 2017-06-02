@@ -97,14 +97,14 @@
                 using (var buffer = new MemoryStream(data))
                 {
                     // Pull out the initialization vector and ciphertext
-                    var iv = buffer.ReadChunk();
-                    var ciphertext = buffer.ReadChunk();
+                    var iv = buffer.BlockingReadChunk();
+                    var ciphertext = buffer.BlockingReadChunk();
 
                     // Assert that the HMAC is correct
                     using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
-                        var reportedHmac = buffer.ReadChunk();
+                        var reportedHmac = buffer.BlockingReadChunk();
                         var computedHmac = hasher.ComputeHash(data, 0, lengthOfFirstPart);
                         if (!computedHmac.SequenceEqual(reportedHmac))
                             return null;
@@ -135,11 +135,11 @@
                     using (var buffer = new MemoryStream(data))
                     {
                         // Pull out the ciphertext
-                        var ciphertext = buffer.ReadChunk();
+                        var ciphertext = buffer.BlockingReadChunk();
 
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
-                        var signature = buffer.ReadChunk();
+                        var signature = buffer.BlockingReadChunk();
                         if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
                             return null;
 
@@ -251,13 +251,13 @@
             {
                 // Read in what they sent
                 var remotePublicKey = underlyingStream.ReadPublicKey();
-                var nonce = underlyingStream.ReadChunk(); // Read the nonce they sent. We don't actually do anything with that
+                var nonce = underlyingStream.BlockingReadChunk(); // Read the nonce they sent. We don't actually do anything with that
 
                 // See if the nonce length is valid
                 var isValid = nonce.Length == remotePublicKey.GetKeySize();
                 
                 // Now read out the signature they sent
-                var signature = underlyingStream.ReadChunk();
+                var signature = underlyingStream.BlockingReadChunk();
 
                 // See if the signature of the nonce is good
                 using (var rsa = remotePublicKey.CreateRsa())

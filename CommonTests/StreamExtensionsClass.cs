@@ -1,7 +1,9 @@
 ﻿namespace CommonTests
 {
+    using System;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Common;
 
@@ -9,17 +11,30 @@
     public class StreamExtensionsClass
     {
         [TestClass]
-        public class ReadMethod
+        public class BlockingReadMethod
         {
             [TestMethod]
             public void ReadsCorrectBytes()
             {
                 using (var stream = new MemoryStream(new byte[] { 0x01, 0x02, 0x03 }))
                 {
-                    var data = stream.Read(3);
+                    var data = stream.BlockingRead(3);
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
+            }
+
+            [TestMethod]
+            public void DoesNotReturnIfBytesAreNotAvailable()
+            {
+                Assert.IsFalse(Task.Run(() =>
+                    {
+                        using (var stream = new MemoryStream())
+                        {
+                            stream.BlockingRead(1);
+                        }
+                    })
+                    .Wait(TimeSpan.FromMilliseconds(500)));
             }
         }
 
@@ -33,7 +48,7 @@
                 {
                     stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
                     stream.Position = 0;
-                    var data = stream.ReadChunk();
+                    var data = stream.BlockingReadChunk();
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }

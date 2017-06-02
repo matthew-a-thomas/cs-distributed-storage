@@ -22,8 +22,8 @@
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
-            var ciphertext = underlyingStream.ReadChunk();
-            var signature = underlyingStream.ReadChunk();
+            var ciphertext = underlyingStream.BlockingReadChunk();
+            var signature = underlyingStream.BlockingReadChunk();
             using (var theirRsa = theirs.CreateRsa())
             {
                 using (var ourRsa = ours.CreateRsa())
@@ -117,13 +117,13 @@
             data = null;
 
             // Read the encrypted session key and try to decrypt it using the connection key
-            var ciphertextSessionKey = _underlyingStream.ReadChunk();
+            var ciphertextSessionKey = _underlyingStream.BlockingReadChunk();
             var sessionKey = Crypto.DecryptAes(ciphertextSessionKey, _connectionKey);
             if (sessionKey == null)
                 return false;
 
             // Try to decrypt the ciphertext using the session key
-            var ciphertext = _underlyingStream.ReadChunk();
+            var ciphertext = _underlyingStream.BlockingReadChunk();
             data = Crypto.DecryptAes(ciphertext, sessionKey);
             return data != null;
         }

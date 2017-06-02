@@ -24,8 +24,8 @@
 
         public static RSAParameters ReadPublicKey(this Stream stream)
         {
-            var remoteExponent = stream.ReadChunk();
-            var remoteModulus = stream.ReadChunk();
+            var remoteExponent = stream.BlockingReadChunk();
+            var remoteModulus = stream.BlockingReadChunk();
             var publicKey = new RSAParameters
             {
                 Exponent = remoteExponent,
@@ -47,8 +47,8 @@
         {
             using (var buffer = new MemoryStream(data))
             {
-                var exponent = buffer.ReadChunk();
-                var modulus = buffer.ReadChunk();
+                var exponent = buffer.BlockingReadChunk();
+                var modulus = buffer.BlockingReadChunk();
                 return new RSAParameters
                 {
                     Exponent = exponent,
