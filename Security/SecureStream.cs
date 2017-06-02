@@ -1,5 +1,7 @@
 ﻿namespace Security
 {
+    using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Security.Cryptography;
     using Common;
@@ -12,17 +14,18 @@
         /// Attempts to accept a connection over the given <paramref name="underlyingStream"/>.
         /// False is returned if we can't prove that the other party owns the private key for their public key
         /// </summary>
-        public static bool TryAcceptConnection(Stream underlyingStream, RSAParameters ours, out RSAParameters theirs, out SecureStream secureStream)
+        public static bool TryAcceptConnection(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs, out SecureStream secureStream)
         {
             // Start out assuming that we'll fail
             secureStream = null;
 
             // Try swapping public keys and verifying that the other party owns the corresponding private key
-            if (!Crypto.TrySwapPublicRsaKeys(underlyingStream, ours, out theirs))
+            var start = Stopwatch.StartNew();
+            if (!Crypto.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
-            var ciphertext = underlyingStream.BlockingReadChunk();
+            var ciphertext = underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
             var connectionKey = Crypto.DecryptRsa(ciphertext, ours, theirs); // Try decrypting the connection key that they should have sent
             if (connectionKey == null)
                 return false; // We couldn't decrypt what they sent. Perhaps their signature is wrong, or perhaps something else is wrong
@@ -36,13 +39,13 @@
         /// Attempts to make a connection over the given <paramref name="underlyingStream"/>.
         /// False is returned if we can't prove that the other party owns the private key for their public key
         /// </summary>
-        public static bool TryMakeConnection(Stream underlyingStream, RSAParameters ours, out RSAParameters theirs, out SecureStream secureStream)
+        public static bool TryMakeConnection(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs, out SecureStream secureStream)
         {
             // Start out assuming that we'll fail
             secureStream = null;
 
             // Try swapping public keys and verifying that the other party owns the corresponding private key
-            if (!Crypto.TrySwapPublicRsaKeys(underlyingStream, ours, out theirs))
+            if (!Crypto.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be
@@ -93,18 +96,19 @@
         /// <summary>
         /// Tries to receive an encrypted message from the other party
         /// </summary>
-        public bool TryReceiveDatagram(out byte[] data)
+        public bool TryReceiveDatagram(TimeSpan timeout, out byte[] data)
         {
             data = null;
 
             // Read the encrypted session key and try to decrypt it using the connection key
-            var ciphertextSessionKey = _underlyingStream.BlockingReadChunk();
+            var start = Stopwatch.StartNew();
+            var ciphertextSessionKey = _underlyingStream.BlockingReadChunk(timeout);
             var sessionKey = Crypto.DecryptAes(ciphertextSessionKey, _connectionKey);
             if (sessionKey == null)
                 return false;
 
             // Try to decrypt the ciphertext using the session key
-            var ciphertext = _underlyingStream.BlockingReadChunk();
+            var ciphertext = _underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
             data = Crypto.DecryptAes(ciphertext, sessionKey);
             return data != null;
         }

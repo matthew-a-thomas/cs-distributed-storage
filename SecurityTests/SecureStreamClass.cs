@@ -59,6 +59,7 @@
                                 if (!SecureStream.TryMakeConnection(
                                     stream1,
                                     _rsaKey1,
+                                    TimeSpan.FromSeconds(1),
                                     out var theirs,
                                     out var secureStream
                                 ))
@@ -71,6 +72,7 @@
                                 if (!SecureStream.TryAcceptConnection(
                                     stream2,
                                     _rsaKey2,
+                                    TimeSpan.FromSeconds(1),
                                     out var theirs,
                                     out var secureStream
                                 ))
@@ -80,7 +82,7 @@
                             })
                         );
                         secureStream1.SendDatagram(Encoding.ASCII.GetBytes("Hello world"));
-                        if (!secureStream2.TryReceiveDatagram(out var data))
+                        if (!secureStream2.TryReceiveDatagram(TimeSpan.FromSeconds(1), out var data))
                             throw new Exception($"Didn't receive anything on {nameof(secureStream2)}");
                         var message = Encoding.ASCII.GetString(data);
                         Assert.AreEqual("Hello world", message);

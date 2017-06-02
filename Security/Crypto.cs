@@ -1,5 +1,7 @@
 ﻿namespace Security
 {
+    using System;
+    using System.Diagnostics;
     using Common;
     using System.IO;
     using System.Linq;
@@ -97,14 +99,14 @@
                 using (var buffer = new MemoryStream(data))
                 {
                     // Pull out the initialization vector and ciphertext
-                    var iv = buffer.BlockingReadChunk();
-                    var ciphertext = buffer.BlockingReadChunk();
+                    var iv = buffer.BlockingReadChunk(TimeSpan.MaxValue);
+                    var ciphertext = buffer.BlockingReadChunk(TimeSpan.MaxValue);
 
                     // Assert that the HMAC is correct
                     using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
-                        var reportedHmac = buffer.BlockingReadChunk();
+                        var reportedHmac = buffer.BlockingReadChunk(TimeSpan.MaxValue);
                         var computedHmac = hasher.ComputeHash(data, 0, lengthOfFirstPart);
                         if (!computedHmac.SequenceEqual(reportedHmac))
                             return null;
@@ -135,11 +137,11 @@
                     using (var buffer = new MemoryStream(data))
                     {
                         // Pull out the ciphertext
-                        var ciphertext = buffer.BlockingReadChunk();
+                        var ciphertext = buffer.BlockingReadChunk(TimeSpan.MaxValue);
 
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
-                        var signature = buffer.BlockingReadChunk();
+                        var signature = buffer.BlockingReadChunk(TimeSpan.MaxValue);
                         if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
                             return null;
 
@@ -228,7 +230,7 @@
         /// This method also verifies that the sending party owns the private key for the public key they're sending.
         /// It does this by also swapping nonces, and signing/verifying them
         /// </summary>
-        internal static bool TrySwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours, out RSAParameters theirs)
+        internal static bool TrySwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs)
         {
             // Send our stuff
             {
@@ -250,14 +252,15 @@
             // Read and verify their stuff
             {
                 // Read in what they sent
-                var remotePublicKey = underlyingStream.ReadPublicKey();
-                var nonce = underlyingStream.BlockingReadChunk(); // Read the nonce they sent. We don't actually do anything with that
+                var start = Stopwatch.StartNew();
+                var remotePublicKey = underlyingStream.ReadPublicKey(timeout);
+                var nonce = underlyingStream.BlockingReadChunk(timeout -= start.Elapsed); // Read the nonce they sent. We don't actually do anything with that
 
                 // See if the nonce length is valid
                 var isValid = nonce.Length == remotePublicKey.GetKeySize();
                 
                 // Now read out the signature they sent
-                var signature = underlyingStream.BlockingReadChunk();
+                var signature = underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
 
                 // See if the signature of the nonce is good
                 using (var rsa = remotePublicKey.CreateRsa())

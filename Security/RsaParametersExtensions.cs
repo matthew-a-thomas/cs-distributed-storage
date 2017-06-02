@@ -1,5 +1,7 @@
 ﻿namespace Security
 {
+    using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Security.Cryptography;
     using Common;
@@ -22,10 +24,11 @@
 
         public static int GetKeySize(this RSAParameters key) => key.Modulus.Length;
 
-        public static RSAParameters ReadPublicKey(this Stream stream)
+        public static RSAParameters ReadPublicKey(this Stream stream, TimeSpan timeout)
         {
-            var remoteExponent = stream.BlockingReadChunk();
-            var remoteModulus = stream.BlockingReadChunk();
+            var start = Stopwatch.StartNew();
+            var remoteExponent = stream.BlockingReadChunk(timeout);
+            var remoteModulus = stream.BlockingReadChunk(timeout - start.Elapsed);
             var publicKey = new RSAParameters
             {
                 Exponent = remoteExponent,
@@ -47,8 +50,8 @@
         {
             using (var buffer = new MemoryStream(data))
             {
-                var exponent = buffer.BlockingReadChunk();
-                var modulus = buffer.BlockingReadChunk();
+                var exponent = buffer.BlockingReadChunk(TimeSpan.MaxValue);
+                var modulus = buffer.BlockingReadChunk(TimeSpan.MaxValue);
                 return new RSAParameters
                 {
                     Exponent = exponent,

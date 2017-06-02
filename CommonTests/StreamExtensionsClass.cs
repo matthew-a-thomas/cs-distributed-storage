@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Common;
 
@@ -18,7 +17,7 @@
             {
                 using (var stream = new MemoryStream(new byte[] { 0x01, 0x02, 0x03 }))
                 {
-                    var data = stream.BlockingRead(3);
+                    var data = stream.BlockingRead(3, TimeSpan.FromSeconds(1));
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
@@ -27,14 +26,15 @@
             [TestMethod]
             public void DoesNotReturnIfBytesAreNotAvailable()
             {
-                Assert.IsFalse(Task.Run(() =>
+                try
+                {
+                    using (var stream = new MemoryStream())
                     {
-                        using (var stream = new MemoryStream())
-                        {
-                            stream.BlockingRead(1);
-                        }
-                    })
-                    .Wait(TimeSpan.FromMilliseconds(500)));
+                        stream.BlockingRead(1, TimeSpan.FromMilliseconds(500));
+                    }
+                }
+                catch (TimeoutException)
+                { } // A timeout exception means this test was successful
             }
         }
 
@@ -48,7 +48,7 @@
                 {
                     stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
                     stream.Position = 0;
-                    var data = stream.BlockingReadChunk();
+                    var data = stream.BlockingReadChunk(TimeSpan.FromSeconds(1));
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
