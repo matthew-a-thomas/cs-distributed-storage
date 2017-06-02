@@ -84,5 +84,69 @@
                 Assert.AreEqual(2, bytes.Length);
             }
         }
+
+        [TestClass]
+        public class CombineMethod
+        {
+            [TestMethod]
+            public void PutsTwoBytesTogether()
+            {
+                var one = new byte[] { 0x01 };
+                var two = new byte[] { 0x02 };
+                var combined = new[] { one, two }.Combine();
+                Assert.IsTrue(new byte[] { 0x01, 0x02 }.SequenceEqual(combined));
+            }
+        }
+
+        [TestClass]
+        public class SplitIntoMethod
+        {
+            [TestMethod]
+            public void SplitsEvenlyDivisibleArray()
+            {
+                var array = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+                var split = array.SplitInto(2);
+                Assert.IsTrue(split.Count == 2);
+                Assert.IsTrue(split[0].SequenceEqual(new byte[] { 0x01, 0x02 }));
+                Assert.IsTrue(split[1].SequenceEqual(new byte[] { 0x03, 0x04 }));
+            }
+        }
+
+        [TestClass]
+        public class SwapMethod
+        {
+            [TestMethod]
+            public void SwapsTwoElements()
+            {
+                var array = new[] { 0, 1, 2 };
+                array.Swap(0, 2);
+                Assert.AreEqual(2, array[0]);
+                Assert.AreEqual(0, array[2]);
+            }
+        }
+
+        [TestClass]
+        public class XorMethod
+        {
+            [TestMethod]
+            public void XorsInAnotherBoolArray()
+            {
+                var array =    new[] { true, false, true };
+                var with =     new[] { false, true, false };
+                var expected = new[] { true, true, true };
+                array.Xor(with);
+                Assert.IsTrue(array.SequenceEqual(expected));
+            }
+
+            [TestMethod]
+            public void XorsInAnotherByteArray()
+            {
+                var array = new byte[]    { 0b00000001, 0b00100000, 0b10000000 };
+                var with =  new byte[]    { 0b00000010, 0b00010000, 0b10000000 };
+                var expected = new byte[] { 0b00000011, 0b00110000, 0b00000000 };
+                array.Xor(with);
+                Assert.IsTrue(array.SequenceEqual(expected));
+            }
+        }
     }
 }
