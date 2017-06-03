@@ -14,10 +14,10 @@
         internal static bool TrySwapPublicRsaKeys(this RsaKeySwapper @this, Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs)
         {
             // Send our stuff
-            @this.SendOurPublicKey(underlyingStream, ours);
+            @this.Send(underlyingStream, ours);
 
             // Read and verify their stuff
-            return @this.TryGetTheirPublicKey(underlyingStream, timeout, out theirs);
+            return @this.TryGet(underlyingStream, timeout, out theirs);
         }
 
     }

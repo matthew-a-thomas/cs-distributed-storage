@@ -35,7 +35,7 @@
         /// We verify that the signature of the nonce was made with the private portion of the reported public key.
         /// In this way we can know that the other party owns the private key of the reported public key.
         /// </summary>
-        internal bool TryGetTheirPublicKey(Stream stream, TimeSpan timeout, out RSAParameters theirs)
+        internal bool TryGet(Stream stream, TimeSpan timeout, out RSAParameters theirs)
         {
             // Read in what they sent
             var start = Stopwatch.StartNew();
@@ -62,7 +62,7 @@
         /// Sends our public key followed by a nonce and our signature of that nonce.
         /// This will prove to others that we own the private key to the public key we sent
         /// </summary>
-        internal void SendOurPublicKey(Stream stream, RSAParameters ours)
+        internal void Send(Stream stream, RSAParameters ours)
         {
             // Write out our public key
             stream.WritePublicKey(ours);

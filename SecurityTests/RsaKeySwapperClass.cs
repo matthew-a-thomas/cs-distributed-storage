@@ -13,29 +13,29 @@
         private static readonly RsaKeyProvider KeyProvider = new RsaKeyProvider();
 
         [TestClass]
-        public class SendOurPublicKeyMethod
+        public class SendMethod
         {
             [TestMethod]
             public void DoesNotThrowAnException()
             {
                 var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
                 using (var stream = new MemoryStream())
-                    swapper.SendOurPublicKey(stream, KeyProvider.RsaKey1);
+                    swapper.Send(stream, KeyProvider.RsaKey1);
             }
         }
 
         [TestClass]
-        public class TryGetTheirPublicKeyMethod
+        public class TryGetMethod
         {
             [TestMethod]
-            public void ReturnsWhatSendOurPublicKeySent()
+            public void ReturnsWhatSendSent()
             {
                 var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
                 using (var stream = new MemoryStream())
                 {
-                    swapper.SendOurPublicKey(stream, KeyProvider.RsaKey1);
+                    swapper.Send(stream, KeyProvider.RsaKey1);
                     stream.Position = 0;
-                    if (!swapper.TryGetTheirPublicKey(stream, TimeSpan.FromSeconds(1), out var theirs))
+                    if (!swapper.TryGet(stream, TimeSpan.FromSeconds(1), out var theirs))
                         throw new Exception("Failed to get their public key");
                     Assert.IsTrue(theirs.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
                 }
@@ -48,7 +48,7 @@
                 {
                     var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
                     using (var stream = new MemoryStream())
-                        swapper.TryGetTheirPublicKey(stream, TimeSpan.FromMilliseconds(50), out _);
+                        swapper.TryGet(stream, TimeSpan.FromMilliseconds(50), out _);
                     throw new Exception("Test failed");
                 }
                 catch (TimeoutException)
