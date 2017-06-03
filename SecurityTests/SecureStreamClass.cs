@@ -92,6 +92,13 @@
                     Assert.IsTrue(message.SequenceEqual(plaintext));
                 }
             }
+
+            [TestMethod]
+            public void ReturnsFalseWhenTimingOut()
+            {
+                using (var stream = new MemoryStream())
+                    Assert.IsFalse(new SecureStream(stream, new byte[10], new NonsecureCryptoSymmetric()).TryReceiveDatagram(TimeSpan.FromMilliseconds(10), out _));
+            }
         }
     }
 }
