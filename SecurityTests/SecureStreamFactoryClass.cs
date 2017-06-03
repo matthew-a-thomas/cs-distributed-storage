@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
     using Common;
@@ -13,36 +12,11 @@
     [TestClass]
     public class SecureStreamFactoryClass
     {
-        private static bool _initialized;
-        private static readonly object InitializationLockObject = new object();
-        private static RSAParameters
-            _rsaKey1,
-            _rsaKey2;
+        private static readonly RsaKeyProvider KeyProvider = new RsaKeyProvider();
 
-        private static void Initialize()
-        {
-            lock (InitializationLockObject)
-            {
-                if (_initialized)
-                    return;
-
-                Task.WaitAll(
-                    Task.Run(() => _rsaKey1 = Crypto.CreateRsaKey()),
-                    Task.Run(() => _rsaKey2 = Crypto.CreateRsaKey())
-                );
-
-                _initialized = true;
-            }
-        }
-        
         [TestClass]
         public class ConnectionTests
         {
-            public ConnectionTests()
-            {
-                Initialize();
-            }
-
             [TestMethod]
             public void TryMakingSecureStreamsAndThenSendingSomething()
             {
@@ -59,26 +33,26 @@
                             {
                                 if (!SecureStreamFactory.TryMakeConnection(
                                     stream1,
-                                    _rsaKey1,
+                                    KeyProvider.RsaKey1,
                                     TimeSpan.FromSeconds(1),
                                     out var theirs,
                                     out var secureStream
                                 ))
                                     throw new Exception($"Couldn't make {nameof(secureStream1)}");
-                                Assert.IsTrue(theirs.ToBytes().SequenceEqual(_rsaKey2.ToBytes()));
+                                Assert.IsTrue(theirs.ToBytes().SequenceEqual(KeyProvider.RsaKey2.ToBytes()));
                                 secureStream1 = secureStream;
                             }),
                             Task.Run(() =>
                             {
                                 if (!SecureStreamFactory.TryAcceptConnection(
                                     stream2,
-                                    _rsaKey2,
+                                    KeyProvider.RsaKey2,
                                     TimeSpan.FromSeconds(1),
                                     out var theirs,
                                     out var secureStream
                                 ))
                                     throw new Exception($"Couldn't make {nameof(secureStream2)}");
-                                Assert.IsTrue(theirs.ToBytes().SequenceEqual(_rsaKey1.ToBytes()));
+                                Assert.IsTrue(theirs.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
                                 secureStream2 = secureStream;
                             })
                         );
@@ -95,17 +69,12 @@
         [TestClass]
         public class TryAcceptConnectionMethod
         {
-            public TryAcceptConnectionMethod()
-            {
-                Initialize();
-            }
-
             [TestMethod]
             public void DoesNotThrowErrorForTimeout()
             {
                 using (var stream = new MemoryStream())
                 {
-                    SecureStreamFactory.TryAcceptConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
+                    SecureStreamFactory.TryAcceptConnection(stream, KeyProvider.RsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
                 }
             }
         }
@@ -113,17 +82,12 @@
         [TestClass]
         public class TryMakeConnectionMethod
         {
-            public TryMakeConnectionMethod()
-            {
-                Initialize();
-            }
-
             [TestMethod]
             public void DoesNotThrowErrorForTimeout()
             {
                 using (var stream = new MemoryStream())
                 {
-                    SecureStreamFactory.TryMakeConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
+                    SecureStreamFactory.TryMakeConnection(stream, KeyProvider.RsaKey2, TimeSpan.FromMilliseconds(100), out _, out _);
                 }
             }
         }
