@@ -1,6 +1,6 @@
 ﻿namespace Security
 {
-    internal class NonsecureCryptoAes : ICryptoAes
+    internal class NonsecureCryptoSymmetric : ICryptoSymmetric
     {
         /// <summary>
         /// Returns an array of 256/8 bytes filled with zeros
@@ -15,11 +15,11 @@
         /// <summary>
         /// Just returns the <paramref name="plaintext"/>
         /// </summary>
-        public byte[] EncryptAes(byte[] plaintext, byte[] key) => plaintext;
+        public byte[] EncryptAndHmac(byte[] plaintext, byte[] key) => plaintext;
 
         /// <summary>
         /// Just returns the <paramref name="ciphertext"/>
         /// </summary>
-        public byte[] DecryptAes(byte[] ciphertext, byte[] key) => ciphertext;
+        public byte[] VerifyHmacAndDecrypt(byte[] ciphertext, byte[] key) => ciphertext;
     }
 }

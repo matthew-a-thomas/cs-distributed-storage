@@ -29,7 +29,7 @@
         /// <summary>
         /// Performs AES crypto
         /// </summary>
-        private readonly ICryptoAes _cryptoAes;
+        private readonly ICryptoSymmetric _cryptoSymmetric;
 
         /// <summary>
         /// Performs RSA crypto for us
@@ -45,10 +45,10 @@
 
         #region Constructor
 
-        public SecureStreamFactory(ICryptoRsa cryptoRsa, ICryptoAes cryptoAes, IEntropy entropy)
+        public SecureStreamFactory(ICryptoRsa cryptoRsa, ICryptoSymmetric cryptoSymmetric, IEntropy entropy)
         {
             _cryptoRsa = cryptoRsa;
-            _cryptoAes = cryptoAes;
+            _cryptoSymmetric = cryptoSymmetric;
             _keySwapper = new RsaKeySwapper(cryptoRsa, entropy);
         }
 
@@ -101,7 +101,7 @@
                     return false; // We couldn't decrypt what they sent. Perhaps their signature is wrong, or perhaps something else is wrong
 
                 // Now we're ready to create a SecureStream
-                secureStream = new SecureStream(underlyingStream, connectionKey, _cryptoAes);
+                secureStream = new SecureStream(underlyingStream, connectionKey, _cryptoSymmetric);
                 return true;
             }
             catch
@@ -127,12 +127,12 @@
                     return false;
 
                 // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be
-                var connectionKey = _cryptoAes.CreateAesKey(); // First, let's make one up
+                var connectionKey = _cryptoSymmetric.CreateAesKey(); // First, let's make one up
                 var ciphertext = _cryptoRsa.EncryptRsa(connectionKey, ours, theirs); // Next let's encrypt and sign it
                 underlyingStream.WriteChunk(ciphertext); // Send it along
 
                 // Now we're ready to create a SecureStream
-                secureStream = new SecureStream(underlyingStream, connectionKey, _cryptoAes);
+                secureStream = new SecureStream(underlyingStream, connectionKey, _cryptoSymmetric);
                 return true;
             }
             catch
