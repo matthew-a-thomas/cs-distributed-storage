@@ -11,7 +11,7 @@
     using Security;
 
     [TestClass]
-    public class SecureStreamClass
+    public class SecureStreamFactoryClass
     {
         private static bool _initialized;
         private static readonly object InitializationLockObject = new object();
@@ -57,7 +57,7 @@
                         Task.WaitAll(
                             Task.Run(() =>
                             {
-                                if (!SecureStream.TryMakeConnection(
+                                if (!SecureStreamFactory.TryMakeConnection(
                                     stream1,
                                     _rsaKey1,
                                     TimeSpan.FromSeconds(1),
@@ -70,7 +70,7 @@
                             }),
                             Task.Run(() =>
                             {
-                                if (!SecureStream.TryAcceptConnection(
+                                if (!SecureStreamFactory.TryAcceptConnection(
                                     stream2,
                                     _rsaKey2,
                                     TimeSpan.FromSeconds(1),
@@ -95,12 +95,17 @@
         [TestClass]
         public class TryAcceptConnectionMethod
         {
+            public TryAcceptConnectionMethod()
+            {
+                Initialize();
+            }
+
             [TestMethod]
             public void DoesNotThrowErrorForTimeout()
             {
                 using (var stream = new MemoryStream())
                 {
-                    SecureStream.TryAcceptConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
+                    SecureStreamFactory.TryAcceptConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
                 }
             }
         }
@@ -108,12 +113,17 @@
         [TestClass]
         public class TryMakeConnectionMethod
         {
+            public TryMakeConnectionMethod()
+            {
+                Initialize();
+            }
+
             [TestMethod]
             public void DoesNotThrowErrorForTimeout()
             {
                 using (var stream = new MemoryStream())
                 {
-                    SecureStream.TryMakeConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
+                    SecureStreamFactory.TryMakeConnection(stream, _rsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
                 }
             }
         }

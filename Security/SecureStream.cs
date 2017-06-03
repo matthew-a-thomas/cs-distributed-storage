@@ -3,63 +3,10 @@
     using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Security.Cryptography;
     using Common;
 
-    internal class SecureStream
+    public class SecureStream
     {
-        #region Static methods
-        
-        /// <summary>
-        /// Attempts to accept a connection over the given <paramref name="underlyingStream"/>.
-        /// False is returned if we can't prove that the other party owns the private key for their public key
-        /// </summary>
-        public static bool TryAcceptConnection(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs, out SecureStream secureStream)
-        {
-            // Start out assuming that we'll fail
-            secureStream = null;
-
-            // Try swapping public keys and verifying that the other party owns the corresponding private key
-            var start = Stopwatch.StartNew();
-            if (!Crypto.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
-                return false;
-
-            // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
-            var ciphertext = underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
-            var connectionKey = Crypto.DecryptRsa(ciphertext, ours, theirs); // Try decrypting the connection key that they should have sent
-            if (connectionKey == null)
-                return false; // We couldn't decrypt what they sent. Perhaps their signature is wrong, or perhaps something else is wrong
-
-            // Now we're ready to create a SecureStream
-            secureStream = new SecureStream(underlyingStream, connectionKey);
-            return true;
-        }
-
-        /// <summary>
-        /// Attempts to make a connection over the given <paramref name="underlyingStream"/>.
-        /// False is returned if we can't prove that the other party owns the private key for their public key
-        /// </summary>
-        public static bool TryMakeConnection(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs, out SecureStream secureStream)
-        {
-            // Start out assuming that we'll fail
-            secureStream = null;
-
-            // Try swapping public keys and verifying that the other party owns the corresponding private key
-            if (!Crypto.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
-                return false;
-
-            // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be
-            var connectionKey = Crypto.CreateAesKey(); // First, let's make one up
-            var ciphertext = Crypto.EncryptRsa(connectionKey, ours, theirs); // Next let's encrypt and sign it
-            underlyingStream.WriteChunk(ciphertext); // Send it along
-
-            // Now we're ready to create a SecureStream
-            secureStream = new SecureStream(underlyingStream, connectionKey);
-            return true;
-        }
-
-        #endregion
-
         #region Constructor
 
         /// <summary>
