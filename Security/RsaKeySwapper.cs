@@ -6,6 +6,8 @@
     using System.Security.Cryptography;
     using Common;
 
+    // TODO: Need to prevent replay attacks
+
     internal class RsaKeySwapper
     {
         /// <summary>
@@ -28,48 +30,50 @@
         }
 
         /// <summary>
-        /// Uses the given stream to write out the public part of our RSA key, and read in and returns the public part of their RSA key.
-        /// This method also verifies that the sending party owns the private key for the public key they're sending.
-        /// It does this by also swapping nonces, and signing/verifying them
+        /// Tries to receive the other party's public key.
+        /// We read in their public key, then a nonce, then a signature of that nonce.
+        /// We verify that the signature of the nonce was made with the private portion of the reported public key.
+        /// In this way we can know that the other party owns the private key of the reported public key.
         /// </summary>
-        internal bool TrySwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs)
+        internal bool TryGetTheirPublicKey(Stream stream, TimeSpan timeout, out RSAParameters theirs)
         {
-            // Send our stuff
-            {
-                // Write out our public key
-                underlyingStream.WritePublicKey(ours);
+            // Read in what they sent
+            var start = Stopwatch.StartNew();
+            var remotePublicKey = stream.ReadPublicKey(timeout);
+            var nonce = stream.BlockingReadChunk(timeout -= start.Elapsed); // Read the nonce they sent. We don't actually do anything with that
 
-                // Create a nonce and write it out
-                var nonce = _entropy.CreateNonce(ours.GetKeySize());
-                underlyingStream.WriteChunk(nonce);
+            // See if the nonce length is valid
+            var isValid = nonce.Length == remotePublicKey.GetKeySize();
 
-                // Sign the nonce that we sent, and send that signature
-                var signature = _cryptoRsa.Sign(nonce, ours);
-                underlyingStream.WriteChunk(signature);
-            }
+            // Now read out the signature they sent
+            var signature = stream.BlockingReadChunk(timeout - start.Elapsed);
 
-            // Read and verify their stuff
-            {
-                // Read in what they sent
-                var start = Stopwatch.StartNew();
-                var remotePublicKey = underlyingStream.ReadPublicKey(timeout);
-                var nonce = underlyingStream.BlockingReadChunk(timeout -= start.Elapsed); // Read the nonce they sent. We don't actually do anything with that
+            // See if the signature of the nonce is good
+            isValid &= _cryptoRsa.Verify(nonce, signature, remotePublicKey);
 
-                // See if the nonce length is valid
-                var isValid = nonce.Length == remotePublicKey.GetKeySize();
+            // Go ahead and output the public key they sent
+            theirs = remotePublicKey;
 
-                // Now read out the signature they sent
-                var signature = underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
+            // Finally, return whether everything is kosher
+            return isValid;
+        }
 
-                // See if the signature of the nonce is good
-                isValid &= _cryptoRsa.Verify(nonce, signature, remotePublicKey);
+        /// <summary>
+        /// Sends our public key followed by a nonce and our signature of that nonce.
+        /// This will prove to others that we own the private key to the public key we sent
+        /// </summary>
+        internal void SendOurPublicKey(Stream stream, RSAParameters ours)
+        {
+            // Write out our public key
+            stream.WritePublicKey(ours);
 
-                // Go ahead and output the public key they sent
-                theirs = remotePublicKey;
+            // Create a nonce and write it out
+            var nonce = _entropy.CreateNonce(ours.GetKeySize());
+            stream.WriteChunk(nonce);
 
-                // Finally, return whether everything is kosher
-                return isValid;
-            }
+            // Sign the nonce that we sent, and send that signature
+            var signature = _cryptoRsa.Sign(nonce, ours);
+            stream.WriteChunk(signature);
         }
     }
 }

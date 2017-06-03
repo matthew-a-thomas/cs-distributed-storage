@@ -8,6 +8,7 @@
     using Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Security;
+    using Utils;
 
     [TestClass]
     public class SecureStreamFactoryClass

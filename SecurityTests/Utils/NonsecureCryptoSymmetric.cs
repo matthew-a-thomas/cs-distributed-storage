@@ -1,5 +1,7 @@
-﻿namespace Security
+﻿namespace SecurityTests.Utils
 {
+    using Security;
+
     internal class NonsecureCryptoSymmetric : ICryptoSymmetric
     {
         /// <summary>

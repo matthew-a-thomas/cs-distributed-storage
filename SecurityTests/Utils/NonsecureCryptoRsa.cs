@@ -1,6 +1,7 @@
-﻿namespace Security
+﻿namespace SecurityTests.Utils
 {
     using System.Security.Cryptography;
+    using Security;
 
     internal class NonsecureCryptoRsa : ICryptoRsa
     {

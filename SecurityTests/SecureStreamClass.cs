@@ -7,6 +7,7 @@
     using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Security;
+    using Utils;
 
     [TestClass]
     public class SecureStreamClass
