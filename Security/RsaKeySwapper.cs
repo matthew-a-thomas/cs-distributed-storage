@@ -6,14 +6,33 @@
     using System.Security.Cryptography;
     using Common;
 
-    internal static class RsaKeySwapper
+    internal class RsaKeySwapper
     {
+        /// <summary>
+        /// Performs RSA crypto stuff for us
+        /// </summary>
+        private readonly ICryptoRsa _cryptoRsa;
+
+        /// <summary>
+        /// Our source of entropy
+        /// </summary>
+        private readonly IEntropy _entropy;
+
+        /// <summary>
+        /// Creates a new <see cref="RsaKeySwapper"/> that uses the given RSA crypto and entropy source
+        /// </summary>
+        internal RsaKeySwapper(ICryptoRsa cryptoRsa, IEntropy entropy)
+        {
+            _cryptoRsa = cryptoRsa;
+            _entropy = entropy;
+        }
+
         /// <summary>
         /// Uses the given stream to write out the public part of our RSA key, and read in and returns the public part of their RSA key.
         /// This method also verifies that the sending party owns the private key for the public key they're sending.
         /// It does this by also swapping nonces, and signing/verifying them
         /// </summary>
-        internal static bool TrySwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs)
+        internal bool TrySwapPublicRsaKeys(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs)
         {
             // Send our stuff
             {
@@ -21,15 +40,12 @@
                 underlyingStream.WritePublicKey(ours);
 
                 // Create a nonce and write it out
-                var nonce = Crypto.CreateNonce(ours.GetKeySize());
+                var nonce = _entropy.CreateNonce(ours.GetKeySize());
                 underlyingStream.WriteChunk(nonce);
 
                 // Sign the nonce that we sent, and send that signature
-                using (var rsa = ours.CreateRsa())
-                {
-                    var signature = rsa.SignData(nonce, Crypto.HashName, Crypto.SignaturePadding);
-                    underlyingStream.WriteChunk(signature);
-                }
+                var signature = _cryptoRsa.Sign(nonce, ours);
+                underlyingStream.WriteChunk(signature);
             }
 
             // Read and verify their stuff
@@ -46,16 +62,13 @@
                 var signature = underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
 
                 // See if the signature of the nonce is good
-                using (var rsa = remotePublicKey.CreateRsa())
-                {
-                    isValid &= rsa.VerifyData(nonce, signature, Crypto.HashName, Crypto.SignaturePadding);
+                isValid &= _cryptoRsa.Verify(nonce, signature, remotePublicKey);
 
-                    // Go ahead and output the public key they sent
-                    theirs = remotePublicKey;
+                // Go ahead and output the public key they sent
+                theirs = remotePublicKey;
 
-                    // Finally, return whether everything is kosher
-                    return isValid;
-                }
+                // Finally, return whether everything is kosher
+                return isValid;
             }
         }
     }
