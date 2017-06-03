@@ -13,7 +13,7 @@
     public class SecureStreamFactoryClass
     {
         private static readonly RsaKeyProvider KeyProvider = new RsaKeyProvider();
-        private static readonly SecureStreamFactory SecureStreamFactory = new SecureStreamFactory(new NonsecureCryptoRsa(KeyProvider.RsaKey1, KeyProvider.RsaKey2), new NonsecureCryptoAes());
+        private static readonly SecureStreamFactory SecureStreamFactory = new SecureStreamFactory(new NonsecureCryptoRsa(), new NonsecureCryptoAes());
 
         [TestClass]
         public class ConnectionTests
