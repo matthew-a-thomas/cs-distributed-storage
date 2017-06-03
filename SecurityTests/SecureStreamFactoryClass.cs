@@ -35,7 +35,7 @@
                                 if (!SecureStreamFactory.TryMakeConnection(
                                     stream1,
                                     KeyProvider.RsaKey1,
-                                    TimeSpan.FromSeconds(1),
+                                    TimeSpan.FromSeconds(10),
                                     out var theirs,
                                     out var secureStream
                                 ))
@@ -48,7 +48,7 @@
                                 if (!SecureStreamFactory.TryAcceptConnection(
                                     stream2,
                                     KeyProvider.RsaKey2,
-                                    TimeSpan.FromSeconds(1),
+                                    TimeSpan.FromSeconds(10),
                                     out var theirs,
                                     out var secureStream
                                 ))
