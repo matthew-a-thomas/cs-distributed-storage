@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Security.Cryptography;
     using Common;
 
     public class SecureStream
@@ -15,7 +16,10 @@
         public SecureStream(Stream underlyingStream, byte[] connectionKey)
         {
             _underlyingStream = underlyingStream;
-            _connectionKey = connectionKey;
+            using (var hasher = SHA256.Create())
+            {
+                _connectionKey = hasher.ComputeHash(connectionKey);
+            }
         }
 
         #endregion
