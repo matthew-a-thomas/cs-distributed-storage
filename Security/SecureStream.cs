@@ -48,17 +48,24 @@
         {
             data = null;
 
-            // Read the encrypted session key and try to decrypt it using the connection key
-            var start = Stopwatch.StartNew();
-            var ciphertextSessionKey = _underlyingStream.BlockingReadChunk(timeout);
-            var sessionKey = _cryptoSymmetric.VerifyHmacAndDecrypt(ciphertextSessionKey, _connectionKey);
-            if (sessionKey == null)
-                return false;
+            try
+            {
+                // Read the encrypted session key and try to decrypt it using the connection key
+                var start = Stopwatch.StartNew();
+                var ciphertextSessionKey = _underlyingStream.BlockingReadChunk(timeout);
+                var sessionKey = _cryptoSymmetric.VerifyHmacAndDecrypt(ciphertextSessionKey, _connectionKey);
+                if (sessionKey == null)
+                    return false;
 
-            // Try to decrypt the ciphertext using the session key
-            var ciphertext = _underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
-            data = _cryptoSymmetric.VerifyHmacAndDecrypt(ciphertext, sessionKey);
-            return data != null;
+                // Try to decrypt the ciphertext using the session key
+                var ciphertext = _underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
+                data = _cryptoSymmetric.VerifyHmacAndDecrypt(ciphertext, sessionKey);
+                return data != null;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #endregion
