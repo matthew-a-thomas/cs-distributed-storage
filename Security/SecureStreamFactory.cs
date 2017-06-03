@@ -85,7 +85,7 @@
             {
                 // Try swapping public keys and verifying that the other party owns the corresponding private key
                 var start = Stopwatch.StartNew();
-                if (!_cryptoRsa.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
+                if (!RsaKeySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
                     return false;
 
                 // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
@@ -117,7 +117,7 @@
             try
             {
                 // Try swapping public keys and verifying that the other party owns the corresponding private key
-                if (!_cryptoRsa.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
+                if (!RsaKeySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
                     return false;
 
                 // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be

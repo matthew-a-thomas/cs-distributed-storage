@@ -10,7 +10,7 @@
         /// <summary>
         /// The same as calling <see cref="CreateAesKey"/>
         /// </summary>
-        public byte[] ConvertToAesKey(byte[] connectionKey) => CreateAesKey();
+        public byte[] ConvertToAesKey(byte[] key) => CreateAesKey();
 
         /// <summary>
         /// Just returns the <paramref name="plaintext"/>
