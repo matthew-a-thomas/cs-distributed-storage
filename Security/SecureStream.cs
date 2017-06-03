@@ -12,10 +12,11 @@
         /// <summary>
         /// Creates a new <see cref="SecureStream"/> through which messages can be securely sent over the given <paramref name="underlyingStream"/>
         /// </summary>
-        public SecureStream(Stream underlyingStream, byte[] connectionKey)
+        public SecureStream(Stream underlyingStream, byte[] connectionKey, ICryptoAes cryptoAes)
         {
             _underlyingStream = underlyingStream;
-            _connectionKey = Crypto.ConvertToAesKey(connectionKey);
+            _cryptoAes = cryptoAes;
+            _connectionKey = _cryptoAes.ConvertToAesKey(connectionKey);
         }
 
         #endregion
@@ -28,11 +29,11 @@
         public void SendDatagram(byte[] data)
         {
             // Create an ephemeral session key
-            var sessionKey = Crypto.CreateAesKey();
+            var sessionKey = _cryptoAes.CreateAesKey();
             // Encrypt+HMAC the session key using our connection key
-            var ciphertextSessionKey = Crypto.EncryptAes(sessionKey, _connectionKey);
+            var ciphertextSessionKey = _cryptoAes.EncryptAes(sessionKey, _connectionKey);
             // Encrypt+HMAC the given data using the session key
-            var ciphertext = Crypto.EncryptAes(data, sessionKey);
+            var ciphertext = _cryptoAes.EncryptAes(data, sessionKey);
 
             // Send the encrypted session key
             _underlyingStream.WriteChunk(ciphertextSessionKey);
@@ -50,19 +51,24 @@
             // Read the encrypted session key and try to decrypt it using the connection key
             var start = Stopwatch.StartNew();
             var ciphertextSessionKey = _underlyingStream.BlockingReadChunk(timeout);
-            var sessionKey = Crypto.DecryptAes(ciphertextSessionKey, _connectionKey);
+            var sessionKey = _cryptoAes.DecryptAes(ciphertextSessionKey, _connectionKey);
             if (sessionKey == null)
                 return false;
 
             // Try to decrypt the ciphertext using the session key
             var ciphertext = _underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
-            data = Crypto.DecryptAes(ciphertext, sessionKey);
+            data = _cryptoAes.DecryptAes(ciphertext, sessionKey);
             return data != null;
         }
 
         #endregion
 
         #region Private fields
+
+        /// <summary>
+        /// Performs crypto functions for us
+        /// </summary>
+        private readonly ICryptoAes _cryptoAes;
 
         /// <summary>
         /// The AES encryption key to use for this connection

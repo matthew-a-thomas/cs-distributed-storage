@@ -19,14 +19,14 @@
             public void AcceptsSmallConnectionKey()
             {
                 using (var stream = new MemoryStream())
-                    new SecureStream(stream, new byte[1]);
+                    new SecureStream(stream, new byte[1], new NonsecureCryptoAes());
             }
 
             [TestMethod]
             public void AcceptsLargeConnectionKey()
             {
                 using (var stream = new MemoryStream())
-                    new SecureStream(stream, new byte[10000]);
+                    new SecureStream(stream, new byte[10000], new NonsecureCryptoAes());
             }
         }
 
@@ -39,7 +39,7 @@
                 var plaintext = Encoding.ASCII.GetBytes("Hello world");
                 using (var stream = new MemoryStream())
                 {
-                    new SecureStream(stream, new byte[1]).SendDatagram(plaintext);
+                    new SecureStream(stream, new byte[1], new NonsecureCryptoAes()).SendDatagram(plaintext);
                     stream.Position = 0;
                     var written = stream.ToArray();
                     Assert.IsFalse(plaintext.SequenceEqual(written));
@@ -50,14 +50,14 @@
             public void WorksWithSmallConnectionKey()
             {
                 using (var stream = new MemoryStream())
-                    new SecureStream(stream, new byte[1]).SendDatagram(Encoding.ASCII.GetBytes("Hello world"));
+                    new SecureStream(stream, new byte[1], new NonsecureCryptoAes()).SendDatagram(Encoding.ASCII.GetBytes("Hello world"));
             }
 
             [TestMethod]
             public void WorksWithLargeConnectionKey()
             {
                 using (var stream = new MemoryStream())
-                    new SecureStream(stream, new byte[10000]).SendDatagram(Encoding.ASCII.GetBytes("Hello world"));
+                    new SecureStream(stream, new byte[10000], new NonsecureCryptoAes()).SendDatagram(Encoding.ASCII.GetBytes("Hello world"));
             }
         }
 
@@ -71,9 +71,9 @@
                 {
                     var key = new byte[1];
                     var message = Encoding.ASCII.GetBytes("Hello world");
-                    new SecureStream(stream, key).SendDatagram(message);
+                    new SecureStream(stream, key, new NonsecureCryptoAes()).SendDatagram(message);
                     stream.Position = 0;
-                    Assert.IsTrue(new SecureStream(stream, key).TryReceiveDatagram(TimeSpan.FromMilliseconds(100), out var plaintext));
+                    Assert.IsTrue(new SecureStream(stream, key, new NonsecureCryptoAes()).TryReceiveDatagram(TimeSpan.FromMilliseconds(100), out var plaintext));
                     Assert.IsTrue(message.SequenceEqual(plaintext));
                 }
             }
@@ -85,9 +85,9 @@
                 {
                     var key = new byte[10000];
                     var message = Encoding.ASCII.GetBytes("Hello world");
-                    new SecureStream(stream, key).SendDatagram(message);
+                    new SecureStream(stream, key, new NonsecureCryptoAes()).SendDatagram(message);
                     stream.Position = 0;
-                    Assert.IsTrue(new SecureStream(stream, key).TryReceiveDatagram(TimeSpan.FromMilliseconds(100), out var plaintext));
+                    Assert.IsTrue(new SecureStream(stream, key, new NonsecureCryptoAes()).TryReceiveDatagram(TimeSpan.FromMilliseconds(100), out var plaintext));
                     Assert.IsTrue(message.SequenceEqual(plaintext));
                 }
             }
