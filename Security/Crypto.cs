@@ -99,8 +99,9 @@
         /// <summary>
         /// Returns the given <paramref name="data"/> after being AES-decrypted (and HMAC verified) with the given <paramref name="key"/>
         /// </summary>
-        internal static byte[] DecryptAes(byte[] data, byte[] key)
+        internal static bool TryDecryptAes(byte[] data, byte[] key, out byte[] plaintext)
         {
+            plaintext = null;
             // Set up AES
             using (var aes = CreateAes())
             {
@@ -108,29 +109,29 @@
                 {
                     // Pull out the initialization vector and ciphertext
                     if (!buffer.TryReadChunk(out var iv))
-                        return null;
+                        return false;
                     if (!buffer.TryReadChunk(out var ciphertext))
-                        return null;
+                        return false;
 
                     // Assert that the HMAC is correct
                     using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
                         if (!buffer.TryReadChunk(out var reportedHmac))
-                            return null;
+                            return false;
                         var computedHmac = hasher.ComputeHash(data, 0, lengthOfFirstPart);
                         if (!computedHmac.SequenceEqual(reportedHmac))
-                            return null;
+                            return false;
                     }
 
                     // Set up an AES decryptor
                     using (var decryptor = aes.CreateDecryptor(key, iv))
                     {
                         // Decrypt the ciphertext
-                        var plaintext = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+                        plaintext = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
 
                         // Return the result
-                        return plaintext;
+                        return true;
                     }
                 }
             }
@@ -139,8 +140,9 @@
         /// <summary>
         /// Returns the given <paramref name="data"/> after being RSA decrypted with our private key and after the signature has been verified with their public key
         /// </summary>
-        internal static byte[] DecryptRsa(byte[] data, RSAParameters ours, RSAParameters theirs)
+        internal static bool TryDecryptRsa(byte[] data, RSAParameters ours, RSAParameters theirs, out byte[] plaintext)
         {
+            plaintext = null;
             using (var ourRsa = ours.CreateRsa())
             {
                 using (var theirRsa = theirs.CreateRsa())
@@ -149,20 +151,20 @@
                     {
                         // Pull out the ciphertext
                         if (!buffer.TryReadChunk(out var ciphertext))
-                            return null;
+                            return false;
 
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
                         if (!buffer.TryReadChunk(out var signature))
-                            return null;
+                            return false;
                         if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
-                            return null;
+                            return false;
 
                         // Decrypt the ciphertext
-                        var plaintext = ourRsa.Decrypt(ciphertext, EncryptionPadding);
+                        plaintext = ourRsa.Decrypt(ciphertext, EncryptionPadding);
 
                         // Return the result
-                        return plaintext;
+                        return true;
                     }
                 }
             }

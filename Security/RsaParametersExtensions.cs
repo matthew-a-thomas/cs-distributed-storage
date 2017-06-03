@@ -24,17 +24,20 @@
 
         public static int GetKeySize(this RSAParameters key) => key.Modulus.Length;
 
-        public static RSAParameters ReadPublicKey(this Stream stream, TimeSpan timeout)
+        public static bool TryReadRsaKey(this Stream stream, TimeSpan timeout, out RSAParameters key)
         {
+            key = default(RSAParameters);
             var start = Stopwatch.StartNew();
-            var remoteExponent = stream.BlockingReadChunk(timeout);
-            var remoteModulus = stream.BlockingReadChunk(timeout - start.Elapsed);
-            var publicKey = new RSAParameters
+            if (!stream.TryBlockingReadChunk(timeout, out var remoteExponent))
+                return false;
+            if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var remoteModulus))
+                return false;
+            key = new RSAParameters
             {
                 Exponent = remoteExponent,
                 Modulus = remoteModulus
             };
-            return publicKey;
+            return true;
         }
 
         public static byte[] ToBytes(this RSAParameters key)

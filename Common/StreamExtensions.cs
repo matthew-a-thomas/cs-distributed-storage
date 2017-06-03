@@ -11,8 +11,9 @@
         /// Note this is different than the behavior of <see cref="Stream.Read"/>, which might return fewer bytes than requested.
         /// Also note that a <see cref="TimeoutException"/> is thrown if the given <paramref name="timeout"/> is exceeded.
         /// </summary>
-        public static byte[] BlockingRead(this Stream stream, int length, TimeSpan timeout)
+        public static bool TryBlockingRead(this Stream stream, int length, TimeSpan timeout, out byte[] data)
         {
+            data = null;
             var stopwatch = Stopwatch.StartNew();
             var result = new byte[length];
             var index = 0;
@@ -20,7 +21,7 @@
             while (index < length)
             {
                 if (stopwatch.Elapsed > timeout)
-                    throw new TimeoutException();
+                    return false;
                 var numBytesRead = stream.Read(buffer, 0, length);
                 for (var i = 0; i < numBytesRead && index < length; ++i)
                 {
@@ -28,7 +29,8 @@
                 }
                 length -= numBytesRead;
             }
-            return result;
+            data = result;
+            return true;
         }
 
         /// <summary>
@@ -36,12 +38,14 @@
         /// A chunk of data is defined as an integer specifying how many bytes follow, followed by that many bytes.
         /// What's returned is the data after the integer
         /// </summary>
-        public static byte[] BlockingReadChunk(this Stream stream, TimeSpan timeout)
+        public static bool TryBlockingReadChunk(this Stream stream, TimeSpan timeout, out byte[] data)
         {
+            data = null;
             var start = Stopwatch.StartNew();
-            var length = BitConverter.ToInt32(stream.BlockingRead(4, timeout), 0);
-            var data = stream.BlockingRead(length, timeout - start.Elapsed);
-            return data;
+            if (!stream.TryBlockingRead(4, timeout, out var lengthBytes))
+                return false;
+            var length = BitConverter.ToInt32(lengthBytes, 0);
+            return stream.TryBlockingRead(length, timeout - start.Elapsed, out data);
         }
 
         /// <summary>

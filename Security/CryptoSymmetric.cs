@@ -23,6 +23,6 @@
         /// <summary>
         /// Performs AES decryption and HMAC validation of the given <paramref name="ciphertext"/> using the given <paramref name="key"/>, an AES-256 algorithm, and a SHA512 HMAC
         /// </summary>
-        public byte[] VerifyHmacAndDecrypt(byte[] ciphertext, byte[] key) => Crypto.DecryptAes(ciphertext, key);
+        public bool TryVerifyHmacAndDecrypt(byte[] ciphertext, byte[] key, out byte[] plaintext) => Crypto.TryDecryptAes(ciphertext, key, out plaintext);
     }
 }

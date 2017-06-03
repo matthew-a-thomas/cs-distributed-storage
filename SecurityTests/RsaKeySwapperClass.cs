@@ -42,17 +42,11 @@
             }
 
             [TestMethod]
-            public void TimesOut()
+            public void ReturnsFalseWhenTimingOut()
             {
-                try
-                {
-                    var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
-                    using (var stream = new MemoryStream())
-                        swapper.TryGet(stream, TimeSpan.FromMilliseconds(50), out _);
-                    throw new Exception("Test failed");
-                }
-                catch (TimeoutException)
-                { }
+                var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
+                using (var stream = new MemoryStream())
+                    Assert.IsFalse(swapper.TryGet(stream, TimeSpan.FromMilliseconds(50), out _));
             }
         }
     }

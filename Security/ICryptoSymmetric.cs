@@ -24,6 +24,6 @@
         /// <summary>
         /// Verifies the HMAC and decrypts the given <paramref name="ciphertext"/> using the given <paramref name="key"/>
         /// </summary>
-        byte[] VerifyHmacAndDecrypt(byte[] ciphertext, byte[] key);
+        bool TryVerifyHmacAndDecrypt(byte[] ciphertext, byte[] key, out byte[] plaintext);
     }
 }

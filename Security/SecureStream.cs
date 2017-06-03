@@ -47,25 +47,21 @@
         public bool TryReceiveDatagram(TimeSpan timeout, out byte[] data)
         {
             data = null;
-
-            try
-            {
-                // Read the encrypted session key and try to decrypt it using the connection key
-                var start = Stopwatch.StartNew();
-                var ciphertextSessionKey = _underlyingStream.BlockingReadChunk(timeout);
-                var sessionKey = _cryptoSymmetric.VerifyHmacAndDecrypt(ciphertextSessionKey, _connectionKey);
-                if (sessionKey == null)
-                    return false;
-
-                // Try to decrypt the ciphertext using the session key
-                var ciphertext = _underlyingStream.BlockingReadChunk(timeout - start.Elapsed);
-                data = _cryptoSymmetric.VerifyHmacAndDecrypt(ciphertext, sessionKey);
-                return data != null;
-            }
-            catch
-            {
+            
+            // Read the encrypted session key and try to decrypt it using the connection key
+            var start = Stopwatch.StartNew();
+            if (!_underlyingStream.TryBlockingReadChunk(timeout, out var ciphertextSessionKey))
                 return false;
-            }
+            if (!_cryptoSymmetric.TryVerifyHmacAndDecrypt(ciphertextSessionKey, _connectionKey, out var sessionKey))
+                return false;
+            if (sessionKey == null)
+                return false;
+
+            // Try to decrypt the ciphertext using the session key
+            return
+                _underlyingStream.TryBlockingReadChunk(timeout - start.Elapsed, out var ciphertext)
+                &&
+                _cryptoSymmetric.TryVerifyHmacAndDecrypt(ciphertext, sessionKey, out data);
         }
 
         #endregion

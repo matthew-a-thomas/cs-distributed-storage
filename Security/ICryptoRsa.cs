@@ -11,7 +11,7 @@
         /// Performs RSA decryption on the given <paramref name="ciphertext"/>.
         /// Implementations should guarantee that it was encrypted using the public key of <paramref name="ours"/> and signed using the private key of <paramref name="theirs"/>
         /// </summary>
-        byte[] DecryptRsa(byte[] ciphertext, RSAParameters ours, RSAParameters theirs);
+        bool TryDecryptRsa(byte[] ciphertext, RSAParameters ours, RSAParameters theirs, out byte[] plaintext);
 
         /// <summary>
         /// Performs RSA encryption on the given <paramref name="plaintext"/>.

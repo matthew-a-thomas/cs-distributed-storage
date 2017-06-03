@@ -37,16 +37,21 @@
         /// </summary>
         internal bool TryGet(Stream stream, TimeSpan timeout, out RSAParameters theirs)
         {
+            theirs = default(RSAParameters);
+
             // Read in what they sent
             var start = Stopwatch.StartNew();
-            var remotePublicKey = stream.ReadPublicKey(timeout);
-            var nonce = stream.BlockingReadChunk(timeout -= start.Elapsed); // Read the nonce they sent. We don't actually do anything with that
+            if (!stream.TryReadRsaKey(timeout, out var remotePublicKey))
+                return false;
+            if (!stream.TryBlockingReadChunk(timeout -= start.Elapsed, out var nonce)) // Read the nonce they sent. We don't actually do anything with that
+                return false;
 
             // See if the nonce length is valid
             var isValid = nonce.Length == remotePublicKey.GetKeySize();
 
             // Now read out the signature they sent
-            var signature = stream.BlockingReadChunk(timeout - start.Elapsed);
+            if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var signature))
+                return false;
 
             // See if the signature of the nonce is good
             isValid &= _cryptoRsa.Verify(nonce, signature, remotePublicKey);

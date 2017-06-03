@@ -10,7 +10,7 @@
         /// <summary>
         /// Decrypts the given <paramref name="ciphertext"/> using the private key of <paramref name="ours"/>, and verifies that it was signed with <paramref name="theirs"/>
         /// </summary>
-        public byte[] DecryptRsa(byte[] ciphertext, RSAParameters ours, RSAParameters theirs) => Crypto.DecryptRsa(ciphertext, ours, theirs);
+        public bool TryDecryptRsa(byte[] ciphertext, RSAParameters ours, RSAParameters theirs, out byte[] plaintext) => Crypto.TryDecryptRsa(ciphertext, ours, theirs, out plaintext);
 
         /// <summary>
         /// Encrypts the given <paramref name="plaintext"/> using the public key of <paramref name="theirs"/> and signs it with <paramref name="ours"/>
