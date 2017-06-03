@@ -34,6 +34,16 @@
         }
 
         /// <summary>
+        /// Turns the given <paramref name="data"/> into a byte array that will fit as an AES key.
+        /// This is done by using a hash algorithm that outputs the appropriate size
+        /// </summary>
+        internal static byte[] ConvertToAesKey(byte[] data)
+        {
+            using (var hasher = SHA256.Create())
+                return hasher.ComputeHash(data);
+        }
+
+        /// <summary>
         /// Creates a nonce that can be used as the IV of an <see cref="Aes"/>
         /// </summary>
         private static byte[] CreateAesIv() => CreateNonce(128 / 8);
