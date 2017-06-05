@@ -10,37 +10,29 @@
     public class StreamExtensionsClass
     {
         [TestClass]
-        public class BlockingReadMethod
+        public class TryBlockingReadMethod
         {
             [TestMethod]
             public void ReadsCorrectBytes()
             {
                 using (var stream = new MemoryStream(new byte[] { 0x01, 0x02, 0x03 }))
                 {
-                    var data = stream.BlockingRead(3, TimeSpan.FromSeconds(1));
+                    Assert.IsTrue(stream.TryBlockingRead(3, TimeSpan.FromSeconds(1), out var data));
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
             }
 
             [TestMethod]
-            public void TimesOutWhenNotEnoughBytes()
+            public void ReturnsFalseWhenTimingOut()
             {
-                try
-                {
-                    using (var stream = new MemoryStream())
-                    {
-                        stream.BlockingRead(1, TimeSpan.FromMilliseconds(100));
-                    }
-                    throw new Exception("Test failed");
-                }
-                catch (TimeoutException)
-                { }
+                using (var stream = new MemoryStream())
+                    Assert.IsFalse(stream.TryBlockingRead(1, TimeSpan.FromMilliseconds(100), out _));
             }
         }
 
         [TestClass]
-        public class ReadChunkMethod
+        public class TryBlockingReadChunkMethod
         {
             [TestMethod]
             public void ReadsWhatWriteChunkPutIn()
@@ -49,10 +41,17 @@
                 {
                     stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
                     stream.Position = 0;
-                    var data = stream.BlockingReadChunk(TimeSpan.FromSeconds(1));
+                    Assert.IsTrue(stream.TryBlockingReadChunk(TimeSpan.FromSeconds(1), out var data));
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
+            }
+
+            [TestMethod]
+            public void ReturnsFalseWhenTimingOut()
+            {
+                using (var stream = new MemoryStream())
+                    Assert.IsFalse(stream.TryBlockingReadChunk(TimeSpan.FromMilliseconds(10), out _));
             }
         }
 

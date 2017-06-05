@@ -22,6 +22,10 @@
         /// <summary>
         /// Just returns the <paramref name="ciphertext"/>
         /// </summary>
-        public byte[] VerifyHmacAndDecrypt(byte[] ciphertext, byte[] key) => ciphertext;
+        public bool TryVerifyHmacAndDecrypt(byte[] ciphertext, byte[] key, out byte[] plaintext)
+        {
+            plaintext = ciphertext;
+            return true;
+        }
     }
 }

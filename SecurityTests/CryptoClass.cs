@@ -23,25 +23,24 @@
         }
 
         [TestClass]
-        public class DecryptAesMethod
+        public class TryDecryptAesMethod
         {
             [TestMethod]
             public void DecryptsWhatEncryptReturns()
             {
                 var key = Crypto.CreateAesKey();
                 var ciphertext = Crypto.EncryptAes(Encoding.ASCII.GetBytes("Hello world"), key);
-                var plaintext = Crypto.DecryptAes(ciphertext, key);
+                Assert.IsTrue(Crypto.TryDecryptAes(ciphertext, key, out var plaintext));
                 Assert.IsNotNull(plaintext);
                 var message = Encoding.ASCII.GetString(plaintext);
                 Assert.AreEqual("Hello world", message);
             }
 
             [TestMethod]
-            public void ReturnsNullForPlaintext()
+            public void ReturnsFalseForPlaintext()
             {
                 var key = Crypto.CreateAesKey();
-                var result = Crypto.DecryptAes(Encoding.ASCII.GetBytes("Hello world"), key);
-                Assert.IsNull(result);
+                Assert.IsFalse(Crypto.TryDecryptAes(Encoding.ASCII.GetBytes("Hello world"), key, out _));
             }
         }
 
@@ -58,23 +57,22 @@
         }
 
         [TestClass]
-        public class DecryptRsaMethod
+        public class TryDecryptRsaMethod
         {
             [TestMethod]
             public void DecryptsWhatEncryptReturns()
             {
                 var ciphertext = Crypto.EncryptRsa(Encoding.ASCII.GetBytes("Hello world"), KeyProvider.RsaKey1, KeyProvider.RsaKey2);
-                var plaintext = Crypto.DecryptRsa(ciphertext, KeyProvider.RsaKey2, KeyProvider.RsaKey1);
+                Assert.IsTrue(Crypto.TryDecryptRsa(ciphertext, KeyProvider.RsaKey2, KeyProvider.RsaKey1, out var plaintext));
                 Assert.IsNotNull(plaintext);
                 var message = Encoding.ASCII.GetString(plaintext);
                 Assert.AreEqual("Hello world", message);
             }
 
             [TestMethod]
-            public void ReturnsNullForPlaintext()
+            public void ReturnsFalseForPlaintext()
             {
-                var result = Crypto.DecryptRsa(Encoding.ASCII.GetBytes("Hello world"), KeyProvider.RsaKey1, KeyProvider.RsaKey2);
-                Assert.IsNull(result);
+                Assert.IsFalse(Crypto.TryDecryptRsa(Encoding.ASCII.GetBytes("Hello world"), KeyProvider.RsaKey1, KeyProvider.RsaKey2, out _));
             }
         }
 

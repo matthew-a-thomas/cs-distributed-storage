@@ -8,7 +8,11 @@
         /// <summary>
         /// Just returns the <paramref name="ciphertext"/>
         /// </summary>
-        public byte[] DecryptRsa(byte[] ciphertext, RSAParameters ours, RSAParameters theirs) => ciphertext;
+        public bool TryDecryptRsa(byte[] ciphertext, RSAParameters ours, RSAParameters theirs, out byte[] plaintext)
+        {
+            plaintext = ciphertext;
+            return true;
+        }
 
         /// <summary>
         /// Just returns the <paramref name="plaintext"/>
