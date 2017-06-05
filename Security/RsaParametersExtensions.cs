@@ -6,7 +6,7 @@
     using System.Security.Cryptography;
     using Common;
 
-    internal static class RsaParametersExtensions
+    public static class RsaParametersExtensions
     {
         public static byte[] ComputeHashCode(this RSAParameters key)
         {

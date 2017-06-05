@@ -5,6 +5,9 @@
     using System.IO;
     using Common;
 
+    /// <summary>
+    /// Something that uses symmetric encryption to send and receive data over a <see cref="Stream"/>
+    /// </summary>
     public class SecureStream
     {
         #region Constructor

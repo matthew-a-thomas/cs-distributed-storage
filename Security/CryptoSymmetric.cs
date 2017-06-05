@@ -6,13 +6,16 @@
     /// <summary>
     /// An implementation of <see cref="ICryptoSymmetric"/> that uses AES-256 behind the scenes and is resistant to replay attacks
     /// </summary>
-    public class CryptoSymmetric : ICryptoSymmetric
+    public sealed class CryptoSymmetric : ICryptoSymmetric
     {
         /// <summary>
         /// The amount of time we will tolerate between our system's time and the timestamp in a decrypted message
         /// </summary>
         private readonly TimeSpan _replayTolerance;
 
+        /// <summary>
+        /// Something that helps us detect replays in plaintexts
+        /// </summary>
         private readonly ReplayDetector<Hash> _replayDetector = new ReplayDetector<Hash>();
 
         /// <summary>

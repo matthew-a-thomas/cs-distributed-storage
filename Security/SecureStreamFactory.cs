@@ -6,6 +6,9 @@
     using System.Security.Cryptography;
     using Common;
 
+    /// <summary>
+    /// Creates <see cref="SecureStream"/>s for us with the help of a <see cref="RsaKeySwapper"/> and RSA keys
+    /// </summary>
     public sealed class SecureStreamFactory
     {
         /// <summary>
@@ -50,6 +53,9 @@
 
         #region Constructor
 
+        /// <summary>
+        /// Creates a new <see cref="SecureStreamFactory"/>
+        /// </summary>
         public SecureStreamFactory(ICryptoRsa cryptoRsa, ICryptoSymmetric cryptoSymmetric, IEntropy entropy)
         {
             _cryptoRsa = cryptoRsa;

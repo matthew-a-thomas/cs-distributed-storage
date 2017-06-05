@@ -6,7 +6,7 @@
     /// <summary>
     /// Something that detects replays
     /// </summary>
-    internal class ReplayDetector<T>
+    public sealed class ReplayDetector<T>
     {
         private long _lastTag = long.MinValue;
         private readonly HashSet<T> _seenHashes = new HashSet<T>();

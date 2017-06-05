@@ -5,7 +5,7 @@
     /// <summary>
     /// An implementation of <see cref="ICryptoRsa"/>
     /// </summary>
-    public class CryptoRsa : ICryptoRsa
+    public sealed class CryptoRsa : ICryptoRsa
     {
         /// <summary>
         /// Decrypts the given <paramref name="ciphertext"/> using the private key of <paramref name="ours"/>, and verifies that it was signed with <paramref name="theirs"/>
