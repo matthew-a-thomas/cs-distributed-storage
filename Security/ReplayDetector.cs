@@ -8,7 +8,7 @@
     /// </summary>
     public sealed class ReplayDetector<T>
     {
-        private long _lastTag = long.MinValue;
+        private long _smallestAllowedTag = long.MinValue;
         private readonly HashSet<T> _seenHashes = new HashSet<T>();
         private readonly LinkedList<Tuple<long, T>> _timeline = new LinkedList<Tuple<long, T>>();
 
@@ -17,6 +17,7 @@
         /// </summary>
         public void Clean(long throughTag)
         {
+            _smallestAllowedTag = Math.Max(throughTag, _smallestAllowedTag);
             while (_timeline.Count > 0 && _timeline.First.Value.Item1 <= throughTag)
             {
                 _seenHashes.Remove(_timeline.First.Value.Item2);
@@ -30,9 +31,8 @@
         /// </summary>
         public bool TryAdd(T obj, long tag)
         {
-            if (tag <= _lastTag)
+            if (tag <= _smallestAllowedTag)
                 return false;
-            _lastTag = tag;
             if (!_seenHashes.Add(obj))
                 return false;
             _timeline.AddLast(Tuple.Create(tag, obj));
