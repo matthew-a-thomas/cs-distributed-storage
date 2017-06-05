@@ -9,6 +9,17 @@
     public sealed class CryptoSymmetric : ICryptoSymmetric
     {
         /// <summary>
+        /// Something that can create instances of <see cref="CryptoSymmetric"/>
+        /// </summary>
+        public sealed class Factory
+        {
+            /// <summary>
+            /// Creates a new <see cref="CryptoSymmetric"/> that has the given <paramref name="replayTolerance"/>
+            /// </summary>
+            public CryptoSymmetric Create(TimeSpan replayTolerance) => new CryptoSymmetric(replayTolerance);
+        }
+
+        /// <summary>
         /// The amount of time we will tolerate between our system's time and the timestamp in a decrypted message
         /// </summary>
         private readonly TimeSpan _replayTolerance;
