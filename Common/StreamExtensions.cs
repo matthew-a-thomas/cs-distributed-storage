@@ -136,7 +136,6 @@
             number = 0;
             var shift = 0;
             byte b;
-            var start = Stopwatch.StartNew();
             do
             {
                 // Check for a corrupted stream.  Read a max of 5 bytes.
