@@ -99,7 +99,7 @@
 
         /// <summary>
         /// Returns the given <paramref name="data"/> after being AES-decrypted (and HMAC verified) with the given <paramref name="key"/>.
-        /// Note that a <paramref name="tag"/> is also pulled out, which you should use to protect against replay attacks
+        /// Note that a <paramref name="ticksUtc"/> is also pulled out, which you should use to protect against replay attacks
         /// </summary>
         internal static bool TryDecryptAes(byte[] data, byte[] key, out byte[] plaintext, out long ticksUtc)
         {
