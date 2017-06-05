@@ -39,9 +39,9 @@
             var ciphertext = _cryptoSymmetric.EncryptAndHmac(data, sessionKey);
 
             // Send the encrypted session key
-            _underlyingStream.WriteChunk(ciphertextSessionKey);
+            _underlyingStream.Write(ciphertextSessionKey);
             // Send the encrypted data
-            _underlyingStream.WriteChunk(ciphertext);
+            _underlyingStream.Write(ciphertext);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@
             
             // Read the encrypted session key and try to decrypt it using the connection key
             var start = Stopwatch.StartNew();
-            if (!_underlyingStream.TryBlockingReadChunk(timeout, out var ciphertextSessionKey))
+            if (!_underlyingStream.TryBlockingRead(timeout, out byte[] ciphertextSessionKey))
                 return false;
             if (!_cryptoSymmetric.TryVerifyHmacAndDecrypt(ciphertextSessionKey, _connectionKey, out var sessionKey))
                 return false;
@@ -62,7 +62,7 @@
 
             // Try to decrypt the ciphertext using the session key
             return
-                _underlyingStream.TryBlockingReadChunk(timeout - start.Elapsed, out var ciphertext)
+                _underlyingStream.TryBlockingRead(timeout - start.Elapsed, out byte[] ciphertext)
                 &&
                 _cryptoSymmetric.TryVerifyHmacAndDecrypt(ciphertext, sessionKey, out data);
         }

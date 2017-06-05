@@ -17,9 +17,9 @@
             {
                 using (var stream = new MemoryStream())
                 {
-                    stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
+                    stream.Write(new byte[] { 0x01, 0x02, 0x03 });
                     stream.Position = 0;
-                    Assert.IsTrue(stream.TryBlockingReadChunk(TimeSpan.FromSeconds(1), out var data));
+                    Assert.IsTrue(stream.TryBlockingRead(TimeSpan.FromSeconds(1), out byte[] data));
                     Assert.IsNotNull(data);
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
@@ -29,32 +29,19 @@
             public void ReturnsFalseWhenTimingOut()
             {
                 using (var stream = new MemoryStream())
-                    Assert.IsFalse(stream.TryBlockingReadChunk(TimeSpan.FromMilliseconds(10), out _));
+                    Assert.IsFalse(stream.TryBlockingRead(TimeSpan.FromMilliseconds(10), out byte[] _));
             }
         }
-
+        
         [TestClass]
-        public class TryReadMethod
+        public class TryImmediateReadMethod
         {
             [TestMethod]
             public void ReturnsFalseWhenNotEnoughBytes()
             {
                 using (var stream = new MemoryStream())
                 {
-                    Assert.IsFalse(stream.TryRead(1, out _));
-                }
-            }
-        }
-
-        [TestClass]
-        public class TryReadChunkMethod
-        {
-            [TestMethod]
-            public void ReturnsFalseWhenNotEnoughBytes()
-            {
-                using (var stream = new MemoryStream())
-                {
-                    Assert.IsFalse(stream.TryReadChunk(out _));
+                    Assert.IsFalse(stream.TryImmediateRead(out byte[] _));
                 }
             }
 
@@ -63,9 +50,9 @@
             {
                 using (var stream = new MemoryStream())
                 {
-                    stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
+                    stream.Write(new byte[] { 0x01, 0x02, 0x03 });
                     stream.Position = 0;
-                    Assert.IsTrue(stream.TryReadChunk(out var chunk));
+                    Assert.IsTrue(stream.TryImmediateRead(out byte[] chunk));
                     Assert.IsTrue(chunk.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
                 }
             }
@@ -79,7 +66,7 @@
             {
                 using (var stream = new MemoryStream())
                 {
-                    stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
+                    stream.Write(new byte[] { 0x01, 0x02, 0x03 });
                     var data = stream.ToArray();
                     Assert.IsTrue(data.SequenceEqual(new byte[] { 0x03, 0x01, 0x02, 0x03 })); // We use Variable-length Quantity to encode how many bytes follow, hence the starting "0x03"
                 }

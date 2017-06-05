@@ -13,16 +13,16 @@
         {
             node = null;
             var start = Stopwatch.StartNew();
-            if (!stream.TryReadManifest(timeout, out var manifest))
+            if (!ManifestExtensions.TryBlockingRead(stream, timeout, out var manifest))
                 return false;
-            if (!stream.TryReadRsaKey(timeout - start.Elapsed, out var key))
+            if (!RsaParametersExtensions.TryBlockingRead(stream, timeout - start.Elapsed, out var key))
                 return false;
-            if (!stream.TryBlockingRead7BitEncodedInt(timeout - start.Elapsed, out var numSlices))
+            if (!stream.TryBlockingRead(timeout - start.Elapsed, out int numSlices))
                 return false;
             var slices = new Slice[numSlices];
             for (var i = 0; i < numSlices; ++i)
             {
-                if (!stream.TryReadSlice(timeout - start.Elapsed, out var slice))
+                if (!SliceExtensions.TryBlockingRead(stream, timeout - start.Elapsed, out var slice))
                     return false;
                 slices[i] = slice;
             }
@@ -38,11 +38,11 @@
 
         public static void Write(this Stream stream, Node node)
         {
-            stream.WriteManifest(node.Manifest);
-            stream.WritePublicKey(node.Key);
-            stream.Write7BitEncodedInt(node.Slices.Count);
+            stream.Write(node.Manifest);
+            stream.Write(node.Key);
+            stream.Write(node.Slices.Count);
             foreach (var slice in node.Slices)
-                stream.WriteSlice(slice);
+                stream.Write(slice);
         }
     }
 }

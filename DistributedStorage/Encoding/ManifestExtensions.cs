@@ -13,20 +13,20 @@
         /// <summary>
         /// Deserializes a <see cref="Manifest"/> from the given <paramref name="stream"/>
         /// </summary>
-        public static bool TryReadManifest(this Stream stream, TimeSpan timeout, out Manifest manifest)
+        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out Manifest manifest)
         {
             manifest = null;
             var start = Stopwatch.StartNew();
-            if (!stream.TryReadHash(timeout, out var id))
+            if (!HashExtensions.TryBlockingRead(stream, timeout, out var id))
                 return false;
-            if (!stream.TryBlockingRead7BitEncodedInt(timeout - start.Elapsed, out var length))
+            if (!stream.TryBlockingRead(timeout - start.Elapsed, out int length))
                 return false;
-            if (!stream.TryBlockingRead7BitEncodedInt(timeout - start.Elapsed, out var numSliceHashes))
+            if (!stream.TryBlockingRead(timeout - start.Elapsed, out int numSliceHashes))
                 return false;
             var sliceHashes = new Hash[numSliceHashes];
             for (var i = 0; i < numSliceHashes; ++i)
             {
-                if (!stream.TryReadHash(timeout - start.Elapsed, out var sliceHash))
+                if (!HashExtensions.TryBlockingRead(stream, timeout - start.Elapsed, out var sliceHash))
                     return false;
                 sliceHashes[i] = sliceHash;
             }
@@ -43,13 +43,13 @@
         /// <summary>
         /// Serializes this <see cref="Manifest"/> into the given <paramref name="stream"/>
         /// </summary>
-        public static void WriteManifest(this Stream stream, Manifest manifest)
+        public static void Write(this Stream stream, Manifest manifest)
         {
-            stream.WriteHash(manifest.Id);
-            stream.Write7BitEncodedInt(manifest.Length);
-            stream.Write7BitEncodedInt(manifest.SliceHashes.Length);
+            stream.Write(manifest.Id);
+            stream.Write(manifest.Length);
+            stream.Write(manifest.SliceHashes.Length);
             foreach (var sliceHash in manifest.SliceHashes)
-                stream.WriteHash(sliceHash);
+                stream.Write(sliceHash);
         }
     }
 }

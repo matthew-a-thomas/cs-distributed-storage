@@ -13,16 +13,16 @@
         /// <summary>
         /// Deserializes a <see cref="Slice"/> from the given <paramref name="stream"/>
         /// </summary>
-        public static bool TryReadSlice(this Stream stream, TimeSpan timeout, out Slice slice)
+        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out Slice slice)
         {
             slice = null;
             var start = Stopwatch.StartNew();
-            if (!stream.TryBlockingRead7BitEncodedInt(timeout, out var numCoefficients))
+            if (!stream.TryBlockingRead(timeout, out int numCoefficients))
                 return false;
-            if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var coefficientBytes))
+            if (!stream.TryBlockingRead(timeout - start.Elapsed, out byte[] coefficientBytes))
                 return false;
             var coefficients = coefficientBytes.AsBits(numCoefficients);
-            if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var encodingSymbol))
+            if (!stream.TryBlockingRead(timeout - start.Elapsed, out byte[] encodingSymbol))
                 return false;
 
             slice = new Slice
@@ -36,11 +36,11 @@
         /// <summary>
         /// Serializes this <see cref="Slice"/> into the given <paramref name="stream"/>
         /// </summary>
-        public static void WriteSlice(this Stream stream, Slice slice)
+        public static void Write(this Stream stream, Slice slice)
         {
-            stream.Write7BitEncodedInt(slice.Coefficients.Length);
-            stream.WriteChunk(slice.Coefficients.AsBytes());
-            stream.WriteChunk(slice.EncodingSymbol);
+            stream.Write(slice.Coefficients.Length);
+            stream.Write(slice.Coefficients.AsBytes());
+            stream.Write(slice.EncodingSymbol);
         }
     }
 }

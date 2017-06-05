@@ -105,7 +105,7 @@
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
-            if (!underlyingStream.TryBlockingReadChunk(timeout - start.Elapsed, out var ciphertext))
+            if (!underlyingStream.TryBlockingRead(timeout - start.Elapsed, out byte[] ciphertext))
                 return false;
             if (!_cryptoRsa.TryDecryptRsa(ciphertext, ours, theirs, out var connectionKey)) // Try decrypting the connection key that they should have sent
                 return false;
@@ -131,7 +131,7 @@
             // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be
             var connectionKey = _cryptoSymmetric.CreateAesKey(); // First, let's make one up
             var ciphertext = _cryptoRsa.EncryptRsa(connectionKey, ours, theirs); // Next let's encrypt and sign it
-            underlyingStream.WriteChunk(ciphertext); // Send it along
+            underlyingStream.Write(ciphertext); // Send it along
 
             // Now we're ready to create a SecureStream
             secureStream = new SecureStream(underlyingStream, connectionKey, _cryptoSymmetric);

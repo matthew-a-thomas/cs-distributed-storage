@@ -111,21 +111,21 @@
                 using (var buffer = new MemoryStream(data))
                 {
                     // Pull out the tag
-                    if (!buffer.TryReadChunk(out var ticksUtcBytes))
+                    if (!buffer.TryImmediateRead(out byte[] ticksUtcBytes))
                         return false;
                     ticksUtc = BitConverter.ToInt64(ticksUtcBytes, 0);
 
                     // Pull out the initialization vector and ciphertext
-                    if (!buffer.TryReadChunk(out var iv))
+                    if (!buffer.TryImmediateRead(out byte[] iv))
                         return false;
-                    if (!buffer.TryReadChunk(out var ciphertext))
+                    if (!buffer.TryImmediateRead(out byte[] ciphertext))
                         return false;
 
                     // Assert that the HMAC is correct
                     using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
-                        if (!buffer.TryReadChunk(out var reportedHmac))
+                        if (!buffer.TryImmediateRead(out byte[] reportedHmac))
                             return false;
                         var computedHmac = hasher.ComputeHash(data, 0, lengthOfFirstPart);
                         if (!computedHmac.SequenceEqual(reportedHmac))
@@ -158,12 +158,12 @@
                     using (var buffer = new MemoryStream(data))
                     {
                         // Pull out the ciphertext
-                        if (!buffer.TryReadChunk(out var ciphertext))
+                        if (!buffer.TryImmediateRead(out byte[] ciphertext))
                             return false;
 
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
-                        if (!buffer.TryReadChunk(out var signature))
+                        if (!buffer.TryImmediateRead(out byte[] signature))
                             return false;
                         if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
                             return false;
@@ -194,13 +194,13 @@
                     using (var buffer = new MemoryStream())
                     {
                         // First, write out a timestamp
-                        buffer.WriteChunk(BitConverter.GetBytes(DateTime.UtcNow.Ticks));
+                        buffer.Write(BitConverter.GetBytes(DateTime.UtcNow.Ticks));
 
                         // Next, write out the IV
-                        buffer.WriteChunk(iv);
+                        buffer.Write(iv);
                         
                         // Next, write out the AES-encrypted ciphertext
-                        buffer.WriteChunk(encryptor.TransformFinalBlock(data, 0, data.Length));
+                        buffer.Write(encryptor.TransformFinalBlock(data, 0, data.Length));
 
                         // Reset the MemoryStream to prepare for HMAC'ing
                         buffer.Position = 0;
@@ -209,7 +209,7 @@
                         {
                             // Write out the HMAC of what we've written so far
                             var hmac = hasher.ComputeHash(buffer);
-                            buffer.WriteChunk(hmac);
+                            buffer.Write(hmac);
 
                             // Return the result
                             return buffer.ToArray();
@@ -233,7 +233,7 @@
                     using (var buffer = new MemoryStream())
                     {
                         // Encrypt the given data using their public key, then write out the ciphertext length and the ciphertext contents into the buffer memory stream
-                        buffer.WriteChunk(theirRsa.Encrypt(data, EncryptionPadding));
+                        buffer.Write(theirRsa.Encrypt(data, EncryptionPadding));
 
                         // Reset the stream's position in preparation of hashing/signing
                         buffer.Position = 0;
@@ -242,7 +242,7 @@
                         var signature = ourRsa.SignData(buffer, HashName, SignaturePadding);
 
                         // Now write out our signature
-                        buffer.WriteChunk(signature);
+                        buffer.Write(signature);
 
                         // Return the result
                         return buffer.ToArray();

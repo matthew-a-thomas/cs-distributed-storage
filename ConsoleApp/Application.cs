@@ -100,7 +100,7 @@
             var manifestOutputFileName = $"{filename}.manifest";
             using (var manifestOutputFile = File.OpenWrite(manifestOutputFileName))
             {
-                manifestOutputFile.WriteManifest(manifest);
+                manifestOutputFile.Write(manifest);
             }
             manifestOutputFileName.Say();
 
@@ -117,7 +117,7 @@
                 var slice = generator.Next();
                 var outputFilename = $"{filename}.{i}";
                 using (var stream = File.OpenWrite(outputFilename))
-                    stream.WriteSlice(slice);
+                    stream.Write(slice);
 
                 outputFilename.Say();
             }
@@ -171,7 +171,7 @@
             Manifest manifest;
             using (var stream = manifestFileInfo.OpenRead())
             {
-                if (!stream.TryReadManifest(TimeSpan.FromSeconds(1), out manifest))
+                if (!stream.TryBlockingRead(TimeSpan.FromSeconds(1), out manifest))
                     throw new Exception("Couldn't read manifest");
             }
             
@@ -190,7 +190,7 @@
                 $"Using {file.Name}...".Say();
                 using (var stream = file.OpenRead())
                 {
-                    if (!stream.TryReadSlice(TimeSpan.FromSeconds(1), out var slice))
+                    if (!SliceExtensions.TryBlockingRead(stream, TimeSpan.FromSeconds(1), out var slice))
                         throw new Exception("Couldn't read slice");
 
                     // ReSharper disable once AssignmentInConditionalExpression

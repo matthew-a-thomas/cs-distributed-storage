@@ -5,10 +5,10 @@
 
     public static class HashExtensions
     {
-        public static bool TryReadHash(this Stream stream, TimeSpan timeout, out Hash hash)
+        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out Hash hash)
         {
             hash = null;
-            if (!stream.TryBlockingReadChunk(timeout, out var hashCode))
+            if (!stream.TryBlockingRead(timeout, out byte[] hashCode))
                 return false;
             if (hashCode.Length > Hash.NumBytes)
                 return false;
@@ -16,6 +16,6 @@
             return true;
         }
 
-        public static void WriteHash(this Stream stream, Hash hash) => stream.WriteChunk(hash.HashCode);
+        public static void Write(this Stream stream, Hash hash) => stream.Write(hash.HashCode);
     }
 }

@@ -26,12 +26,12 @@
         }
         
         /// <summary>
-        /// Reads in the <paramref name="number"/> that was written using <see cref="Write7BitEncodedInt"/>
+        /// Reads in the <paramref name="number"/> that was written using <see cref="Write(System.IO.Stream,int)"/>
         /// </summary>
         /// <remarks>
         /// Inspired by https://referencesource.microsoft.com/#mscorlib/system/io/binaryreader.cs,f30b8b6e8ca06e0f,references
         /// </remarks>
-        public static bool TryBlockingRead7BitEncodedInt(this Stream stream, TimeSpan timeout, out int number)
+        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out int number)
         {
             // Read out an Int32 7 bits at a time.  The high bit
             // of the byte when on means to continue reading more bytes.
@@ -58,11 +58,11 @@
         /// A chunk of data is defined as an integer specifying how many bytes follow, followed by that many bytes.
         /// What's returned is the data after the integer
         /// </summary>
-        public static bool TryBlockingReadChunk(this Stream stream, TimeSpan timeout, out byte[] data)
+        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out byte[] data)
         {
             data = null;
             var start = Stopwatch.StartNew();
-            if (!stream.TryBlockingRead7BitEncodedInt(timeout, out var length))
+            if (!stream.TryBlockingRead(timeout, out int length))
                 return false;
             
             var result = new byte[length];
@@ -87,37 +87,20 @@
         /// Tries to read out a single byte from this <see cref="Stream"/>.
         /// Returns false if one is not immediately available
         /// </summary>
-        public static bool TryRead(this Stream stream, out byte b)
+        public static bool TryImmediateRead(this Stream stream, out byte b)
         {
             var d = stream.ReadByte();
             b = (byte)d;
             return d >= 0;
         }
-
+        
         /// <summary>
-        /// Tries to read the given number of bytes from this <see cref="Stream"/>.
-        /// If that number of bytes is not immediately returned from a call to <see cref="Stream.Read(byte[], int, int)"/>, then false is returned.
-        /// </summary>
-        public static bool TryRead(this Stream stream, int length, out byte[] data)
-        {
-            var buffer = new byte[length];
-            var numBytesRead = stream.Read(buffer, 0, length);
-            if (numBytesRead == length)
-            {
-                data = buffer;
-                return true;
-            }
-            data = null;
-            return false;
-        }
-
-        /// <summary>
-        /// Reads in the <paramref name="number"/> that was written using <see cref="Write7BitEncodedInt"/>
+        /// Reads in the <paramref name="number"/> that was written using <see cref="Write(System.IO.Stream,int)"/>
         /// </summary>
         /// <remarks>
         /// Inspired by https://referencesource.microsoft.com/#mscorlib/system/io/binaryreader.cs,f30b8b6e8ca06e0f,references
         /// </remarks>
-        public static bool TryRead7BitEncodedInt(this Stream stream, out int number)
+        public static bool TryImmediateRead(this Stream stream, out int number)
         {
             // Read out an Int32 7 bits at a time.  The high bit
             // of the byte when on means to continue reading more bytes.
@@ -130,7 +113,7 @@
                 if (shift == 5 * 7)  // 5 bytes max per Int32, shift += 7
                     return false;
 
-                if (!stream.TryRead(out b))
+                if (!stream.TryImmediateRead(out b))
                     return false;
                 number |= (b & 0x7F) << shift;
                 shift += 7;
@@ -142,13 +125,18 @@
         /// Tries to read the next chunk of data from this <see cref="Stream"/>.
         /// If an entire chunk is not immediately available, then false is returned.
         /// </summary>
-        public static bool TryReadChunk(this Stream stream, out byte[] data)
+        public static bool TryImmediateRead(this Stream stream, out byte[] data)
         {
             data = null;
-            return
-                stream.TryRead7BitEncodedInt(out var length)
-                &&
-                stream.TryRead(length, out data);
+            if (!stream.TryImmediateRead(out int length))
+                return false;
+
+            var buffer = new byte[length];
+            var numBytesRead = stream.Read(buffer, 0, length);
+            if (numBytesRead != length)
+                return false;
+            data = buffer;
+            return true;
         }
         
         /// <summary>
@@ -158,7 +146,7 @@
         /// Inspired by https://referencesource.microsoft.com/#mscorlib/system/io/binarywriter.cs,2daa1d14ff1877bd,references
         /// and by https://en.wikipedia.org/wiki/Variable-length_quantity
         /// </remarks>
-        public static void Write7BitEncodedInt(this Stream stream, int number)
+        public static void Write(this Stream stream, int number)
         {
             // Write out an int 7 bits at a time.  The high bit of the byte,
             // when on, tells reader to continue reading more bytes.
@@ -176,9 +164,9 @@
         /// A chunk of data is defined as an integer specifying how many bytes follow, followed by that many bytes.
         /// Both of those things are written
         /// </summary>
-        public static void WriteChunk(this Stream stream, byte[] data)
+        public static void Write(this Stream stream, byte[] data)
         {
-            stream.Write7BitEncodedInt(data.Length);
+            stream.Write(data.Length);
             stream.Write(data, 0, data.Length);
         }
     }

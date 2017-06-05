@@ -29,8 +29,8 @@
         /// </summary>
         public void SendChallenge(Stream stream, RSAParameters ours, byte[] ourChallenge)
         {
-            stream.WritePublicKey(ours);
-            stream.WriteChunk(ourChallenge);
+            stream.Write(ours);
+            stream.Write(ourChallenge);
         }
 
         /// <summary>
@@ -41,9 +41,9 @@
             theirChallenge = null;
             var start = Stopwatch.StartNew();
             return
-                stream.TryReadRsaKey(timeout, out theirs)
+                stream.TryBlockingRead(timeout, out theirs)
                 &&
-                stream.TryBlockingReadChunk(timeout - start.Elapsed, out theirChallenge);
+                stream.TryBlockingRead(timeout - start.Elapsed, out theirChallenge);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@
             mixed.Xor(ourChallenge);
             var proof = _cryptoRsa.Sign(mixed, ours);
             
-            stream.WriteChunk(proof);
+            stream.Write(proof);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@
         /// </summary>
         public bool TryReceiveChallengeResponse(Stream stream, byte[] ourChallenge, byte[] theirChallenge, RSAParameters theirs, TimeSpan timeout)
         {
-            if (!stream.TryBlockingReadChunk(timeout, out var theirProof))
+            if (!stream.TryBlockingRead(timeout, out byte[] theirProof))
                 return false;
 
             var mixed = (byte[])ourChallenge.Clone();

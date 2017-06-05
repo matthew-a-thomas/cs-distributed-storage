@@ -24,13 +24,13 @@
 
         public static int GetKeySize(this RSAParameters key) => key.Modulus.Length;
 
-        public static bool TryReadRsaKey(this Stream stream, TimeSpan timeout, out RSAParameters key)
+        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out RSAParameters key)
         {
             key = default(RSAParameters);
             var start = Stopwatch.StartNew();
-            if (!stream.TryBlockingReadChunk(timeout, out var remoteExponent))
+            if (!stream.TryBlockingRead(timeout, out byte[] remoteExponent))
                 return false;
-            if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var remoteModulus))
+            if (!stream.TryBlockingRead(timeout - start.Elapsed, out byte[] remoteModulus))
                 return false;
             key = new RSAParameters
             {
@@ -44,33 +44,15 @@
         {
             using (var buffer = new MemoryStream())
             {
-                buffer.WritePublicKey(key);
+                buffer.Write(key);
                 return buffer.ToArray();
             }
         }
-
-        public static bool TryToRsaPublicKey(this byte[] data, out RSAParameters key)
+        
+        public static void Write(this Stream stream, RSAParameters key)
         {
-            key = default(RSAParameters);
-            using (var buffer = new MemoryStream(data))
-            {
-                if (!buffer.TryReadChunk(out var exponent))
-                    return false;
-                if (!buffer.TryReadChunk(out var modulus))
-                    return false;
-                key = new RSAParameters
-                {
-                    Exponent = exponent,
-                    Modulus = modulus
-                };
-                return true;
-            }
-        }
-
-        public static void WritePublicKey(this Stream stream, RSAParameters key)
-        {
-            stream.WriteChunk(key.Exponent);
-            stream.WriteChunk(key.Modulus);
+            stream.Write(key.Exponent);
+            stream.Write(key.Modulus);
         }
     }
 }

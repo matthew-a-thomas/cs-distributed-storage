@@ -23,12 +23,12 @@
                 Slice deserialized;
                 using (var stream = new MemoryStream())
                 {
-                    stream.WriteSlice(slice);
+                    stream.Write(slice);
 
                     stream.Flush();
                     stream.Position = 0;
 
-                    if (!stream.TryReadSlice(TimeSpan.FromSeconds(1), out deserialized))
+                    if (!stream.TryBlockingRead(TimeSpan.FromSeconds(1), out deserialized))
                         throw new Exception("Couldn't read slice");
                 }
 
