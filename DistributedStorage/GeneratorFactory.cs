@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
 
-    internal class GeneratorFactory : IGeneratorFactory
+    public sealed class GeneratorFactory : IGeneratorFactory
     {
         private readonly Func<IRandom> _randomFactory;
 

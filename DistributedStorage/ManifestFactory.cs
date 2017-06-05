@@ -7,7 +7,7 @@
     /// <summary>
     /// Creates <see cref="Manifest"/>s from data
     /// </summary>
-    internal class ManifestFactory : IManifestFactory
+    public sealed class ManifestFactory : IManifestFactory
     {
         /// <summary>
         /// Something that can create new instances of <see cref="HashAlgorithm"/> for us to use

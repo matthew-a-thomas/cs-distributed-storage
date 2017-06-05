@@ -1,6 +1,6 @@
 ﻿namespace DistributedStorage
 {
-    internal class SolverFactory : ISolverFactory
+    public sealed class SolverFactory : ISolverFactory
     {
         private readonly IManifestFactory _manifestFactory;
 

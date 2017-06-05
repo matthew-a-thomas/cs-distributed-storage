@@ -5,7 +5,7 @@
     /// <summary>
     /// Adapts a <see cref="Random"/> into an <see cref="IRandom"/>
     /// </summary>
-    internal class RandomAdapter : IRandom
+    public sealed class RandomAdapter : IRandom
     {
         /// <summary>
         /// The adapted <see cref="Random"/>

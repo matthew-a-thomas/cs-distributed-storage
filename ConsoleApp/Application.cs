@@ -30,6 +30,9 @@
         private readonly SecureStreamFactory _secureStreamFactory;
 
         private readonly ICryptoRsa _cryptoRsa;
+        private readonly IGeneratorFactory _generatorFactory;
+        private readonly IManifestFactory _manifestFactory;
+        private readonly ISolverFactory _solverFactory;
 
         #endregion
 
@@ -41,11 +44,17 @@
         public Application(
             HashVisualizer hashVisualizer,
             SecureStreamFactory secureStreamFactory,
-            ICryptoRsa cryptoRsa)
+            ICryptoRsa cryptoRsa,
+            IGeneratorFactory generatorFactory,
+            IManifestFactory manifestFactory,
+            ISolverFactory solverFactory)
         {
             _hashVisualizer = hashVisualizer;
             _secureStreamFactory = secureStreamFactory;
             _cryptoRsa = cryptoRsa;
+            _generatorFactory = generatorFactory;
+            _manifestFactory = manifestFactory;
+            _solverFactory = solverFactory;
         }
 
         #endregion
@@ -73,7 +82,7 @@
         /// <summary>
         /// Guides the user through generating slices from a chosen file
         /// </summary>
-        private static void GenerateSlicesFromFile()
+        private void GenerateSlicesFromFile()
         {
             $"You are currently in {Directory.GetCurrentDirectory()}".Say();
 
@@ -85,90 +94,77 @@
             if (!int.TryParse("How many chunks?".Ask(), out var numChunks))
                 numChunks = 10;
             $"Will use {numChunks} chunks".Say();
-
-            using (var distributedStorage = new DistributedStorage())
+            
+            "Generating manifest...".Say();
+            var manifest = _manifestFactory.CreateManifestFrom(data, numChunks);
+            var manifestOutputFileName = $"{filename}.manifest";
+            using (var manifestOutputFile = File.OpenWrite(manifestOutputFileName))
             {
-                var generatorFactory = distributedStorage.GeneratorFactory;
-                var manifestFactory = distributedStorage.ManifestFactory;
+                manifest.SerializeTo(manifestOutputFile);
+            }
+            manifestOutputFileName.Say();
 
-                "Generating manifest...".Say();
-                var manifest = manifestFactory.CreateManifestFrom(data, numChunks);
-                var manifestOutputFileName = $"{filename}.manifest";
-                using (var manifestOutputFile = File.OpenWrite(manifestOutputFileName))
-                {
-                    manifest.SerializeTo(manifestOutputFile);
-                }
-                manifestOutputFileName.Say();
+            "Splitting data into chunks...".Say();
+            var parts = data.SplitInto(numChunks);
 
-                "Splitting data into chunks...".Say();
-                var parts = data.SplitInto(numChunks);
+            "Creating slice generator...".Say();
+            var generator = _generatorFactory.CreateGeneratorFor(parts);
 
-                "Creating slice generator...".Say();
-                var generator = generatorFactory.CreateGeneratorFor(parts);
+            for (var i = 0; ; ++i)
+            {
+                "Press any key to generate a slice...".Wait();
 
-                for (var i = 0; ; ++i)
-                {
-                    "Press any key to generate a slice...".Wait();
+                var slice = generator.Next();
+                var outputFilename = $"{filename}.{i}";
+                using (var stream = File.OpenWrite(outputFilename))
+                    slice.SerializeTo(stream);
 
-                    var slice = generator.Next();
-                    var outputFilename = $"{filename}.{i}";
-                    using (var stream = File.OpenWrite(outputFilename))
-                        slice.SerializeTo(stream);
-
-                    outputFilename.Say();
-                }
+                outputFilename.Say();
             }
         }
 
         /// <summary>
         /// Guides the user through a simulation of sending slices over a lossy communications channel
         /// </summary>
-        private static void PlayWithSlices()
+        private void PlayWithSlices()
         {
-            using (var distributedStorage = new DistributedStorage())
+            const int numSlices = 5;
+            var data = Encoding.ASCII.GetBytes("Hello world!");
+            var manifest = _manifestFactory.CreateManifestFrom(data, numSlices);
+            var parts = data.SplitInto(numSlices);
+            var generator = _generatorFactory.CreateGeneratorFor(parts);
+            var solver = _solverFactory.CreateSolverFor(manifest);
+
+            byte[] solution = null;
+            var solved = false;
+            while (true)
             {
-                var generatorFactory = distributedStorage.GeneratorFactory;
-                var manifestFactory = distributedStorage.ManifestFactory;
-                var solverFactory = distributedStorage.SolverFactory;
+                var slice = generator.Next();
 
-                const int numSlices = 5;
-                var data = Encoding.ASCII.GetBytes("Hello world!");
-                var manifest = manifestFactory.CreateManifestFrom(data, numSlices);
-                var parts = data.SplitInto(numSlices);
-                var generator = generatorFactory.CreateGeneratorFor(parts);
-                var solver = solverFactory.CreateSolverFor(manifest);
-
-                byte[] solution = null;
-                var solved = false;
-                while (true)
+                "Generated slice.".Choose(new Dictionary<string, Action>
                 {
-                    var slice = generator.Next();
-
-                    "Generated slice.".Choose(new Dictionary<string, Action>
+                    {"Use it", () => solved = solver.TrySolve(slice, out solution)},
                     {
-                        {"Use it", () => solved = solver.TrySolve(slice, out solution)},
+                        "Scramble it",
+                        () =>
                         {
-                            "Scramble it",
-                            () =>
-                            {
-                                for (var i = 0; i < slice.EncodingSymbol.Length; ++i)
-                                    slice.EncodingSymbol[i] += 2;
-                                solved = solver.TrySolve(slice, out solution);
-                            }
-                        },
-                        {"Toss it", () => { }}
-                    });
+                            for (var i = 0; i < slice.EncodingSymbol.Length; ++i)
+                                slice.EncodingSymbol[i] += 2;
+                            solved = solver.TrySolve(slice, out solution);
+                        }
+                    },
+                    {"Toss it", () => { }}
+                });
 
-                    (solution != null && solved ? "Solved!" : solution != null ? "Corrupt" : "Not solved").Say();
-                    Encoding.ASCII.GetString(solution ?? new byte[0]).Say();
-                }
+                (solution != null && solved ? "Solved!" : solution != null ? "Corrupt" : "Not solved").Say();
+                Encoding.ASCII.GetString(solution ?? new byte[0]).Say();
             }
         }
 
         /// <summary>.com
         /// Guides the user through recreating a file from slices
         /// </summary>
-        private static void ReadSlices()
+        private void ReadSlices()
         {
             $"You are currently in {Directory.GetCurrentDirectory()}".Say();
             var manifestFileInfo = new FileInfo("Manifest?".Ask());
@@ -177,47 +173,42 @@
             {
                 manifest = stream.GetManifest();
             }
-
-            using (var distributedStorage = new DistributedStorage())
+            
+            var solver = _solverFactory.CreateSolverFor(manifest);
+            var solution = default(byte[]);
+            var solved = false;
+            var originalFileName = Path.GetFileNameWithoutExtension(manifestFileInfo.Name);
+            foreach (var file in
+                manifestFileInfo
+                    .Directory
+                    .EnumerateFiles($"{originalFileName}.*")
+            )
             {
-                var solverFactory = distributedStorage.SolverFactory;
+                if (!int.TryParse(file.Extension.Substring(1), out _))
+                    continue;
+                $"Using {file.Name}...".Say();
+                using (var stream = file.OpenRead())
+                {
+                    var slice = stream.GetSlice();
 
-                var solver = solverFactory.CreateSolverFor(manifest);
-                var solution = default(byte[]);
-                var solved = false;
-                var originalFileName = Path.GetFileNameWithoutExtension(manifestFileInfo.Name);
-                foreach (var file in
-                    manifestFileInfo
-                        .Directory
-                        .EnumerateFiles($"{originalFileName}.*")
-                )
-                {
-                    if (!int.TryParse(file.Extension.Substring(1), out _))
-                        continue;
-                    $"Using {file.Name}...".Say();
-                    using (var stream = file.OpenRead())
-                    {
-                        var slice = stream.GetSlice();
-
-                        // ReSharper disable once AssignmentInConditionalExpression
-                        if (solved = solver.TrySolve(slice, out solution))
-                            break;
-                    }
+                    // ReSharper disable once AssignmentInConditionalExpression
+                    if (solved = solver.TrySolve(slice, out solution))
+                        break;
                 }
-                if (solution == null)
-                {
-                    "Not enough slices available".Say();
-                }
-                else if (!solved)
-                {
-                    "Corrupted".Say();
-                }
-                else
-                {
-                    "Valid".Say();
-                }
-                JsonConvert.SerializeObject(solution ?? new byte[0]).Say();
             }
+            if (solution == null)
+            {
+                "Not enough slices available".Say();
+            }
+            else if (!solved)
+            {
+                "Corrupted".Say();
+            }
+            else
+            {
+                "Valid".Say();
+            }
+            JsonConvert.SerializeObject(solution ?? new byte[0]).Say();
         }
 
         /// <summary>

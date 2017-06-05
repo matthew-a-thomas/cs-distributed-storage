@@ -3,7 +3,7 @@
     /// <summary>
     /// Something that generates random numbers
     /// </summary>
-    internal interface IRandom
+    public interface IRandom
     {
         /// <summary>
         /// Returns a number between <paramref name="fromInclusive"/> and <paramref name="toExclusive"/>

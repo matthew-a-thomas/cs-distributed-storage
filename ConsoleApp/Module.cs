@@ -4,6 +4,7 @@ namespace ConsoleApp
 {
     using System;
     using System.Security.Cryptography;
+    using DistributedStorage;
     using DistributedStorage.Security;
 
     internal class Module : Autofac.Module
@@ -23,6 +24,16 @@ namespace ConsoleApp
             builder.RegisterType<CryptoSymmetric.Factory>().SingleInstance();
             builder.RegisterType<Entropy>().As<IEntropy>();
             builder.RegisterType<SecureStreamFactory>().SingleInstance();
+
+            builder.RegisterType<GeneratorFactory>().As<IGeneratorFactory>().SingleInstance();
+            builder.RegisterType<ManifestFactory>().As<IManifestFactory>().SingleInstance();
+            builder.RegisterType<SolverFactory>().As<ISolverFactory>().SingleInstance();
+            builder.Register(c =>
+                {
+                    var random = new Random();
+                    return new RandomAdapter(random);
+                })
+                .As<IRandom>();
         }
     }
 }
