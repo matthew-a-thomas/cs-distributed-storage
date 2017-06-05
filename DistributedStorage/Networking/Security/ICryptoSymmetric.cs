@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Security
+﻿namespace DistributedStorage.Networking.Security
 {
     /// <summary>
     /// Performs symmetric cryptographic functions

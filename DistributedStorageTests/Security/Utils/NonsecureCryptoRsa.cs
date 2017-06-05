@@ -1,7 +1,7 @@
 ﻿namespace DistributedStorageTests.Security.Utils
 {
     using System.Security.Cryptography;
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
 
     internal class NonsecureCryptoRsa : ICryptoRsa
     {

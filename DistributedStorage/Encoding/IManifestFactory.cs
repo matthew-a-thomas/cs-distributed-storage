@@ -1,7 +1,5 @@
 ﻿namespace DistributedStorage.Encoding
 {
-    using Common;
-
     /// <summary>
     /// Creates <see cref="Manifest"/>s from data
     /// </summary>

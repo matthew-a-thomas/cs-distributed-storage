@@ -1,6 +1,6 @@
 ﻿namespace DistributedStorageTests.Security.Utils
 {
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
 
     internal class NonsecureCryptoSymmetric : ICryptoSymmetric
     {

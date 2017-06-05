@@ -1,6 +1,5 @@
 ﻿namespace DistributedStorage.Solving
 {
-    using Common;
     using Encoding;
 
     public sealed class SolverFactory : ISolverFactory

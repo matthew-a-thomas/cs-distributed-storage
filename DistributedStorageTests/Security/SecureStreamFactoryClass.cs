@@ -2,7 +2,7 @@
 {
     using System;
     using System.IO;
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Utils;
 

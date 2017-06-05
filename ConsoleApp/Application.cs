@@ -9,7 +9,7 @@
     using System.Text;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
     using DistributedStorage.Serialization;
     using DistributedStorage.Solving;
     using Newtonsoft.Json;

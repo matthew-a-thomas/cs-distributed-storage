@@ -6,7 +6,7 @@ namespace ConsoleApp
     using System.Security.Cryptography;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
     using DistributedStorage.Solving;
 
     internal class Module : Autofac.Module

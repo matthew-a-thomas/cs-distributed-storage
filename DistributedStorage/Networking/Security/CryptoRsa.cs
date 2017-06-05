@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Security
+﻿namespace DistributedStorage.Networking.Security
 {
     using System.Security.Cryptography;
 

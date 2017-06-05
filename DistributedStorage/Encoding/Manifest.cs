@@ -1,5 +1,7 @@
-﻿namespace DistributedStorage.Common
+﻿namespace DistributedStorage.Encoding
 {
+    using Common;
+
     /// <summary>
     /// Metadata about a distributed document
     /// </summary>

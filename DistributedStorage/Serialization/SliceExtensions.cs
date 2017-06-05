@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Text;
     using Common;
+    using Encoding;
 
     /// <summary>
     /// Extension methods for a <see cref="Slice"/> in the context of serialization

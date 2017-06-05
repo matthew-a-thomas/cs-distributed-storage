@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Security
+﻿namespace DistributedStorage.Networking.Security
 {
     /// <summary>
     /// A source of entropy

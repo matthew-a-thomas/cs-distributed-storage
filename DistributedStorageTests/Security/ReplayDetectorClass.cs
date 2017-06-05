@@ -1,6 +1,6 @@
 ﻿namespace DistributedStorageTests.Security
 {
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]

@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Security
+﻿namespace DistributedStorage.Networking.Security
 {
     using System;
     using System.Collections.Generic;

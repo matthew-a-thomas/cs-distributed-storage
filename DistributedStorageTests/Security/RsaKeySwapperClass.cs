@@ -4,7 +4,7 @@
     using System.IO;
     using System.Linq;
     using System.Text;
-    using DistributedStorage.Security;
+    using DistributedStorage.Networking.Security;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Utils;
 

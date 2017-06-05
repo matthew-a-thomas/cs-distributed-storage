@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Common
+﻿namespace DistributedStorage.Encoding
 {
     public sealed class Slice
     {

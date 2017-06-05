@@ -3,6 +3,7 @@
     using System.IO;
     using System.Linq;
     using DistributedStorage.Common;
+    using DistributedStorage.Encoding;
     using DistributedStorage.Serialization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 

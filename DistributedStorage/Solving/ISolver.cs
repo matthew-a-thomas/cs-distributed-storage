@@ -1,6 +1,6 @@
 ﻿namespace DistributedStorage.Solving
 {
-    using Common;
+    using Encoding;
 
     /// <summary>
     /// Solves for data

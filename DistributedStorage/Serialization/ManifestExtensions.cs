@@ -3,6 +3,7 @@
     using System.IO;
     using System.Text;
     using Common;
+    using Encoding;
 
     /// <summary>
     /// Extension methods for a <see cref="Manifest"/> in the context of serialization
