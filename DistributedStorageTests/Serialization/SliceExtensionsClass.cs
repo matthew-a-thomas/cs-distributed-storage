@@ -1,9 +1,9 @@
 ﻿namespace DistributedStorageTests.Serialization
 {
+    using System;
     using System.IO;
     using System.Linq;
     using DistributedStorage.Encoding;
-    using DistributedStorage.Serialization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -23,12 +23,13 @@
                 Slice deserialized;
                 using (var stream = new MemoryStream())
                 {
-                    slice.SerializeTo(stream);
+                    stream.WriteSlice(slice);
 
                     stream.Flush();
                     stream.Position = 0;
 
-                    deserialized = stream.GetSlice();
+                    if (!stream.TryReadSlice(TimeSpan.FromSeconds(1), out deserialized))
+                        throw new Exception("Couldn't read slice");
                 }
 
                 Assert.IsNotNull(deserialized);

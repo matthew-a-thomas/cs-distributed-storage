@@ -1,10 +1,10 @@
 ﻿namespace DistributedStorageTests.Serialization
 {
+    using System;
     using System.IO;
     using System.Linq;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
-    using DistributedStorage.Serialization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -28,12 +28,13 @@
                 Manifest deserialized;
                 using (var stream = new MemoryStream())
                 {
-                    manifest.SerializeTo(stream);
+                    stream.WriteManifest(manifest);
 
                     stream.Flush();
                     stream.Position = 0;
 
-                    deserialized = stream.GetManifest();
+                    if (!stream.TryReadManifest(TimeSpan.FromSeconds(1), out deserialized))
+                        throw new Exception("Couldn't read manifest");
                 }
 
                 // Make sure we got something back that is completely distinct from what we put in

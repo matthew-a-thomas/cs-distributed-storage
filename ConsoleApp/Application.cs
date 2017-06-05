@@ -10,7 +10,6 @@
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Security;
-    using DistributedStorage.Serialization;
     using DistributedStorage.Solving;
     using Newtonsoft.Json;
 
@@ -101,7 +100,7 @@
             var manifestOutputFileName = $"{filename}.manifest";
             using (var manifestOutputFile = File.OpenWrite(manifestOutputFileName))
             {
-                manifest.SerializeTo(manifestOutputFile);
+                manifestOutputFile.WriteManifest(manifest);
             }
             manifestOutputFileName.Say();
 
@@ -118,7 +117,7 @@
                 var slice = generator.Next();
                 var outputFilename = $"{filename}.{i}";
                 using (var stream = File.OpenWrite(outputFilename))
-                    slice.SerializeTo(stream);
+                    stream.WriteSlice(slice);
 
                 outputFilename.Say();
             }
@@ -172,7 +171,8 @@
             Manifest manifest;
             using (var stream = manifestFileInfo.OpenRead())
             {
-                manifest = stream.GetManifest();
+                if (!stream.TryReadManifest(TimeSpan.FromSeconds(1), out manifest))
+                    throw new Exception("Couldn't read manifest");
             }
             
             var solver = _solverFactory.CreateSolverFor(manifest);
@@ -190,7 +190,8 @@
                 $"Using {file.Name}...".Say();
                 using (var stream = file.OpenRead())
                 {
-                    var slice = stream.GetSlice();
+                    if (!stream.TryReadSlice(TimeSpan.FromSeconds(1), out var slice))
+                        throw new Exception("Couldn't read slice");
 
                     // ReSharper disable once AssignmentInConditionalExpression
                     if (solved = solver.TrySolve(slice, out solution))

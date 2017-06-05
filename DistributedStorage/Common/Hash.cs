@@ -11,7 +11,7 @@
         /// <summary>
         /// The number of bytes to store
         /// </summary>
-        private const int NumBytes = 256 / 8;
+        public const int NumBytes = 256 / 8;
 
         /// <summary>
         /// The contained hash code.
