@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Encoding
 {
     using System.Collections.Generic;
     using Common;

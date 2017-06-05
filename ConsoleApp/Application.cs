@@ -7,10 +7,11 @@
     using System.Net;
     using System.Net.Sockets;
     using System.Text;
-    using DistributedStorage;
     using DistributedStorage.Common;
+    using DistributedStorage.Encoding;
     using DistributedStorage.Security;
     using DistributedStorage.Serialization;
+    using DistributedStorage.Solving;
     using Newtonsoft.Json;
 
     [SuppressMessage("ReSharper", "FunctionNeverReturns")]

@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Common
 {
     /// <summary>
     /// Something that generates random numbers

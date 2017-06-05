@@ -1,5 +1,8 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Solving
 {
+    using Common;
+    using Encoding;
+
     public sealed class SolverFactory : ISolverFactory
     {
         private readonly IManifestFactory _manifestFactory;

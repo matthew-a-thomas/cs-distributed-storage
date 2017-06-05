@@ -1,5 +1,7 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Solving
 {
+    using Common;
+
     /// <summary>
     /// Solves for data
     /// </summary>

@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Solving
 {
     using System;
     using System.Collections.Generic;

@@ -3,7 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using DistributedStorage;
+    using DistributedStorage.Common;
+    using DistributedStorage.Encoding;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]

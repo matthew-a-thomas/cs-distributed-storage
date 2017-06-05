@@ -1,8 +1,10 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Solving
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Common;
+    using Encoding;
 
     /// <summary>
     /// Solves for data

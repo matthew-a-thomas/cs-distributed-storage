@@ -1,7 +1,8 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Encoding
 {
     using System;
     using System.Collections.Generic;
+    using Common;
 
     public sealed class GeneratorFactory : IGeneratorFactory
     {

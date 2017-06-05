@@ -1,5 +1,7 @@
-﻿namespace DistributedStorage
+﻿namespace DistributedStorage.Encoding
 {
+    using Common;
+
     /// <summary>
     /// Generates <see cref="Slice"/>s from source data
     /// </summary>

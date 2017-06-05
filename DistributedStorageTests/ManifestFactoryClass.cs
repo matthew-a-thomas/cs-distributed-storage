@@ -2,7 +2,7 @@
 {
     using System;
     using System.Security.Cryptography;
-    using DistributedStorage;
+    using DistributedStorage.Encoding;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]

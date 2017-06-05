@@ -4,8 +4,10 @@ namespace ConsoleApp
 {
     using System;
     using System.Security.Cryptography;
-    using DistributedStorage;
+    using DistributedStorage.Common;
+    using DistributedStorage.Encoding;
     using DistributedStorage.Security;
+    using DistributedStorage.Solving;
 
     internal class Module : Autofac.Module
     {

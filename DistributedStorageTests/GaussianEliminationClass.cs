@@ -1,7 +1,7 @@
 ﻿namespace DistributedStorageTests
 {
     using System.Collections.Generic;
-    using DistributedStorage;
+    using DistributedStorage.Solving;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
