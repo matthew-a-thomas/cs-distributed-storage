@@ -1,5 +1,7 @@
 ﻿namespace DistributedStorage
 {
+    using Common;
+
     /// <summary>
     /// Metadata about a distributed document
     /// </summary>

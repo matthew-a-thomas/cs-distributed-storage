@@ -1,5 +1,6 @@
 ﻿namespace Security
 {
+    using System;
     using Common;
     using System.IO;
     using System.Linq;
@@ -10,7 +11,7 @@
     /// </summary>
     internal static class Crypto
     {
-        internal static readonly RSAEncryptionPadding EncryptionPadding = RSAEncryptionPadding.Pkcs1;
+        private static readonly RSAEncryptionPadding EncryptionPadding = RSAEncryptionPadding.Pkcs1;
 
         /// <summary>
         /// The name of the hash algorithm we'll be working with
@@ -18,7 +19,7 @@
         internal static readonly HashAlgorithmName HashName = HashAlgorithmName.SHA512;
 
         internal static readonly RSASignaturePadding SignaturePadding = RSASignaturePadding.Pkcs1;
-
+        
         /// <summary>
         /// Creates an <see cref="Aes"/> and sets various parameters
         /// </summary>
@@ -97,16 +98,23 @@
         }
 
         /// <summary>
-        /// Returns the given <paramref name="data"/> after being AES-decrypted (and HMAC verified) with the given <paramref name="key"/>
+        /// Returns the given <paramref name="data"/> after being AES-decrypted (and HMAC verified) with the given <paramref name="key"/>.
+        /// Note that a <paramref name="tag"/> is also pulled out, which you should use to protect against replay attacks
         /// </summary>
-        internal static bool TryDecryptAes(byte[] data, byte[] key, out byte[] plaintext)
+        internal static bool TryDecryptAes(byte[] data, byte[] key, out byte[] plaintext, out long ticksUtc)
         {
             plaintext = null;
+            ticksUtc = 0;
             // Set up AES
             using (var aes = CreateAes())
             {
                 using (var buffer = new MemoryStream(data))
                 {
+                    // Pull out the tag
+                    if (!buffer.TryReadChunk(out var ticksUtcBytes))
+                        return false;
+                    ticksUtc = BitConverter.ToInt64(ticksUtcBytes, 0);
+
                     // Pull out the initialization vector and ciphertext
                     if (!buffer.TryReadChunk(out var iv))
                         return false;
@@ -185,9 +193,12 @@
                 {
                     using (var buffer = new MemoryStream())
                     {
-                        // First, write out the IV
-                        buffer.WriteChunk(iv);
+                        // First, write out a timestamp
+                        buffer.WriteChunk(BitConverter.GetBytes(DateTime.UtcNow.Ticks));
 
+                        // Next, write out the IV
+                        buffer.WriteChunk(iv);
+                        
                         // Next, write out the AES-encrypted ciphertext
                         buffer.WriteChunk(encryptor.TransformFinalBlock(data, 0, data.Length));
 

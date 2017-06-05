@@ -2,6 +2,7 @@
 {
     using System;
     using System.Security.Cryptography;
+    using Common;
 
     /// <summary>
     /// Creates <see cref="Manifest"/>s from data

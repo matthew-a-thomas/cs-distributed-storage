@@ -1,10 +1,28 @@
 ﻿namespace Security
 {
+    using System;
+    using Common;
+
     /// <summary>
-    /// An implementation of <see cref="ICryptoSymmetric"/> that uses AES-256 behind the scenes
+    /// An implementation of <see cref="ICryptoSymmetric"/> that uses AES-256 behind the scenes and is resistant to replay attacks
     /// </summary>
     public class CryptoSymmetric : ICryptoSymmetric
     {
+        /// <summary>
+        /// The amount of time we will tolerate between our system's time and the timestamp in a decrypted message
+        /// </summary>
+        private readonly TimeSpan _replayTolerance;
+
+        private readonly ReplayDetector<Hash> _replayDetector = new ReplayDetector<Hash>();
+
+        /// <summary>
+        /// Creates a new <see cref="ICryptoSymmetric"/> which tolerates the given difference between current system time and the timestamp reported in an encrypted message
+        /// </summary>
+        public CryptoSymmetric(TimeSpan replayTolerance)
+        {
+            _replayTolerance = replayTolerance;
+        }
+
         /// <summary>
         /// Returns a cryptographically-secure random array of 256/8 bytes
         /// </summary>
@@ -23,6 +41,13 @@
         /// <summary>
         /// Performs AES decryption and HMAC validation of the given <paramref name="ciphertext"/> using the given <paramref name="key"/>, an AES-256 algorithm, and a SHA512 HMAC
         /// </summary>
-        public bool TryVerifyHmacAndDecrypt(byte[] ciphertext, byte[] key, out byte[] plaintext) => Crypto.TryDecryptAes(ciphertext, key, out plaintext);
+        public bool TryVerifyHmacAndDecrypt(byte[] ciphertext, byte[] key, out byte[] plaintext)
+        {
+            if (!Crypto.TryDecryptAes(ciphertext, key, out plaintext, out var ticksUtc))
+                return false;
+            var hash = Hash.Create(plaintext);
+            _replayDetector.Clean((DateTime.UtcNow - _replayTolerance).Ticks);
+            return _replayDetector.TryAdd(hash, ticksUtc);
+        }
     }
 }

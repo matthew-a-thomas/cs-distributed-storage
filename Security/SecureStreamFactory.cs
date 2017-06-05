@@ -37,6 +37,11 @@
         private readonly ICryptoRsa _cryptoRsa;
 
         /// <summary>
+        /// Our source of entrupy
+        /// </summary>
+        private readonly IEntropy _entropy;
+
+        /// <summary>
         /// Handles swapping RSA keys over a stream
         /// </summary>
         private readonly RsaKeySwapper _keySwapper;
@@ -49,7 +54,8 @@
         {
             _cryptoRsa = cryptoRsa;
             _cryptoSymmetric = cryptoSymmetric;
-            _keySwapper = new RsaKeySwapper(cryptoRsa, entropy);
+            _entropy = entropy;
+            _keySwapper = new RsaKeySwapper(cryptoRsa);
         }
 
         #endregion
@@ -89,7 +95,7 @@
             
             // Try swapping public keys and verifying that the other party owns the corresponding private key
             var start = Stopwatch.StartNew();
-            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
+            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, _entropy, out theirs))
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
@@ -113,7 +119,7 @@
             secureStream = null;
             
             // Try swapping public keys and verifying that the other party owns the corresponding private key
-            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, out theirs))
+            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, _entropy, out theirs))
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be

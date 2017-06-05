@@ -76,7 +76,7 @@
             {
                 using (var stream = new MemoryStream())
                 {
-                    SecureStreamFactory.TryAcceptConnection(stream, KeyProvider.RsaKey1, TimeSpan.FromMilliseconds(100), out _, out _);
+                    SecureStreamFactory.TryAcceptConnection(stream, KeyProvider.RsaKey1, TimeSpan.FromMilliseconds(10), out _, out _);
                 }
             }
         }
@@ -89,7 +89,7 @@
             {
                 using (var stream = new MemoryStream())
                 {
-                    SecureStreamFactory.TryMakeConnection(stream, KeyProvider.RsaKey2, TimeSpan.FromMilliseconds(100), out _, out _);
+                    SecureStreamFactory.TryMakeConnection(stream, KeyProvider.RsaKey2, TimeSpan.FromMilliseconds(10), out _, out _);
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿namespace SecurityTests
 {
+    using System;
     using System.Linq;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,7 +31,8 @@
             {
                 var key = Crypto.CreateAesKey();
                 var ciphertext = Crypto.EncryptAes(Encoding.ASCII.GetBytes("Hello world"), key);
-                Assert.IsTrue(Crypto.TryDecryptAes(ciphertext, key, out var plaintext));
+                Assert.IsTrue(Crypto.TryDecryptAes(ciphertext, key, out var plaintext, out var ticksUtc));
+                Assert.IsTrue(DateTime.UtcNow.Ticks - ticksUtc < TimeSpan.FromSeconds(1).Ticks);
                 Assert.IsNotNull(plaintext);
                 var message = Encoding.ASCII.GetString(plaintext);
                 Assert.AreEqual("Hello world", message);
@@ -40,7 +42,7 @@
             public void ReturnsFalseForPlaintext()
             {
                 var key = Crypto.CreateAesKey();
-                Assert.IsFalse(Crypto.TryDecryptAes(Encoding.ASCII.GetBytes("Hello world"), key, out _));
+                Assert.IsFalse(Crypto.TryDecryptAes(Encoding.ASCII.GetBytes("Hello world"), key, out _, out _));
             }
         }
 

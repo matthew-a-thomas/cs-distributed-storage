@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Security;
     using Utils;
@@ -12,41 +13,80 @@
     {
         private static readonly RsaKeyProvider KeyProvider = new RsaKeyProvider();
 
+        private static RsaKeySwapper CreateKeySwapper() => new RsaKeySwapper(new NonsecureCryptoRsa());
+
         [TestClass]
-        public class SendMethod
+        public class SendChallengeMethod
         {
             [TestMethod]
             public void DoesNotThrowAnException()
             {
-                var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
+                var swapper = CreateKeySwapper();
                 using (var stream = new MemoryStream())
-                    swapper.Send(stream, KeyProvider.RsaKey1);
+                    swapper.SendChallenge(stream, KeyProvider.RsaKey1, new byte[0]);
             }
         }
 
         [TestClass]
-        public class TryGetMethod
+        public class TryReceiveChallengeMethod
         {
             [TestMethod]
-            public void ReturnsWhatSendSent()
+            public void ReceivesFromSendChallenge()
             {
-                var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
+                var swapper = CreateKeySwapper();
                 using (var stream = new MemoryStream())
                 {
-                    swapper.Send(stream, KeyProvider.RsaKey1);
+                    var challenge = Encoding.ASCII.GetBytes("Hello world");
+                    swapper.SendChallenge(stream, KeyProvider.RsaKey1, challenge);
                     stream.Position = 0;
-                    if (!swapper.TryGet(stream, TimeSpan.FromSeconds(1), out var theirs))
-                        throw new Exception("Failed to get their public key");
+                    Assert.IsTrue(swapper.TryReceiveChallenge(stream, TimeSpan.FromSeconds(1), out var theirs, out var theirChallenge));
                     Assert.IsTrue(theirs.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
+                    Assert.IsTrue(theirChallenge.SequenceEqual(challenge));
                 }
             }
 
             [TestMethod]
             public void ReturnsFalseWhenTimingOut()
             {
-                var swapper = new RsaKeySwapper(new NonsecureCryptoRsa(), new NonsecureEntropy());
+                var swapper = CreateKeySwapper();
                 using (var stream = new MemoryStream())
-                    Assert.IsFalse(swapper.TryGet(stream, TimeSpan.FromMilliseconds(50), out _));
+                    Assert.IsFalse(swapper.TryReceiveChallenge(stream, TimeSpan.FromMilliseconds(10), out _, out _));
+            }
+        }
+
+        [TestClass]
+        public class SendChallengeResponseMethod
+        {
+            [TestMethod]
+            public void DoesNotThrowAnException()
+            {
+                using (var stream = new MemoryStream())
+                    CreateKeySwapper().SendChallengeResponse(stream, KeyProvider.RsaKey1, new byte[0], new byte[0]);
+            }
+        }
+
+        [TestClass]
+        public class TryReceiveChallengeResponseMethod
+        {
+            [TestMethod]
+            public void ReturnsFalseWhenTimingOut()
+            {
+                using (var stream = new MemoryStream())
+                    Assert.IsFalse(CreateKeySwapper().TryReceiveChallengeResponse(stream, new byte[0], new byte[0], KeyProvider.RsaKey2, TimeSpan.FromMilliseconds(10)));
+            }
+
+            [TestMethod]
+            public void ReturnsTrueFromSendChallengeResponse()
+            {
+                var swapper = CreateKeySwapper();
+                using (var stream = new MemoryStream())
+                {
+                    var challenge1 = Encoding.ASCII.GetBytes("Hello world!");
+                    var challenge2 = Encoding.ASCII.GetBytes("HELLO WORLD.");
+                    swapper.SendChallengeResponse(stream, KeyProvider.RsaKey1, challenge2, challenge1);
+                    stream.Position = 0;
+                    Assert.IsTrue(swapper.TryReceiveChallengeResponse(stream, challenge2, challenge1, KeyProvider.RsaKey1, TimeSpan.FromSeconds(1)));
+                }
             }
         }
     }
