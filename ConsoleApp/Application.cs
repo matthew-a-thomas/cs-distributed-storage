@@ -8,10 +8,10 @@
     using System.Net.Sockets;
     using System.Text;
     using DistributedStorage;
+    using DistributedStorage.Common;
+    using DistributedStorage.Security;
     using DistributedStorage.Serialization;
     using Newtonsoft.Json;
-    using Common;
-    using Security;
 
     [SuppressMessage("ReSharper", "FunctionNeverReturns")]
     internal class Application

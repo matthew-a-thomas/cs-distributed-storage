@@ -2,8 +2,8 @@
 {
     using System.IO;
     using System.Linq;
-    using Common;
     using DistributedStorage;
+    using DistributedStorage.Common;
     using DistributedStorage.Serialization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 

@@ -1,8 +1,8 @@
 ﻿namespace DistributedStorage
 {
-    using Common;
     using System;
     using System.Collections.Generic;
+    using Common;
 
     /// <summary>
     /// Solves a system of equations

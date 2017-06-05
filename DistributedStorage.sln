@@ -9,14 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedStorageTests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{78075D0D-140A-41E1-B29B-99D48DDF3F53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security", "Security\Security.csproj", "{10C3D788-7E05-4DF2-8CC3-5472F1127079}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityTests", "SecurityTests\SecurityTests.csproj", "{45E2E765-31B9-4D49-BB6D-5B312332F4CD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{DC70A9AE-F845-4F51-AD49-AA340A04CF79}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonTests", "CommonTests\CommonTests.csproj", "{DB7A10AF-459C-4904-AD91-93139E2DC601}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,22 +27,6 @@ Global
 		{78075D0D-140A-41E1-B29B-99D48DDF3F53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78075D0D-140A-41E1-B29B-99D48DDF3F53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78075D0D-140A-41E1-B29B-99D48DDF3F53}.Release|Any CPU.Build.0 = Release|Any CPU
-		{10C3D788-7E05-4DF2-8CC3-5472F1127079}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{10C3D788-7E05-4DF2-8CC3-5472F1127079}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{10C3D788-7E05-4DF2-8CC3-5472F1127079}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{10C3D788-7E05-4DF2-8CC3-5472F1127079}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45E2E765-31B9-4D49-BB6D-5B312332F4CD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC70A9AE-F845-4F51-AD49-AA340A04CF79}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DB7A10AF-459C-4904-AD91-93139E2DC601}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
