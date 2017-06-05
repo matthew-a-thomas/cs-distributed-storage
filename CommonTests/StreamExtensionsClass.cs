@@ -79,6 +79,18 @@
                     Assert.IsFalse(stream.TryReadChunk(out _));
                 }
             }
+
+            [TestMethod]
+            public void ReturnsWhatWriteChunkWrites()
+            {
+                using (var stream = new MemoryStream())
+                {
+                    stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
+                    stream.Position = 0;
+                    Assert.IsTrue(stream.TryReadChunk(out var chunk));
+                    Assert.IsTrue(chunk.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
+                }
+            }
         }
 
         [TestClass]
@@ -105,7 +117,7 @@
                 {
                     stream.WriteChunk(new byte[] { 0x01, 0x02, 0x03 });
                     var data = stream.ToArray();
-                    Assert.IsTrue(data.SequenceEqual(new byte[] { 0x03, 0, 0, 0, 0x01, 0x02, 0x03 }));
+                    Assert.IsTrue(data.SequenceEqual(new byte[] { 0x03, 0x01, 0x02, 0x03 })); // We use Variable-length Quantity to encode how many bytes follow, hence the starting "0x03"
                 }
             }
         }
