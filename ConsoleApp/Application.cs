@@ -4,11 +4,14 @@
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Net;
+    using System.Net.Sockets;
     using System.Text;
     using DistributedStorage;
     using DistributedStorage.Serialization;
     using Newtonsoft.Json;
     using Common;
+    using Security;
 
     [SuppressMessage("ReSharper", "FunctionNeverReturns")]
     internal class Application
@@ -21,6 +24,13 @@
         // ReSharper disable once NotAccessedField.Local
         private readonly HashVisualizer _hashVisualizer;
 
+        /// <summary>
+        /// Generates secure streams
+        /// </summary>
+        private readonly SecureStreamFactory _secureStreamFactory;
+
+        private readonly ICryptoRsa _cryptoRsa;
+
         #endregion
 
         #region Constructor
@@ -28,9 +38,14 @@
         /// <summary>
         /// Creates a new <see cref="Application"/>
         /// </summary>
-        public Application(HashVisualizer hashVisualizer)
+        public Application(
+            HashVisualizer hashVisualizer,
+            SecureStreamFactory secureStreamFactory,
+            ICryptoRsa cryptoRsa)
         {
             _hashVisualizer = hashVisualizer;
+            _secureStreamFactory = secureStreamFactory;
+            _cryptoRsa = cryptoRsa;
         }
 
         #endregion
@@ -227,6 +242,88 @@
                 {
                     "Display hash code",
                     DisplayHashCode
+                },
+                {
+                    "Connect",
+                    () =>
+                    {
+                        "Generating an RSA key...".Say();
+                        var key = _cryptoRsa.CreateKey();
+                        $"Your RSA key has this fingerprint: {key.ComputeHashCode().ToHex()}".Say();
+                        "Mode?".Choose(new Dictionary<string, Action>
+                        {
+                            {
+                                "Make", () =>
+                                {
+                                    using (var client = new TcpClient())
+                                    {
+                                        client.ConnectAsync(IPAddress.Loopback, 1337).Wait();
+                                        using (var stream = client.GetStream())
+                                        {
+                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Make, TimeSpan.FromSeconds(1), out var theirs, out var secureStream))
+                                            {
+                                                "Failed to connect".Say();
+                                                return;
+                                            }
+                                            var accept = false;
+                                            theirs.ComputeHashCode().ToHex().Choose(new Dictionary<string, Action>
+                                            {
+                                                { "Accept", () => accept = true },
+                                                { "Reject", () => accept = false }
+                                            });
+                                            if (!accept)
+                                                return;
+                                            while (true)
+                                            {
+                                                var message = "Message?".Ask();
+                                                var datagram = Encoding.ASCII.GetBytes(message);
+                                                secureStream.SendDatagram(datagram);
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "Accept",
+                                () =>
+                                {
+                                    var listener = new TcpListener(IPAddress.Loopback, 1337);
+                                    listener.Start();
+                                    var acceptTask = listener.AcceptTcpClientAsync();
+                                    acceptTask.Wait();
+                                    using (var client = acceptTask.Result)
+                                    {
+                                        using (var stream = client.GetStream())
+                                        {
+                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Accept, TimeSpan.FromSeconds(1), out var theirs, out var secureStream))
+                                            {
+                                                "Failed to accept a connection".Say();
+                                                return;
+                                            }
+                                            var accept = false;
+                                            theirs.ComputeHashCode().ToHex().Choose(new Dictionary<string, Action>
+                                            {
+                                                { "Accept", () => accept = true },
+                                                { "Reject", () => accept = false }
+                                            });
+                                            if (!accept)
+                                                return;
+                                            while (true)
+                                            {
+                                                if (!secureStream.TryReceiveDatagram(TimeSpan.FromMinutes(1), out var datagram))
+                                                {
+                                                    "Failed to get datagram. Trying again...".Say();
+                                                    continue;
+                                                }
+                                                var message = Encoding.ASCII.GetString(datagram);
+                                                message.Say();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             });
         }
