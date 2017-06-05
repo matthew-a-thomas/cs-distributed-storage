@@ -24,34 +24,7 @@
             b = (byte)d;
             return true;
         }
-
-        /// <summary>
-        /// Reads in the given number of bytes from this stream, blocking until that many bytes are available.
-        /// Note this is different than the behavior of <see cref="Stream.Read"/>, which might return fewer bytes than requested.
-        /// Also note that a <see cref="TimeoutException"/> is thrown if the given <paramref name="timeout"/> is exceeded.
-        /// </summary>
-        public static bool TryBlockingRead(this Stream stream, int length, TimeSpan timeout, out byte[] data)
-        {
-            data = null;
-            var stopwatch = Stopwatch.StartNew();
-            var result = new byte[length];
-            var index = 0;
-            var buffer = new byte[length];
-            while (index < length)
-            {
-                if (stopwatch.Elapsed > timeout)
-                    return false;
-                var numBytesRead = stream.Read(buffer, 0, length);
-                for (var i = 0; i < numBytesRead && index < length; ++i)
-                {
-                    result[index++] = buffer[i];
-                }
-                length -= numBytesRead;
-            }
-            data = result;
-            return true;
-        }
-
+        
         /// <summary>
         /// Reads in the <paramref name="number"/> that was written using <see cref="Write7BitEncodedInt"/>
         /// </summary>
@@ -89,10 +62,25 @@
         {
             data = null;
             var start = Stopwatch.StartNew();
-            return
-                stream.TryBlockingRead7BitEncodedInt(timeout, out var length)
-                &&
-                stream.TryBlockingRead(length, timeout - start.Elapsed, out data);
+            if (!stream.TryBlockingRead7BitEncodedInt(timeout, out var length))
+                return false;
+            
+            var result = new byte[length];
+            var index = 0;
+            var buffer = new byte[length];
+            while (index < length)
+            {
+                if (start.Elapsed > timeout)
+                    return false;
+                var numBytesRead = stream.Read(buffer, 0, length);
+                for (var i = 0; i < numBytesRead && index < length; ++i)
+                {
+                    result[index++] = buffer[i];
+                }
+                length -= numBytesRead;
+            }
+            data = result;
+            return true;
         }
 
         /// <summary>
@@ -162,12 +150,7 @@
                 &&
                 stream.TryRead(length, out data);
         }
-
-        /// <summary>
-        /// Writes the given data out to this stream
-        /// </summary>
-        public static void Write(this Stream stream, byte[] data) => stream.Write(data, 0, data.Length);
-
+        
         /// <summary>
         /// Writes out the given <paramref name="number"/> in only as many bytes as are needed
         /// </summary>
@@ -196,7 +179,7 @@
         public static void WriteChunk(this Stream stream, byte[] data)
         {
             stream.Write7BitEncodedInt(data.Length);
-            stream.Write(data);
+            stream.Write(data, 0, data.Length);
         }
     }
 }

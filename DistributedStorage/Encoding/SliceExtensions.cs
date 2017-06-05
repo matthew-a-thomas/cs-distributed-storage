@@ -19,8 +19,7 @@
             var start = Stopwatch.StartNew();
             if (!stream.TryBlockingRead7BitEncodedInt(timeout, out var numCoefficients))
                 return false;
-            var numCoefficientBytes = numCoefficients / 8 + (numCoefficients % 8 == 0 ? 0 : 1);
-            if (!stream.TryBlockingRead(numCoefficientBytes, timeout - start.Elapsed, out var coefficientBytes))
+            if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var coefficientBytes))
                 return false;
             var coefficients = coefficientBytes.AsBits(numCoefficients);
             if (!stream.TryBlockingReadChunk(timeout - start.Elapsed, out var encodingSymbol))
@@ -40,7 +39,7 @@
         public static void WriteSlice(this Stream stream, Slice slice)
         {
             stream.Write7BitEncodedInt(slice.Coefficients.Length);
-            stream.Write(slice.Coefficients.AsBytes());
+            stream.WriteChunk(slice.Coefficients.AsBytes());
             stream.WriteChunk(slice.EncodingSymbol);
         }
     }

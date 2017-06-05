@@ -10,28 +10,6 @@
     public class StreamExtensionsClass
     {
         [TestClass]
-        public class TryBlockingReadMethod
-        {
-            [TestMethod]
-            public void ReadsCorrectBytes()
-            {
-                using (var stream = new MemoryStream(new byte[] { 0x01, 0x02, 0x03 }))
-                {
-                    Assert.IsTrue(stream.TryBlockingRead(3, TimeSpan.FromSeconds(1), out var data));
-                    Assert.IsNotNull(data);
-                    Assert.IsTrue(data.SequenceEqual(new byte[] { 0x01, 0x02, 0x03 }));
-                }
-            }
-
-            [TestMethod]
-            public void ReturnsFalseWhenTimingOut()
-            {
-                using (var stream = new MemoryStream())
-                    Assert.IsFalse(stream.TryBlockingRead(1, TimeSpan.FromMilliseconds(100), out _));
-            }
-        }
-
-        [TestClass]
         public class TryBlockingReadChunkMethod
         {
             [TestMethod]
@@ -92,21 +70,7 @@
                 }
             }
         }
-
-        [TestClass]
-        public class WriteMethod
-        {
-            [TestMethod]
-            public void PutsCorrectNumberOfBytesInStream()
-            {
-                using (var stream = new MemoryStream())
-                {
-                    stream.Write(new byte[] { 0x01, 0x02, 0x03 });
-                    Assert.AreEqual(3, stream.Position);
-                }
-            }
-        }
-
+        
         [TestClass]
         public class WriteChunkMethod
         {
