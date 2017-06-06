@@ -14,7 +14,7 @@
         /// Computes the <see cref="Hash"/> of this <see cref="Slice"/>
         /// </summary>
         public static Hash ComputeHash(this Slice slice) => Hash.Create(slice.EncodingSymbol);
-
+        
         /// <summary>
         /// Deserializes a <see cref="Slice"/> from the given <paramref name="stream"/>
         /// </summary>

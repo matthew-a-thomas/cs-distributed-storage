@@ -82,6 +82,14 @@
         }
 
         /// <summary>
+        /// Converts a hex string to a byte array
+        /// </summary>
+        /// <remarks>
+        /// Pulled from https://stackoverflow.com/questions/321370/how-can-i-convert-a-hex-string-to-a-byte-array#comment55025204_321404
+        /// </remarks>
+        public static byte[] ToBytes(this string hex) => Enumerable.Range(0, hex.Length / 2).Select(x => Convert.ToByte(hex.Substring(x * 2, 2), 16)).ToArray();
+
+        /// <summary>
         /// Returns the hexadecimal equivalent of the given data
         /// </summary>
         public static string ToHex(this byte[] data) => BitConverter.ToString(data).Replace("-","").ToLower();
