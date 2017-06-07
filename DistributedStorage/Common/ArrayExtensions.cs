@@ -95,6 +95,23 @@
         public static string ToHex(this byte[] data) => BitConverter.ToString(data).Replace("-","").ToLower();
 
         /// <summary>
+        /// Tries to convert the hex string to a byte array
+        /// </summary>
+        public static bool TryToBytes(this string hex, out byte[] bytes)
+        {
+            try
+            {
+                bytes = hex.ToBytes();
+                return true;
+            }
+            catch
+            {
+                bytes = null;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Modifies this byte array by XOR'ing all the bytes with the given array
         /// </summary>
         public static void Xor(this byte[] array, byte[] with)
