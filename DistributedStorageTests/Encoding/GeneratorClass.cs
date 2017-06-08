@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests
+﻿namespace DistributedStorageTests.Encoding
 {
     using System;
     using System.Collections.Generic;

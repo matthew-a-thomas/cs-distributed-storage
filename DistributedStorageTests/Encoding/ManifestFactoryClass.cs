@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests
+﻿namespace DistributedStorageTests.Encoding
 {
     using DistributedStorage.Encoding;
     using Microsoft.VisualStudio.TestTools.UnitTesting;

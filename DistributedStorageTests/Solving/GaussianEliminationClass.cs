@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests
+﻿namespace DistributedStorageTests.Solving
 {
     using System.Collections.Generic;
     using DistributedStorage.Solving;

@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests.Security.Utils
+﻿namespace DistributedStorageTests.Networking.Security.Utils
 {
     using DistributedStorage.Networking.Security;
 

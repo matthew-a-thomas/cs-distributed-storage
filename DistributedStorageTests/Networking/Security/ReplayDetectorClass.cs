@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests.Security
+﻿namespace DistributedStorageTests.Networking.Security
 {
     using DistributedStorage.Networking.Security;
     using Microsoft.VisualStudio.TestTools.UnitTesting;

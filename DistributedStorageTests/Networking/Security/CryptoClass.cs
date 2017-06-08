@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests.Security
+﻿namespace DistributedStorageTests.Networking.Security
 {
     using System;
     using System.Linq;

@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests.Serialization
+﻿namespace DistributedStorageTests.Encoding
 {
     using System;
     using System.IO;
