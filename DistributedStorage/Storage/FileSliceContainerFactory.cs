@@ -1,31 +1,30 @@
-﻿using System.Collections.Generic;
-
-namespace DistributedStorage.Storage
+﻿namespace DistributedStorage.Storage
 {
-    using System.IO;
+    using System.Collections.Generic;
     using Common;
     using Encoding;
+    using IFolder = IFactoryContainer<string, IFile>;
 
     public sealed class FileSliceContainerFactory : ISliceContainerFactory
     {
-        private readonly DirectoryInfo _baseDirectory;
+        private readonly IFactoryContainer<string, IFolder> _baseContainer;
 
-        public FileSliceContainerFactory(DirectoryInfo baseDirectory)
+        public FileSliceContainerFactory(IFactoryContainer<string, IFolder> baseContainer)
         {
-            _baseDirectory = baseDirectory;
+            _baseContainer = baseContainer;
         }
 
         public IContainer<Hash, Slice> CreateSliceContainer(Manifest forManifest)
         {
             // Create a subdirectory for slices connected to this manifest
-            var workingDirectory = _baseDirectory.CreateSubdirectory(forManifest.Id.HashCode.ToHex());
+            var workingDirectory = _baseContainer.GetOrCreate(forManifest.Id.HashCode.ToHex());
 
             // Set up the GetKeys function
             IEnumerable<Hash> GetKeys()
             {
-                foreach (var file in workingDirectory.EnumerateFiles())
+                foreach (var key in workingDirectory.GetKeys())
                 {
-                    if (!file.Name.TryToBytes(out var hashBytes))
+                    if (!key.TryToBytes(out var hashBytes))
                         continue;
                     Hash hash;
                     try
@@ -45,7 +44,11 @@ namespace DistributedStorage.Storage
             {
                 try
                 {
-                    using (var stream = GetFileInfoFor(workingDirectory, hash).Open(FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    if (!workingDirectory.TryCreate(HashToString(hash), out var file))
+                        return false;
+                    if (!file.TryOpenWrite(out var stream))
+                        return false;
+                    using (stream)
                     {
                         stream.Write(slice);
                         return true;
@@ -60,29 +63,26 @@ namespace DistributedStorage.Storage
             // Set up the TryGet function
             bool TryGet(Hash hash, out Slice slice)
             {
+                slice = null;
                 try
                 {
-                    using (var stream = GetFileInfoFor(workingDirectory, hash).Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                    if (!workingDirectory.TryGet(HashToString(hash), out var file))
+                        return false;
+                    if (!file.TryOpenRead(out var stream))
+                        return false;
+                    using (stream)
                     {
                         return stream.TryImmediateRead(out slice);
                     }
                 }
                 catch
                 {
-                    slice = null;
                     return false;
                 }
             }
 
             // Set up the TryRemove function
-            bool TryRemove(Hash hash)
-            {
-                var fileInfo = GetFileInfoFor(workingDirectory, hash);
-                var exists = fileInfo.Exists;
-                if (exists)
-                    fileInfo.Delete();
-                return exists;
-            }
+            bool TryRemove(Hash hash) => workingDirectory.TryRemove(HashToString(hash));
 
             // Return a new IContainer using the above functions
             return new Container<Hash, Slice>(new Container<Hash, Slice>.Options
@@ -94,10 +94,6 @@ namespace DistributedStorage.Storage
             });
         }
 
-        /// <summary>
-        /// Creates a <see cref="FileInfo"/> that should be used for the given <paramref name="hash"/>
-        /// </summary>
-        // ReSharper disable once SuggestBaseTypeForParameter
-        private static FileInfo GetFileInfoFor(DirectoryInfo workingDirectory, Hash hash) => new FileInfo(Path.Combine(workingDirectory.FullName, hash.HashCode.ToHex()));
+        private static string HashToString(Hash hash) => hash.HashCode.ToHex();
     }
 }
