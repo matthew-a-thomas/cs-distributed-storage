@@ -1,7 +1,6 @@
 ﻿namespace DistributedStorage.Encoding
 {
     using System;
-    using System.Security.Cryptography;
     using Common;
 
     /// <summary>

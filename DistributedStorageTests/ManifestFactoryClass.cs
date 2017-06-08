@@ -1,15 +1,11 @@
 ﻿namespace DistributedStorageTests
 {
-    using System;
-    using System.Security.Cryptography;
     using DistributedStorage.Encoding;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class ManifestFactoryClass
     {
-        private static readonly Func<HashAlgorithm> HasherFactory = SHA256.Create;
-
         [TestClass]
         public class CreateFromMethod
         {
