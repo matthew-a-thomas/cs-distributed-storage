@@ -104,7 +104,20 @@
         public class TryGetMethod
         {
             [TestMethod]
-            public void Implemented() => throw new NotImplementedException();
+            public void ReturnsFalseForNonexistentThing()
+            {
+                CreateContainerAndFolder(out var container, out _);
+                Assert.IsFalse(container.TryGet(Hash.Create(new byte[0]), out _));
+            }
+
+            [TestMethod]
+            public void ReturnsTrueForExistentThing()
+            {
+                CreateContainerAndFolder(out var container, out var folder);
+                var hash = Hash.Create(new byte[0]);
+                Assert.IsTrue(folder.TryCreate(hash.HashCode.ToHex(), out _));
+                Assert.IsTrue(container.TryGet(hash, out _));
+            }
         }
 
         [TestClass]
