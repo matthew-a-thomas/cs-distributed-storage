@@ -124,7 +124,20 @@
         public class TryRemoveMethod
         {
             [TestMethod]
-            public void Implemented() => throw new NotImplementedException();
+            public void ReturnsFalseForNonexistentThing()
+            {
+                CreateContainerAndFolder(out var container, out _);
+                Assert.IsFalse(container.TryRemove(Hash.Create(new byte[0])));
+            }
+
+            [TestMethod]
+            public void ReturnsTrueForExistentThing()
+            {
+                CreateContainerAndFolder(out var container, out var folder);
+                var hash = Hash.Create(new byte[0]);
+                folder.TryCreate(hash.HashCode.ToHex(), out _);
+                Assert.IsTrue(container.TryRemove(hash));
+            }
         }
     }
 }
