@@ -1,6 +1,8 @@
 ﻿namespace DistributedStorageTests.Storage
 {
-    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using DistributedStorage.Storage;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -9,8 +11,24 @@
         [TestClass]
         public class ToContainerMethod
         {
-            [TestMethod]
-            public void Implemented() => throw new NotImplementedException();
+            [TestClass]
+            public class ReturnValue
+            {
+                [TestClass]
+                public class GetKeysMethod
+                {
+                    [TestMethod]
+                    public void ReturnsAllKeys()
+                    {
+                        var dictionary = new Dictionary<string, string>();
+                        dictionary["1"] = "1";
+                        dictionary["2"] = "2";
+
+                        var container = dictionary.ToContainer();
+                        Assert.IsTrue(container.GetKeys().SequenceEqual(dictionary.Keys));
+                    }
+                }
+            }
         }
     }
 }
