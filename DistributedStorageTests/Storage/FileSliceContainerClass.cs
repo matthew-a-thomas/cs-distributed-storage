@@ -1,14 +1,11 @@
 ﻿namespace DistributedStorageTests.Storage
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Storage;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using File = DistributedStorage.Storage.File;
 
     [TestClass]
     public class FileSliceContainerClass
