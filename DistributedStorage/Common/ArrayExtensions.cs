@@ -2,7 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using Storage;
+    using File = Storage.File;
 
     public static class ArrayExtensions
     {
@@ -93,6 +96,25 @@
         /// Returns the hexadecimal equivalent of the given data
         /// </summary>
         public static string ToHex(this byte[] data) => BitConverter.ToString(data).Replace("-","").ToLower();
+
+        /// <summary>
+        /// Wraps this byte array in an instance of <see cref="IFile"/>.
+        /// Note you won't be able to write beyond the bounds of this byte array
+        /// </summary>
+        public static IFile ToFile(this byte[] data)
+        {
+            bool TryOpen(out Stream stream)
+            {
+                stream = new MemoryStream(data);
+                return true;
+            }
+
+            return new File(new File.Options
+            {
+                TryOpenRead = TryOpen,
+                TryOpenWrite = TryOpen
+            });
+        }
 
         /// <summary>
         /// Tries to convert the hex string to a byte array

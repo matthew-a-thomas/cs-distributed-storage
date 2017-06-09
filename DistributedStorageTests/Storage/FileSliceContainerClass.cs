@@ -36,22 +36,7 @@
         /// <summary>
         /// Creates a new <see cref="IFile"/> that wraps an internal byte array
         /// </summary>
-        private static IFile CreateFile()
-        {
-            var buffer = new byte[1024 * 10];
-
-            bool TryOpen(out Stream stream)
-            {
-                stream = new MemoryStream(buffer);
-                return true;
-            }
-
-            return new File(new File.Options
-            {
-                TryOpenRead = TryOpen,
-                TryOpenWrite = TryOpen
-            });
-        }
+        private static IFile CreateFile() => new byte[10 * 1024].ToFile();
 
         private static Slice CreateSlice() => new Slice
         {
