@@ -4,7 +4,6 @@
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Storage;
-    using DistributedStorage.Storage.Containers;
     using DistributedStorage.Storage.FileSystem;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,21 +12,7 @@
     {
         private static void Create(out IDirectory directory, out ManifestsAndSlicesFactoryContainer container)
         {
-            IFile CreateFile() => new byte[10 * 1024].ToFile();
-
-            IDirectory CreateDirectory()
-            {
-                var directories = new MemoryFactoryContainer<string, IDirectory>(CreateDirectory);
-                var files = new MemoryFactoryContainer<string, IFile>(CreateFile);
-                var dir = new Directory(new Directory.Options
-                {
-                    Directories = directories,
-                    Files = files
-                });
-                return dir;
-            }
-
-            directory = CreateDirectory();
+            directory = Helpers.CreateDirectory();
             var options = new ManifestsAndSlicesFactoryContainer.Options(".manifest", ".slice", directory);
             container = new ManifestsAndSlicesFactoryContainer(options);
         }
