@@ -31,5 +31,44 @@
                 Assert.AreEqual(1, container.GetKeys().Count());
             }
         }
+
+        [TestClass]
+        public class TryAddMethod
+        {
+            [TestMethod]
+            public void ReturnsFalseForExistentThing()
+            {
+                var container = Create();
+                Assert.IsTrue(container.TryAdd(KeyProvider.RsaKey1.ToHash(), KeyProvider.RsaKey1));
+                Assert.IsFalse(container.TryAdd(KeyProvider.RsaKey1.ToHash(), KeyProvider.RsaKey1));
+            }
+
+            [TestMethod]
+            public void ReturnsTrueForNonexistentThing()
+            {
+                var container = Create();
+                Assert.IsTrue(container.TryAdd(KeyProvider.RsaKey1.ToHash(), KeyProvider.RsaKey1));
+            }
+        }
+
+        [TestClass]
+        public class TryGetMethod
+        {
+            [TestMethod]
+            public void ReturnsFalseForNonexistentThing()
+            {
+                var container = Create();
+                Assert.IsFalse(container.TryGet(KeyProvider.RsaKey1.ToHash(), out _));
+            }
+
+            [TestMethod]
+            public void ReturnsPreviouslyAddedThing()
+            {
+                var container = Create();
+                Assert.IsTrue(container.TryAdd(KeyProvider.RsaKey1.ToHash(), KeyProvider.RsaKey1));
+                Assert.IsTrue(container.TryGet(KeyProvider.RsaKey1.ToHash(), out var key));
+                Assert.IsTrue(key.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
+            }
+        }
     }
 }
