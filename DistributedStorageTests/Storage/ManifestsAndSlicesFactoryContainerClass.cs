@@ -1,14 +1,35 @@
 ﻿namespace DistributedStorageTests.Storage
 {
+    using System.Linq;
+    using DistributedStorage.Common;
+    using DistributedStorage.Encoding;
     using DistributedStorage.Storage;
+    using DistributedStorage.Storage.Containers;
+    using DistributedStorage.Storage.FileSystem;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class ManifestsAndSlicesFactoryContainerClass
     {
-        private static ManifestsAndSlicesFactoryContainer Create()
+        private static void Create(out IDirectory directory, out ManifestsAndSlicesFactoryContainer container)
         {
-            return new ManifestsAndSlicesFactoryContainer(new ManifestsAndSlicesFactoryContainer.Options(".manifest", ".slice", ))
+            IFile CreateFile() => new byte[10 * 1024].ToFile();
+
+            IDirectory CreateDirectory()
+            {
+                var directories = new MemoryFactoryContainer<string, IDirectory>(CreateDirectory);
+                var files = new MemoryFactoryContainer<string, IFile>(CreateFile);
+                var dir = new Directory(new Directory.Options
+                {
+                    Directories = directories,
+                    Files = files
+                });
+                return dir;
+            }
+
+            directory = CreateDirectory();
+            var options = new ManifestsAndSlicesFactoryContainer.Options(".manifest", ".slice", directory);
+            container = new ManifestsAndSlicesFactoryContainer(options);
         }
 
         [TestClass]
@@ -17,7 +38,87 @@
             [TestMethod]
             public void ReturnsNothingForNewInstance()
             {
-                
+                Create(out _, out var container);
+                Assert.IsFalse(container.GetKeys().Any());
+            }
+        }
+
+        [TestClass]
+        public class TryCreateMethod
+        {
+            [TestMethod]
+            public void ReturnsNewSliceContainer()
+            {
+                Create(out _, out var container);
+                var manifest = new Manifest
+                {
+                    Id = Hash.Create(System.Text.Encoding.ASCII.GetBytes("manifest")),
+                    Length = 0,
+                    SliceHashes = new Hash[0]
+                };
+                Assert.IsTrue(container.TryCreate(manifest, out _));
+            }
+        }
+
+        [TestClass]
+        public class TryGetMethod
+        {
+            [TestMethod]
+            public void GetsSliceContainerForExistentManifest()
+            {
+                Create(out _, out var container);
+                var manifest = new Manifest
+                {
+                    Id = Hash.Create(System.Text.Encoding.ASCII.GetBytes("manifest")),
+                    Length = 0,
+                    SliceHashes = new Hash[0]
+                };
+                Assert.IsTrue(container.TryCreate(manifest, out _));
+                Assert.IsTrue(container.TryGet(manifest, out _));
+            }
+
+            [TestMethod]
+            public void ReturnsFalseForNonexistentManifest()
+            {
+                Create(out _, out var container);
+                var manifest = new Manifest
+                {
+                    Id = Hash.Create(System.Text.Encoding.ASCII.GetBytes("manifest")),
+                    Length = 0,
+                    SliceHashes = new Hash[0]
+                };
+                Assert.IsFalse(container.TryGet(manifest, out _));
+            }
+        }
+
+        [TestClass]
+        public class TryRemoveMethod
+        {
+            [TestMethod]
+            public void ReturnsFalseForNonexistentManifest()
+            {
+                Create(out _, out var container);
+                var manifest = new Manifest
+                {
+                    Id = Hash.Create(System.Text.Encoding.ASCII.GetBytes("manifest")),
+                    Length = 0,
+                    SliceHashes = new Hash[0]
+                };
+                Assert.IsFalse(container.TryRemove(manifest));
+            }
+
+            [TestMethod]
+            public void ReturnsTrueForExistentManifest()
+            {
+                Create(out _, out var container);
+                var manifest = new Manifest
+                {
+                    Id = Hash.Create(System.Text.Encoding.ASCII.GetBytes("manifest")),
+                    Length = 0,
+                    SliceHashes = new Hash[0]
+                };
+                Assert.IsTrue(container.TryCreate(manifest, out _));
+                Assert.IsTrue(container.TryRemove(manifest));
             }
         }
     }
