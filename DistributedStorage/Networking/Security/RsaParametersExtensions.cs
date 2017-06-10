@@ -8,11 +8,10 @@
 
     public static class RsaParametersExtensions
     {
-        public static byte[] ComputeHashCode(this RSAParameters key)
+        public static Hash ToHash(this RSAParameters key)
         {
             var bytes = key.ToBytes();
-            using (var hasher = Crypto.CreateHashAlgorithm())
-                return hasher.ComputeHash(bytes);
+            return Hash.Create(bytes);
         }
 
         public static RSA CreateRsa(this RSAParameters key)

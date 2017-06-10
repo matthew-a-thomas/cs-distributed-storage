@@ -242,7 +242,7 @@
                     {
                         "Generating an RSA key...".Say();
                         var key = _cryptoRsa.CreateKey();
-                        $"Your RSA key has this fingerprint: {key.ComputeHashCode().ToHex()}".Say();
+                        $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
                         "Mode?".Choose(new Dictionary<string, Action>
                         {
                             {
@@ -259,7 +259,7 @@
                                                 return;
                                             }
                                             var accept = false;
-                                            theirs.ComputeHashCode().ToHex().Choose(new Dictionary<string, Action>
+                                            theirs.ToHash().HashCode.ToHex().Choose(new Dictionary<string, Action>
                                             {
                                                 { "Accept", () => accept = true },
                                                 { "Reject", () => accept = false }
@@ -294,7 +294,7 @@
                                                 return;
                                             }
                                             var accept = false;
-                                            theirs.ComputeHashCode().ToHex().Choose(new Dictionary<string, Action>
+                                            theirs.ToHash().HashCode.ToHex().Choose(new Dictionary<string, Action>
                                             {
                                                 { "Accept", () => accept = true },
                                                 { "Reject", () => accept = false }
