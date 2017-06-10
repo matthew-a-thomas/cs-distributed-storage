@@ -72,7 +72,7 @@
         /// <summary>
         /// A function for getting the filename of the given Hash
         /// </summary>
-        private static string GetFilenameFor(Hash hash) => hash.HashCode.ToHex();
+        private string GetFilenameFor(Hash hash) => $"{hash.HashCode.ToHex()}{_options.RsaKeyExtension}";
 
         /// <summary>
         /// Adds new trusted <see cref="RSAParameters"/>
