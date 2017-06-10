@@ -40,6 +40,21 @@
             return true;
         }
 
+        public static bool TryImmediateRead(this Stream stream, out RSAParameters key)
+        {
+            key = default(RSAParameters);
+            if (!stream.TryImmediateRead(out byte[] remoteExponent))
+                return false;
+            if (!stream.TryImmediateRead(out byte[] remoteModulus))
+                return false;
+            key = new RSAParameters
+            {
+                Exponent = remoteExponent,
+                Modulus = remoteModulus
+            };
+            return true;
+        }
+
         public static byte[] ToBytes(this RSAParameters key)
         {
             using (var buffer = new MemoryStream())

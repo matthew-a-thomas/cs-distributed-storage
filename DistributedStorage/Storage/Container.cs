@@ -5,9 +5,9 @@ namespace DistributedStorage.Storage
     using System.Linq;
 
     /// <summary>
-    /// A fully-injected implementation of <see cref="IContainer{TKey, TValue}"/>
+    /// A fully-injected implementation of <see cref="IAddableContainer{TKey,TValue}"/>
     /// </summary>
-    public sealed class Container<TKey, TValue> : IContainer<TKey, TValue>
+    public sealed class Container<TKey, TValue> : IAddableContainer<TKey, TValue>
     {
         private readonly Options _options;
 
@@ -22,22 +22,22 @@ namespace DistributedStorage.Storage
         public sealed class Options
         {
             /// <summary>
-            /// The method to use for <see cref="IContainer{TKey, TValue}.GetKeys"/>
+            /// The method to use for <see cref="IAddableContainer{TKey,TValue}.GetKeys"/>
             /// </summary>
             public GetKeysDelegate GetKeys { get; set; } = () => Enumerable.Empty<TKey>();
 
             /// <summary>
-            /// The method to use for <see cref="IContainer{TKey, TValue}.TryAdd(TKey, TValue)"/>
+            /// The method to use for <see cref="IAddableContainer{TKey,TValue}.TryAdd(TKey, TValue)"/>
             /// </summary>
             public TryAddDelegate TryAdd { get; set; } = (_, __) => false;
 
             /// <summary>
-            /// The method to use for <see cref="IContainer{TKey, TValue}.TryGet(TKey, out TValue)"/>
+            /// The method to use for <see cref="IAddableContainer{TKey,TValue}.TryGet(TKey, out TValue)"/>
             /// </summary>
             public TryGetDelegate TryGet { get; set; } = TryGetDefault;
 
             /// <summary>
-            /// The method to use for <see cref="IContainer{TKey, TValue}.TryRemove(TKey)"/>
+            /// The method to use for <see cref="IAddableContainer{TKey,TValue}.TryRemove"/>
             /// </summary>
             public TryRemoveDelegate TryRemove { get; set; } = _ => false;
 

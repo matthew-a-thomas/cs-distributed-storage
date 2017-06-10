@@ -33,9 +33,9 @@
         }
 
         /// <summary>
-        /// The thing we delegate the <see cref="IContainer{TKey, TValue}"/> portion of <see cref="IFactoryContainer{TKey, TValue}"/> to
+        /// The thing we delegate the <see cref="IAddableContainer{TKey,TValue}"/> portion of <see cref="IFactoryContainer{TKey, TValue}"/> to
         /// </summary>
-        private readonly IContainer<TKey, TValue> _container;
+        private readonly IAddableContainer<TKey, TValue> _container;
 
         /// <summary>
         /// Injected options needed to complete the <see cref="IFactoryContainer{TKey, TValue}"/> interface
@@ -43,18 +43,16 @@
         private readonly Options _options;
 
         /// <summary>
-        /// Creates a new <see cref="IFactoryContainer{TKey, TValue}"/>, which delegates the <see cref="IContainer{TKey, TValue}"/> part of the interface to the given <paramref name="container"/>, and delegates the rest of the interface to the given <paramref name="options"/>
+        /// Creates a new <see cref="IFactoryContainer{TKey, TValue}"/>, which delegates the <see cref="IAddableContainer{TKey,TValue}"/> part of the interface to the given <paramref name="container"/>, and delegates the rest of the interface to the given <paramref name="options"/>
         /// </summary>
-        public FactoryContainer(IContainer<TKey, TValue> container, Options options = null)
+        public FactoryContainer(IAddableContainer<TKey, TValue> container, Options options = null)
         {
             _container = container;
             _options = options ?? new Options();
         }
 
         public IEnumerable<TKey> GetKeys() => _container.GetKeys();
-
-        public bool TryAdd(TKey key, TValue value) => _container.TryAdd(key, value);
-
+        
         public bool TryCreate(TKey key, out TValue value) => _options.TryCreate(key, out value);
 
         public bool TryGet(TKey key, out TValue value) => _container.TryGet(key, out value);

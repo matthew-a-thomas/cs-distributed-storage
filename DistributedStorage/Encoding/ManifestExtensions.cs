@@ -40,6 +40,32 @@
             return true;
         }
 
+        public static bool TryImmediateRead(this Stream stream, out Manifest manifest)
+        {
+            manifest = null;
+            if (!stream.TryImmediateRead(out Hash id))
+                return false;
+            if (!stream.TryImmediateRead(out int length))
+                return false;
+            if (!stream.TryImmediateRead(out int numSliceHashes))
+                return false;
+            var sliceHashes = new Hash[numSliceHashes];
+            for (var i = 0; i < numSliceHashes; ++i)
+            {
+                if (!stream.TryImmediateRead(out Hash sliceHash))
+                    return false;
+                sliceHashes[i] = sliceHash;
+            }
+
+            manifest = new Manifest
+            {
+                Id = id,
+                Length = length,
+                SliceHashes = sliceHashes
+            };
+            return true;
+        }
+
         /// <summary>
         /// Serializes this <see cref="Manifest"/> into the given <paramref name="stream"/>
         /// </summary>
