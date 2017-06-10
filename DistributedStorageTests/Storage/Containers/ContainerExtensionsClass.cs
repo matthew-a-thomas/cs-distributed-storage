@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests.Storage
+﻿namespace DistributedStorageTests.Storage.Containers
 {
     using System.Collections.Generic;
     using System.Linq;
