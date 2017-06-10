@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Storage
+﻿namespace DistributedStorage.Storage.FileSystem
 {
     using Containers;
 

@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Storage;
-    using File = Storage.File;
+    using Storage.FileSystem;
+    using File = Storage.FileSystem.File;
 
     public static class ArrayExtensions
     {

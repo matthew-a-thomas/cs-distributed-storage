@@ -5,8 +5,8 @@
     using System.Linq;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
-    using DistributedStorage.Storage;
     using DistributedStorage.Storage.Containers;
+    using DistributedStorage.Storage.FileSystem;
 
     public sealed class ManifestsAndSlicesFactoryContainer : IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>>
     {
