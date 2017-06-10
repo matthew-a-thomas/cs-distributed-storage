@@ -1,10 +1,10 @@
-﻿namespace ConsoleApp
+﻿namespace DistributedStorage.Storage
 {
     using System.Security.Cryptography;
-    using DistributedStorage.Common;
-    using DistributedStorage.Encoding;
-    using DistributedStorage.Storage.Containers;
-    using DistributedStorage.Storage.FileSystem;
+    using Common;
+    using Containers;
+    using Encoding;
+    using FileSystem;
 
     /// <summary>
     /// Something that manages

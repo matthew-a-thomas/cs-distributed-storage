@@ -1,13 +1,13 @@
-﻿namespace ConsoleApp
+﻿namespace DistributedStorage.Storage
 {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
-    using DistributedStorage.Common;
-    using DistributedStorage.Networking.Security;
-    using DistributedStorage.Storage.Containers;
-    using DistributedStorage.Storage.FileSystem;
+    using Common;
+    using Containers;
+    using FileSystem;
+    using Networking.Security;
 
     /// <summary>
     /// An <see cref="IAddableContainer{TKey,TValue}"/> that stores public RSA keys

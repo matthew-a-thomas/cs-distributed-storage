@@ -1,12 +1,12 @@
-﻿namespace ConsoleApp
+﻿namespace DistributedStorage.Storage
 {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using DistributedStorage.Common;
-    using DistributedStorage.Encoding;
-    using DistributedStorage.Storage.Containers;
-    using DistributedStorage.Storage.FileSystem;
+    using Common;
+    using Containers;
+    using Encoding;
+    using FileSystem;
 
     public sealed class ManifestsAndSlicesFactoryContainer : IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>>
     {
