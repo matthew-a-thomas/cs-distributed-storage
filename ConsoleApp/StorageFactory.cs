@@ -1,6 +1,7 @@
 ﻿namespace ConsoleApp
 {
     using DistributedStorage.Storage;
+    using DistributedStorage.Storage.Containers;
 
     /// <summary>
     /// Something that can create instances of <see cref="Storage"/>

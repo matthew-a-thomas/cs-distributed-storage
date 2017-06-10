@@ -1,5 +1,7 @@
 ﻿namespace DistributedStorage.Storage
 {
+    using Containers;
+
     public sealed class Directory : IDirectory
     {
         public sealed class Options

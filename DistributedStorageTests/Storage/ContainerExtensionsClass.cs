@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using DistributedStorage.Storage;
+    using DistributedStorage.Storage.Containers;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]

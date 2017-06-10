@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Storage
+﻿namespace DistributedStorage.Storage.Containers
 {
     using System.Collections.Generic;
     using System.Linq;

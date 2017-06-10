@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Storage
+﻿namespace DistributedStorage.Storage.Containers
 {
     /// <summary>
     /// Something that manages keyed values

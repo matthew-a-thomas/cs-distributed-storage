@@ -7,6 +7,7 @@
     using DistributedStorage.Common;
     using DistributedStorage.Networking.Security;
     using DistributedStorage.Storage;
+    using DistributedStorage.Storage.Containers;
 
     /// <summary>
     /// An <see cref="IAddableContainer{TKey,TValue}"/> that stores public RSA keys

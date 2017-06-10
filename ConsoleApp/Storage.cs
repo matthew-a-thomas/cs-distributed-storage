@@ -4,6 +4,7 @@
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Storage;
+    using DistributedStorage.Storage.Containers;
 
     /// <summary>
     /// Something that manages
