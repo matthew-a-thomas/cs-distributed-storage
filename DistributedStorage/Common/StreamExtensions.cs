@@ -41,7 +41,7 @@
             } while ((b & 0x80) != 0);
             return true;
         }
-
+        
         /// <summary>
         /// Tries to read the next chunk of data from this <see cref="Stream"/>.
         /// If an entire chunk is not immediately available, then false is returned.
@@ -57,6 +57,18 @@
             if (numBytesRead != length)
                 return false;
             data = buffer;
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to read a string out of this <see cref="Stream"/>
+        /// </summary>
+        public static bool TryRead(this Stream stream, out string message)
+        {
+            message = null;
+            if (!stream.TryRead(out byte[] bytes))
+                return false;
+            message = System.Text.Encoding.UTF8.GetString(bytes);
             return true;
         }
         
@@ -81,6 +93,11 @@
         }
 
         /// <summary>
+        /// Writes the given byte out to this <see cref="Stream"/> by itself
+        /// </summary>
+        public static void Write(this Stream stream, byte b) => stream.WriteByte(b);
+
+        /// <summary>
         /// Writes out a chunk of data.
         /// A chunk of data is defined as an integer specifying how many bytes follow, followed by that many bytes.
         /// Both of those things are written
@@ -90,5 +107,10 @@
             stream.Write(data.Length);
             stream.Write(data, 0, data.Length);
         }
+
+        /// <summary>
+        /// Writes the given <paramref name="message"/> out to this <see cref="Stream"/>
+        /// </summary>
+        public static void Write(this Stream stream, string message) => stream.Write(System.Text.Encoding.UTF8.GetBytes(message));
     }
 }

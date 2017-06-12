@@ -6,7 +6,7 @@
     /// <summary>
     /// Something that uses symmetric encryption to send and receive data over a <see cref="Stream"/>
     /// </summary>
-    public class SecureStream
+    public sealed class SecureStream : IDatagramChannel
     {
         #region Constructor
 
