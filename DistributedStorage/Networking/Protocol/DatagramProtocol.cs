@@ -16,8 +16,39 @@
     /// </summary>
     [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
     [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-    public sealed class DatagramProtocol : IDatagramProtocol
+    public sealed class DatagramProtocol : IProtocol
     {
+        /// <summary>
+        /// Creates new <see cref="DatagramProtocol"/>s
+        /// </summary>
+        public sealed class Factory
+        {
+            private readonly IEntropy _entropy;
+            private readonly ITimer _timer;
+            private readonly TimeSpan _tokenLifetime;
+            private readonly int _tokenSize;
+
+            /// <summary>
+            /// Creates a new <see cref="Factory"/> which creates <see cref="DatagramProtocol"/>s
+            /// </summary>
+            /// <param name="entropy">The source of entropy for authorization tokens</param>
+            /// <param name="timer">Something that can schedule things in the future</param>
+            /// <param name="tokenLifetime">The amount of time an authorization token will be valid for</param>
+            /// <param name="tokenSize">The number of bytes in an authorization token</param>
+            public Factory(IEntropy entropy, ITimer timer, TimeSpan tokenLifetime, int tokenSize)
+            {
+                _entropy = entropy;
+                _timer = timer;
+                _tokenLifetime = tokenLifetime;
+                _tokenSize = tokenSize;
+            }
+
+            /// <summary>
+            /// Creates a new <see cref="DatagramProtocol"/> that will talk with the <paramref name="otherParty"/>
+            /// </summary>
+            public DatagramProtocol Create(IDatagramChannel otherParty) => new DatagramProtocol(otherParty, _entropy, _tokenSize, _timer, _tokenLifetime);
+        }
+
         /// <summary>
         /// Different types of messages that may be sent through this <see cref="DatagramProtocol"/>
         /// </summary>
@@ -53,7 +84,7 @@
         /// <summary>
         /// Things which accept (and handle) unsolicited requests
         /// </summary>
-        private readonly ConcurrentDictionary<string, IHandler> _requestHandlers = new ConcurrentDictionary<string, IHandler>();
+        private readonly ConcurrentDictionary<string, IHandler<byte[], byte[]>> _requestHandlers = new ConcurrentDictionary<string, IHandler<byte[], byte[]>>();
 
         /// <summary>
         /// Something that knows how to schedule things to happen later
@@ -83,7 +114,7 @@
         }
 
         /// <summary>
-        /// Maps an incoming request from the other party to the appropriate <see cref="IHandler"/> in <see cref="_requestHandlers"/>,
+        /// Maps an incoming request from the other party to the appropriate <see cref="IHandler{TParameter, TResult}"/> in <see cref="_requestHandlers"/>,
         /// which produces a response which we then send back to the other pary
         /// </summary>
         private void HandleRequest(Stream stream)
@@ -205,7 +236,7 @@
         /// <summary>
         /// Tries to register the given <paramref name="handler"/> to process requests having the given <paramref name="signature"/>
         /// </summary>
-        public bool TryRegister(string signature, IHandler handler) => _requestHandlers.TryAdd(signature, handler);
+        public bool TryRegister(string signature, IHandler<byte[], byte[]> handler) => _requestHandlers.TryAdd(signature, handler);
 
         /// <summary>
         /// Tries to unregister the handler associated with the given <paramref name="signature"/> so that messages with this <paramref name="signature"/> will be ignored

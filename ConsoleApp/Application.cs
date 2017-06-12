@@ -4,14 +4,22 @@
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Security.Cryptography;
     using System.Text;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
+    using DistributedStorage.Networking;
+    using DistributedStorage.Networking.Protocol;
     using DistributedStorage.Networking.Security;
     using DistributedStorage.Solving;
+    using DistributedStorage.Storage;
+    using DistributedStorage.Storage.FileSystem;
     using Newtonsoft.Json;
+    using Directory = System.IO.Directory;
+    using File = System.IO.File;
 
     [SuppressMessage("ReSharper", "FunctionNeverReturns")]
     internal class Application
@@ -33,6 +41,9 @@
         private readonly IGeneratorFactory _generatorFactory;
         private readonly IManifestFactory _manifestFactory;
         private readonly ISolverFactory _solverFactory;
+        private readonly StorageFactory _storageFactory;
+        private readonly DatagramProtocol.Factory _datagramProtocolFactory;
+        private readonly Node.Factory _nodeFactory;
 
         #endregion
 
@@ -47,7 +58,10 @@
             ICryptoRsa cryptoRsa,
             IGeneratorFactory generatorFactory,
             IManifestFactory manifestFactory,
-            ISolverFactory solverFactory)
+            ISolverFactory solverFactory,
+            StorageFactory storageFactory,
+            DatagramProtocol.Factory datagramProtocolFactory,
+            Node.Factory nodeFactory)
         {
             _hashVisualizer = hashVisualizer;
             _secureStreamFactory = secureStreamFactory;
@@ -55,6 +69,9 @@
             _generatorFactory = generatorFactory;
             _manifestFactory = manifestFactory;
             _solverFactory = solverFactory;
+            _storageFactory = storageFactory;
+            _datagramProtocolFactory = datagramProtocolFactory;
+            _nodeFactory = nodeFactory;
         }
 
         #endregion
@@ -240,9 +257,34 @@
                     "Connect",
                     () =>
                     {
-                        "Generating an RSA key...".Say();
-                        var key = _cryptoRsa.CreateKey();
-                        $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
+                        var storage = _storageFactory.CreateStorage(new DirectoryInfo("Working directory?".Ask()).ToDirectory());
+
+                        RSAParameters key;
+                        {
+                            if (!storage.OurRsaKeyFile.TryOpenRead(out Stream stream))
+                                throw new Exception("Cannot open RSA key file for reading");
+                            var createKey = false;
+                            using (stream)
+                            {
+                                if (!stream.TryRead(out key))
+                                {
+                                    createKey = true;
+                                }
+                            }
+                            if (createKey)
+                            {
+                                if (!storage.OurRsaKeyFile.TryOpenWrite(out stream))
+                                    throw new Exception("Cannot open RSA key file for writing");
+                                using (stream)
+                                {
+                                    "Generating an RSA key...".Say();
+                                    key = _cryptoRsa.CreateKey();
+                                    stream.Write(key);
+                                }
+                            }
+                            $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
+                        }
+
                         "Mode?".Choose(new Dictionary<string, Action>
                         {
                             {
@@ -266,8 +308,29 @@
                                             });
                                             if (!accept)
                                                 return;
+
+                                            var protocol = _datagramProtocolFactory.Create(secureStream);
+                                            if (!_nodeFactory.TryCreate(storage, protocol, out var node))
+                                                throw new Exception("Failed to create a new node");
+
                                             while (true)
                                             {
+                                                "Do what?".Choose(new Dictionary<string, Action>
+                                                {
+                                                    {
+                                                        "List manifests",
+                                                        () => node.GetManifestsAsync().ContinueWith(task =>
+                                                        {
+                                                            if (!task.IsCompleted || task.IsCanceled || task.IsFaulted)
+                                                                return;
+                                                            var manifests = task.Result;
+                                                            "<manifests>".Say();
+                                                            string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
+                                                            "</manifests>".Say();
+                                                        })
+                                                    }
+                                                });
+
                                                 var message = "Message?".Ask();
                                                 var datagram = Encoding.ASCII.GetBytes(message);
                                                 secureStream.SendDatagram(datagram);

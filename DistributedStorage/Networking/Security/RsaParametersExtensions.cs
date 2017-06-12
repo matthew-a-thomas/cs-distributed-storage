@@ -43,7 +43,7 @@
             }
         }
         
-        public static void Write(this Stream stream, RSAParameters key)
+        public static void Write(this Stream stream, RSAParameters key, bool includePrivate = false)
         {
             stream.Write(key.Exponent);
             stream.Write(key.Modulus);

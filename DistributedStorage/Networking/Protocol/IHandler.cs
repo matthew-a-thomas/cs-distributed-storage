@@ -1,7 +1,7 @@
 ﻿namespace DistributedStorage.Networking.Protocol
 {
-    public interface IHandler
+    public interface IHandler<in TParameter, out TResult>
     {
-        byte[] Handle(byte[] parameter);
+        TResult Handle(TParameter parameter);
     }
 }
