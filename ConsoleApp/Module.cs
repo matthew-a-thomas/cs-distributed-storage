@@ -6,8 +6,13 @@ namespace ConsoleApp
     using System.Security.Cryptography;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
+    using DistributedStorage.Networking;
+    using DistributedStorage.Networking.Protocol;
+    using DistributedStorage.Networking.Protocol.Methods;
     using DistributedStorage.Networking.Security;
+    using DistributedStorage.Networking.Serialization;
     using DistributedStorage.Solving;
+    using DistributedStorage.Storage;
 
     internal class Module : Autofac.Module
     {
@@ -36,6 +41,18 @@ namespace ConsoleApp
                     return new RandomAdapter(random);
                 })
                 .As<IRandom>();
+
+            builder.RegisterType<StorageFactory>().SingleInstance();
+            builder.RegisterType<DatagramProtocol.Factory>().SingleInstance();
+            builder.RegisterType<Node.Factory>().SingleInstance();
+            builder.RegisterType<Timer>().As<ITimer>().SingleInstance();
+            builder.RegisterGeneric(typeof(ProtocolMethodFactory<,>)).SingleInstance();
+            builder.RegisterType<NothingSerializer>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ManifestSerializer>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ArraySerializer<Manifest>>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IntegerSerializer>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SliceSerializer>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ArraySerializer<Slice>>().AsImplementedInterfaces().SingleInstance();
         }
     }
 }

@@ -23,30 +23,44 @@
         /// </summary>
         public sealed class Factory
         {
+            /// <summary>
+            /// Various options for creating a new <see cref="DatagramProtocol"/>
+            /// </summary>
+            public sealed class Options
+            {
+                /// <summary>
+                /// The amount of time that authorization tokens are valid for
+                /// </summary>
+                public TimeSpan TokenLifetime { get; set; } = TimeSpan.FromSeconds(1);
+
+                /// <summary>
+                /// The number of bytes in an authorization token
+                /// </summary>
+                public int TokenSize { get; set; } = 8;
+            }
+
             private readonly IEntropy _entropy;
             private readonly ITimer _timer;
-            private readonly TimeSpan _tokenLifetime;
-            private readonly int _tokenSize;
 
             /// <summary>
             /// Creates a new <see cref="Factory"/> which creates <see cref="DatagramProtocol"/>s
             /// </summary>
             /// <param name="entropy">The source of entropy for authorization tokens</param>
             /// <param name="timer">Something that can schedule things in the future</param>
-            /// <param name="tokenLifetime">The amount of time an authorization token will be valid for</param>
-            /// <param name="tokenSize">The number of bytes in an authorization token</param>
-            public Factory(IEntropy entropy, ITimer timer, TimeSpan tokenLifetime, int tokenSize)
+            public Factory(IEntropy entropy, ITimer timer)
             {
                 _entropy = entropy;
                 _timer = timer;
-                _tokenLifetime = tokenLifetime;
-                _tokenSize = tokenSize;
             }
 
             /// <summary>
             /// Creates a new <see cref="DatagramProtocol"/> that will talk with the <paramref name="otherParty"/>
             /// </summary>
-            public DatagramProtocol Create(IDatagramChannel otherParty) => new DatagramProtocol(otherParty, _entropy, _tokenSize, _timer, _tokenLifetime);
+            public DatagramProtocol Create(IDatagramChannel otherParty, Options options = null)
+            {
+                options = options ?? new Options();
+                return new DatagramProtocol(otherParty, _entropy, options.TokenSize, _timer, options.TokenLifetime);
+            }
         }
 
         /// <summary>

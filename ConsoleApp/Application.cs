@@ -259,29 +259,35 @@
                     {
                         var storage = _storageFactory.CreateStorage(new DirectoryInfo("Working directory?".Ask()).ToDirectory());
 
-                        RSAParameters key;
+                        var key = default(RSAParameters);
                         {
-                            if (!storage.OurRsaKeyFile.TryOpenRead(out Stream stream))
-                                throw new Exception("Cannot open RSA key file for reading");
-                            var createKey = false;
-                            using (stream)
+                            var create = true;
+                            if (storage.OurRsaKeyFile.TryOpenRead(out Stream stream))
                             {
-                                if (!stream.TryRead(out key))
-                                {
-                                    createKey = true;
-                                }
-                            }
-                            if (createKey)
-                            {
-                                if (!storage.OurRsaKeyFile.TryOpenWrite(out stream))
-                                    throw new Exception("Cannot open RSA key file for writing");
                                 using (stream)
                                 {
-                                    "Generating an RSA key...".Say();
-                                    key = _cryptoRsa.CreateKey();
-                                    stream.Write(key);
+                                    if (stream.TryRead(out key))
+                                        create = false;
                                 }
                             }
+
+                            if (create)
+                            {
+                                if (storage.OurRsaKeyFile.TryOpenWrite(out stream))
+                                {
+                                    using (stream)
+                                    {
+                                        "Generating an RSA key...".Say();
+                                        key = _cryptoRsa.CreateKey();
+                                        stream.Write(key);
+                                    }
+                                }
+                                else
+                                {
+                                    throw new Exception("RSA key could neither be read nor written");
+                                }
+                            }
+
                             $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
                         }
 
@@ -312,7 +318,7 @@
                                             var protocol = _datagramProtocolFactory.Create(secureStream);
                                             if (!_nodeFactory.TryCreate(storage, protocol, out var node))
                                                 throw new Exception("Failed to create a new node");
-
+                                            using (node)
                                             while (true)
                                             {
                                                 "Do what?".Choose(new Dictionary<string, Action>
@@ -328,12 +334,12 @@
                                                             string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
                                                             "</manifests>".Say();
                                                         })
+                                                    },
+                                                    {
+                                                        "Pump message queue",
+                                                        protocol.Pump
                                                     }
                                                 });
-
-                                                var message = "Message?".Ask();
-                                                var datagram = Encoding.ASCII.GetBytes(message);
-                                                secureStream.SendDatagram(datagram);
                                             }
                                         }
                                     }
@@ -364,15 +370,14 @@
                                             });
                                             if (!accept)
                                                 return;
+
+                                            var protocol = _datagramProtocolFactory.Create(secureStream);
+                                            if (!_nodeFactory.TryCreate(storage, protocol, out var node))
+                                                throw new Exception("Failed to create a new node");
+                                            using (node)
                                             while (true)
                                             {
-                                                if (!secureStream.TryReceiveDatagram(out var datagram))
-                                                {
-                                                    "Failed to get datagram. Trying again...".Say();
-                                                    continue;
-                                                }
-                                                var message = Encoding.ASCII.GetString(datagram);
-                                                message.Say();
+                                                protocol.Pump();
                                             }
                                         }
                                     }

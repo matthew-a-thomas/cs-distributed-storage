@@ -22,14 +22,32 @@
         public static bool TryRead(this Stream stream, out RSAParameters key)
         {
             key = default(RSAParameters);
-            if (!stream.TryRead(out byte[] remoteExponent))
+            if (!stream.TryRead(out byte[] d))
                 return false;
-            if (!stream.TryRead(out byte[] remoteModulus))
+            if (!stream.TryRead(out byte[] dp))
+                return false;
+            if (!stream.TryRead(out byte[] dq))
+                return false;
+            if (!stream.TryRead(out byte[] exponent))
+                return false;
+            if (!stream.TryRead(out byte[] inverseQ))
+                return false;
+            if (!stream.TryRead(out byte[] modulus))
+                return false;
+            if (!stream.TryRead(out byte[] p))
+                return false;
+            if (!stream.TryRead(out byte[] q))
                 return false;
             key = new RSAParameters
             {
-                Exponent = remoteExponent,
-                Modulus = remoteModulus
+                D = d,
+                DP = dp,
+                DQ = dq,
+                Exponent = exponent,
+                InverseQ = inverseQ,
+                Modulus = modulus,
+                P = p,
+                Q = q
             };
             return true;
         }
@@ -43,10 +61,16 @@
             }
         }
         
-        public static void Write(this Stream stream, RSAParameters key, bool includePrivate = false)
+        public static void Write(this Stream stream, RSAParameters key)
         {
+            stream.Write(key.D);
+            stream.Write(key.DP);
+            stream.Write(key.DQ);
             stream.Write(key.Exponent);
+            stream.Write(key.InverseQ);
             stream.Write(key.Modulus);
+            stream.Write(key.P);
+            stream.Write(key.Q);
         }
     }
 }

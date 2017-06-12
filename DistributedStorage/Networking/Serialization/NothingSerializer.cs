@@ -1,12 +1,12 @@
 ﻿namespace DistributedStorage.Networking.Serialization
 {
-    public sealed class NothingSerializer : ISerializer<NothingSerializer>
+    public sealed class NothingSerializer : ISerializer<Nothing>
     {
-        public byte[] Serialize(NothingSerializer thing) => new byte[0];
+        public byte[] Serialize(Nothing thing) => new byte[0];
 
-        public bool TryDeserialize(byte[] bytes, out NothingSerializer thing)
+        public bool TryDeserialize(byte[] bytes, out Nothing thing)
         {
-            thing = new NothingSerializer();
+            thing = null;
             return true;
         }
     }
