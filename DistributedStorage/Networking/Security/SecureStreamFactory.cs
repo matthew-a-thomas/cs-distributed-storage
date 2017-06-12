@@ -1,7 +1,6 @@
 ﻿namespace DistributedStorage.Networking.Security
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Security.Cryptography;
     using Common;
@@ -75,16 +74,15 @@
             Stream underlyingStream,
             RSAParameters ours,
             Mode mode,
-            TimeSpan timeout,
             out RSAParameters theirs,
             out SecureStream secureStream)
         {
             switch (mode)
             {
                 case Mode.Accept:
-                    return TryAcceptConnection(underlyingStream, ours, timeout, out theirs, out secureStream);
+                    return TryAcceptConnection(underlyingStream, ours, out theirs, out secureStream);
                 case Mode.Make:
-                    return TryMakeConnection(underlyingStream, ours, timeout, out theirs, out secureStream);
+                    return TryMakeConnection(underlyingStream, ours, out theirs, out secureStream);
                 default:
                     throw new NotImplementedException();
             }
@@ -94,18 +92,17 @@
         /// Attempts to accept a connection over the given <paramref name="underlyingStream"/>.
         /// False is returned if we can't prove that the other party owns the private key for their public key
         /// </summary>
-        public bool TryAcceptConnection(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs, out SecureStream secureStream)
+        public bool TryAcceptConnection(Stream underlyingStream, RSAParameters ours, out RSAParameters theirs, out SecureStream secureStream)
         {
             // Start out assuming that we'll fail
             secureStream = null;
             
             // Try swapping public keys and verifying that the other party owns the corresponding private key
-            var start = Stopwatch.StartNew();
-            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, _entropy, out theirs))
+            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, _entropy, out theirs))
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's wait for them to tell us what the connection key is
-            if (!underlyingStream.TryBlockingRead(timeout - start.Elapsed, out byte[] ciphertext))
+            if (!underlyingStream.TryRead(out byte[] ciphertext))
                 return false;
             if (!_cryptoRsa.TryDecryptRsa(ciphertext, ours, theirs, out var connectionKey)) // Try decrypting the connection key that they should have sent
                 return false;
@@ -119,13 +116,13 @@
         /// Attempts to make a connection over the given <paramref name="underlyingStream"/>.
         /// False is returned if we can't prove that the other party owns the private key for their public key
         /// </summary>
-        public bool TryMakeConnection(Stream underlyingStream, RSAParameters ours, TimeSpan timeout, out RSAParameters theirs, out SecureStream secureStream)
+        public bool TryMakeConnection(Stream underlyingStream, RSAParameters ours, out RSAParameters theirs, out SecureStream secureStream)
         {
             // Start out assuming that we'll fail
             secureStream = null;
             
             // Try swapping public keys and verifying that the other party owns the corresponding private key
-            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, timeout, _entropy, out theirs))
+            if (!_keySwapper.TrySwapPublicRsaKeys(underlyingStream, ours, _entropy, out theirs))
                 return false;
 
             // Now that we have their public key, and know that they have the corresponding private key, let's tell them what the connection key will be

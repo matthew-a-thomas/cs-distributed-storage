@@ -1,6 +1,5 @@
 ﻿namespace DistributedStorageTests.Networking.Security
 {
-    using System;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
@@ -74,7 +73,7 @@
                     var message = Encoding.ASCII.GetBytes("Hello world");
                     new SecureStream(stream, key, new NonsecureCryptoSymmetric()).SendDatagram(message);
                     stream.Position = 0;
-                    Assert.IsTrue(new SecureStream(stream, key, new NonsecureCryptoSymmetric()).TryReceiveDatagram(TimeSpan.FromMilliseconds(100), out var plaintext));
+                    Assert.IsTrue(new SecureStream(stream, key, new NonsecureCryptoSymmetric()).TryReceiveDatagram(out var plaintext));
                     Assert.IsTrue(message.SequenceEqual(plaintext));
                 }
             }
@@ -88,7 +87,7 @@
                     var message = Encoding.ASCII.GetBytes("Hello world");
                     new SecureStream(stream, key, new NonsecureCryptoSymmetric()).SendDatagram(message);
                     stream.Position = 0;
-                    Assert.IsTrue(new SecureStream(stream, key, new NonsecureCryptoSymmetric()).TryReceiveDatagram(TimeSpan.FromMilliseconds(100), out var plaintext));
+                    Assert.IsTrue(new SecureStream(stream, key, new NonsecureCryptoSymmetric()).TryReceiveDatagram(out var plaintext));
                     Assert.IsTrue(message.SequenceEqual(plaintext));
                 }
             }
@@ -97,7 +96,7 @@
             public void ReturnsFalseWhenTimingOut()
             {
                 using (var stream = new MemoryStream())
-                    Assert.IsFalse(new SecureStream(stream, new byte[10], new NonsecureCryptoSymmetric()).TryReceiveDatagram(TimeSpan.FromMilliseconds(10), out _));
+                    Assert.IsFalse(new SecureStream(stream, new byte[10], new NonsecureCryptoSymmetric()).TryReceiveDatagram(out _));
             }
         }
     }

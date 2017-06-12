@@ -1,7 +1,5 @@
 ﻿namespace DistributedStorage.Networking.Security
 {
-    using System;
-    using System.Diagnostics;
     using System.IO;
     using Common;
 
@@ -47,13 +45,12 @@
         /// <summary>
         /// Tries to receive an encrypted message from the other party
         /// </summary>
-        public bool TryReceiveDatagram(TimeSpan timeout, out byte[] data)
+        public bool TryReceiveDatagram(out byte[] data)
         {
             data = null;
             
             // Read the encrypted session key and try to decrypt it using the connection key
-            var start = Stopwatch.StartNew();
-            if (!_underlyingStream.TryBlockingRead(timeout, out byte[] ciphertextSessionKey))
+            if (!_underlyingStream.TryRead(out byte[] ciphertextSessionKey))
                 return false;
             if (!_cryptoSymmetric.TryVerifyHmacAndDecrypt(ciphertextSessionKey, _connectionKey, out var sessionKey))
                 return false;
@@ -62,7 +59,7 @@
 
             // Try to decrypt the ciphertext using the session key
             return
-                _underlyingStream.TryBlockingRead(timeout - start.Elapsed, out byte[] ciphertext)
+                _underlyingStream.TryRead(out byte[] ciphertext)
                 &&
                 _cryptoSymmetric.TryVerifyHmacAndDecrypt(ciphertext, sessionKey, out data);
         }

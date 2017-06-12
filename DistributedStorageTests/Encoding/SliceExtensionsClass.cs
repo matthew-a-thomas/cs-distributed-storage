@@ -28,7 +28,7 @@
                     stream.Flush();
                     stream.Position = 0;
 
-                    if (!stream.TryBlockingRead(TimeSpan.FromSeconds(1), out deserialized))
+                    if (!stream.TryRead(out deserialized))
                         throw new Exception("Couldn't read slice");
                 }
 

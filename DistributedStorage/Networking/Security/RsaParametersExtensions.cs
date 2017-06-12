@@ -1,7 +1,5 @@
 ﻿namespace DistributedStorage.Networking.Security
 {
-    using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Security.Cryptography;
     using Common;
@@ -20,31 +18,13 @@
             rsa.ImportParameters(key);
             return rsa;
         }
-
-        public static int GetKeySize(this RSAParameters key) => key.Modulus.Length;
-
-        public static bool TryBlockingRead(this Stream stream, TimeSpan timeout, out RSAParameters key)
+        
+        public static bool TryRead(this Stream stream, out RSAParameters key)
         {
             key = default(RSAParameters);
-            var start = Stopwatch.StartNew();
-            if (!stream.TryBlockingRead(timeout, out byte[] remoteExponent))
+            if (!stream.TryRead(out byte[] remoteExponent))
                 return false;
-            if (!stream.TryBlockingRead(timeout - start.Elapsed, out byte[] remoteModulus))
-                return false;
-            key = new RSAParameters
-            {
-                Exponent = remoteExponent,
-                Modulus = remoteModulus
-            };
-            return true;
-        }
-
-        public static bool TryImmediateRead(this Stream stream, out RSAParameters key)
-        {
-            key = default(RSAParameters);
-            if (!stream.TryImmediateRead(out byte[] remoteExponent))
-                return false;
-            if (!stream.TryImmediateRead(out byte[] remoteModulus))
+            if (!stream.TryRead(out byte[] remoteModulus))
                 return false;
             key = new RSAParameters
             {

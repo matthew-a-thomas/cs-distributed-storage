@@ -1,6 +1,5 @@
 ﻿namespace DistributedStorageTests.Networking.Security
 {
-    using System;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -39,7 +38,7 @@
                     var challenge = Encoding.ASCII.GetBytes("Hello world");
                     swapper.SendChallenge(stream, KeyProvider.RsaKey1, challenge);
                     stream.Position = 0;
-                    Assert.IsTrue(swapper.TryReceiveChallenge(stream, TimeSpan.FromSeconds(1), out var theirs, out var theirChallenge));
+                    Assert.IsTrue(swapper.TryReceiveChallenge(stream, out var theirs, out var theirChallenge));
                     Assert.IsTrue(theirs.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
                     Assert.IsTrue(theirChallenge.SequenceEqual(challenge));
                 }
@@ -50,7 +49,7 @@
             {
                 var swapper = CreateKeySwapper();
                 using (var stream = new MemoryStream())
-                    Assert.IsFalse(swapper.TryReceiveChallenge(stream, TimeSpan.FromMilliseconds(10), out _, out _));
+                    Assert.IsFalse(swapper.TryReceiveChallenge(stream, out _, out _));
             }
         }
 
@@ -72,7 +71,7 @@
             public void ReturnsFalseWhenTimingOut()
             {
                 using (var stream = new MemoryStream())
-                    Assert.IsFalse(CreateKeySwapper().TryReceiveChallengeResponse(stream, new byte[0], new byte[0], KeyProvider.RsaKey2, TimeSpan.FromMilliseconds(10)));
+                    Assert.IsFalse(CreateKeySwapper().TryReceiveChallengeResponse(stream, new byte[0], new byte[0], KeyProvider.RsaKey2));
             }
 
             [TestMethod]
@@ -85,7 +84,7 @@
                     var challenge2 = Encoding.ASCII.GetBytes("HELLO WORLD.");
                     swapper.SendChallengeResponse(stream, KeyProvider.RsaKey1, challenge2, challenge1);
                     stream.Position = 0;
-                    Assert.IsTrue(swapper.TryReceiveChallengeResponse(stream, challenge2, challenge1, KeyProvider.RsaKey1, TimeSpan.FromSeconds(1)));
+                    Assert.IsTrue(swapper.TryReceiveChallengeResponse(stream, challenge2, challenge1, KeyProvider.RsaKey1));
                 }
             }
         }

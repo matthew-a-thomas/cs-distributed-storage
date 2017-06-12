@@ -102,7 +102,7 @@
                 return false;
             using (stream)
             {
-                return stream.TryImmediateRead(out key);
+                return stream.TryRead(out key);
             }
         }
 

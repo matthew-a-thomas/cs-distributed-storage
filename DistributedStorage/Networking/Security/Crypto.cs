@@ -51,12 +51,7 @@
         /// Creates a nonce that can be used as the key of an <see cref="Aes"/>
         /// </summary>
         internal static byte[] CreateAesKey() => CreateNonce(256 / 8);
-
-        /// <summary>
-        /// Creates a new <see cref="HashAlgorithm"/>
-        /// </summary>
-        internal static HashAlgorithm CreateHashAlgorithm() => SHA512.Create();
-
+        
         /// <summary>
         /// Creates a new <see cref="HMAC"/>
         /// </summary>
@@ -111,21 +106,21 @@
                 using (var buffer = new MemoryStream(data))
                 {
                     // Pull out the tag
-                    if (!buffer.TryImmediateRead(out byte[] ticksUtcBytes))
+                    if (!buffer.TryRead(out byte[] ticksUtcBytes))
                         return false;
                     ticksUtc = BitConverter.ToInt64(ticksUtcBytes, 0);
 
                     // Pull out the initialization vector and ciphertext
-                    if (!buffer.TryImmediateRead(out byte[] iv))
+                    if (!buffer.TryRead(out byte[] iv))
                         return false;
-                    if (!buffer.TryImmediateRead(out byte[] ciphertext))
+                    if (!buffer.TryRead(out byte[] ciphertext))
                         return false;
 
                     // Assert that the HMAC is correct
                     using (var hasher = CreateHmac(key))
                     {
                         var lengthOfFirstPart = (int)buffer.Position;
-                        if (!buffer.TryImmediateRead(out byte[] reportedHmac))
+                        if (!buffer.TryRead(out byte[] reportedHmac))
                             return false;
                         var computedHmac = hasher.ComputeHash(data, 0, lengthOfFirstPart);
                         if (!computedHmac.SequenceEqual(reportedHmac))
@@ -158,12 +153,12 @@
                     using (var buffer = new MemoryStream(data))
                     {
                         // Pull out the ciphertext
-                        if (!buffer.TryImmediateRead(out byte[] ciphertext))
+                        if (!buffer.TryRead(out byte[] ciphertext))
                             return false;
 
                         // Verify the signature
                         var lengthOfFirstPart = (int)buffer.Position;
-                        if (!buffer.TryImmediateRead(out byte[] signature))
+                        if (!buffer.TryRead(out byte[] signature))
                             return false;
                         if (!theirRsa.VerifyData(data, 0, lengthOfFirstPart, signature, HashName, SignaturePadding))
                             return false;

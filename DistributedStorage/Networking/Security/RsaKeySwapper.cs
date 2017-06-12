@@ -1,7 +1,5 @@
 ﻿namespace DistributedStorage.Networking.Security
 {
-    using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Security.Cryptography;
     using Common;
@@ -36,14 +34,13 @@
         /// <summary>
         /// Receives their public key and their challenge
         /// </summary>
-        public bool TryReceiveChallenge(Stream stream, TimeSpan timeout, out RSAParameters theirs, out byte[] theirChallenge)
+        public bool TryReceiveChallenge(Stream stream, out RSAParameters theirs, out byte[] theirChallenge)
         {
             theirChallenge = null;
-            var start = Stopwatch.StartNew();
             return
-                stream.TryBlockingRead(timeout, out theirs)
+                stream.TryRead(out theirs)
                 &&
-                stream.TryBlockingRead(timeout - start.Elapsed, out theirChallenge);
+                stream.TryRead(out theirChallenge);
         }
 
         /// <summary>
@@ -61,9 +58,9 @@
         /// <summary>
         /// Receives their signature of the combination of both challenges, returning true if it is valid
         /// </summary>
-        public bool TryReceiveChallengeResponse(Stream stream, byte[] ourChallenge, byte[] theirChallenge, RSAParameters theirs, TimeSpan timeout)
+        public bool TryReceiveChallengeResponse(Stream stream, byte[] ourChallenge, byte[] theirChallenge, RSAParameters theirs)
         {
-            if (!stream.TryBlockingRead(timeout, out byte[] theirProof))
+            if (!stream.TryRead(out byte[] theirProof))
                 return false;
 
             var mixed = (byte[])ourChallenge.Clone();

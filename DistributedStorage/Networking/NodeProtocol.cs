@@ -52,7 +52,7 @@
         private void HandleAuthorizedResponse(Stream stream)
         {
             // Grab their token
-            if (!stream.TryImmediateRead(out byte[] token))
+            if (!stream.TryRead(out byte[] token))
                 return;
 
             // Try handling their response
@@ -65,7 +65,7 @@
         private void HandleRequestManifestTokens(Stream stream)
         {
             // Grab the token we'll use in responding
-            if (!stream.TryImmediateRead(out byte[] token))
+            if (!stream.TryRead(out byte[] token))
                 return;
 
             // Get our manifests
@@ -93,18 +93,18 @@
         }
 
         /// <summary>
-        /// Pumps our message queue, blocking for up to <paramref name="timeout"/> time
+        /// Pumps our message queue
         /// </summary>
-        public void Pump(TimeSpan timeout)
+        public void Pump()
         {
             // Wait to receive a datagram from the other party
-            if (!_otherParty.TryReceiveDatagram(timeout, out var data))
+            if (!_otherParty.TryReceiveDatagram(out var data))
                 return;
 
             using (var stream = new MemoryStream(data))
             {
                 // See what kind of request it is
-                if (!stream.TryImmediateRead(out int requestNumber))
+                if (!stream.TryRead(out int requestNumber))
                     return;
                 var request = (Request) requestNumber;
                 if (!_handlers.TryGetValue(request, out var action))
@@ -133,14 +133,14 @@
                 Interlocked.Exchange(ref unschedule, null)?.Invoke();
                 
                 // Figure out how many manifests are coming
-                if (!stream.TryImmediateRead(out int numManifests))
+                if (!stream.TryRead(out int numManifests))
                     return;
 
                 // Read in all the manifests
                 var manifests = new Manifest[numManifests];
                 for (var i = 0; i < numManifests; ++i)
                 {
-                    if (!stream.TryImmediateRead(out manifests[i]))
+                    if (!stream.TryRead(out manifests[i]))
                         return;
                 }
 

@@ -43,7 +43,7 @@
                         continue;
                     using (stream)
                     {
-                        if (!stream.TryImmediateRead(out Manifest manifest))
+                        if (!stream.TryRead(out Manifest manifest))
                             continue;
                         return manifest;
                     }
@@ -84,7 +84,7 @@
                     return false;
                 using (stream)
                 {
-                    return stream.TryImmediateRead(out slice);
+                    return stream.TryRead(out slice);
                 }
             }
 

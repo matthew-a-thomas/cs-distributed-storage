@@ -171,7 +171,7 @@
             Manifest manifest;
             using (var stream = manifestFileInfo.OpenRead())
             {
-                if (!stream.TryBlockingRead(TimeSpan.FromSeconds(1), out manifest))
+                if (!stream.TryRead(out manifest))
                     throw new Exception("Couldn't read manifest");
             }
             
@@ -190,7 +190,7 @@
                 $"Using {file.Name}...".Say();
                 using (var stream = file.OpenRead())
                 {
-                    if (!SliceExtensions.TryBlockingRead(stream, TimeSpan.FromSeconds(1), out var slice))
+                    if (!SliceExtensions.TryRead(stream, out var slice))
                         throw new Exception("Couldn't read slice");
 
                     // ReSharper disable once AssignmentInConditionalExpression
@@ -253,7 +253,7 @@
                                         client.ConnectAsync(IPAddress.Loopback, 1337).Wait();
                                         using (var stream = client.GetStream())
                                         {
-                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Make, TimeSpan.FromSeconds(1), out var theirs, out var secureStream))
+                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Make, out var theirs, out var secureStream))
                                             {
                                                 "Failed to connect".Say();
                                                 return;
@@ -288,7 +288,7 @@
                                     {
                                         using (var stream = client.GetStream())
                                         {
-                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Accept, TimeSpan.FromSeconds(1), out var theirs, out var secureStream))
+                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Accept, out var theirs, out var secureStream))
                                             {
                                                 "Failed to accept a connection".Say();
                                                 return;
@@ -303,7 +303,7 @@
                                                 return;
                                             while (true)
                                             {
-                                                if (!secureStream.TryReceiveDatagram(TimeSpan.FromMinutes(1), out var datagram))
+                                                if (!secureStream.TryReceiveDatagram(out var datagram))
                                                 {
                                                     "Failed to get datagram. Trying again...".Say();
                                                     continue;

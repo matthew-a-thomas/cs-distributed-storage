@@ -1,7 +1,5 @@
 ﻿namespace DistributedStorage.Networking.Security
 {
-    using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Security.Cryptography;
 
@@ -12,22 +10,21 @@
         /// This method also verifies that the sending party owns the private key for the public key they're sending.
         /// It does this by also swapping nonces, and signing/verifying them
         /// </summary>
-        public static bool TrySwapPublicRsaKeys(this RsaKeySwapper @this, Stream underlyingStream, RSAParameters ours, TimeSpan timeout, IEntropy entropy, out RSAParameters theirs)
+        public static bool TrySwapPublicRsaKeys(this RsaKeySwapper @this, Stream underlyingStream, RSAParameters ours, IEntropy entropy, out RSAParameters theirs)
         {
             // Send our challenge
             var ourChallenge = entropy.CreateNonce(ours.Modulus.Length);
             @this.SendChallenge(underlyingStream, ours, ourChallenge);
 
             // Receive their challenge
-            var start = Stopwatch.StartNew();
-            if (!@this.TryReceiveChallenge(underlyingStream, timeout, out theirs, out var theirChallenge))
+            if (!@this.TryReceiveChallenge(underlyingStream, out theirs, out var theirChallenge))
                 return false;
 
             // Send our challenge response
             @this.SendChallengeResponse(underlyingStream, ours, theirChallenge, ourChallenge);
 
             // Receive and validate their challenge response
-            return @this.TryReceiveChallengeResponse(underlyingStream, ourChallenge, theirChallenge, theirs, timeout - start.Elapsed);
+            return @this.TryReceiveChallengeResponse(underlyingStream, ourChallenge, theirChallenge, theirs);
         }
     }
 }
