@@ -3,7 +3,7 @@
     /// <summary>
     /// Creates new <see cref="IMethod{TParameter, TResult}"/>s around <see cref="IProtocol"/>s
     /// </summary>
-    public sealed class ProtocolMethodFactory<TParameter, TResult>
+    public sealed class ProtocolMethodFactory<TParameter, TResult> : IProtocolMethodFactory<TParameter, TResult>
     {
         /// <summary>
         /// Serializes and deserializes parameters

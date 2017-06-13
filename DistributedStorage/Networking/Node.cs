@@ -27,25 +27,25 @@
             /// <summary>
             /// A factory for creating a method that takes in nothing and returns an array of <see cref="Manifest"/>s
             /// </summary>
-            private readonly ProtocolMethodFactory<Nothing, Manifest[]> _nothingToManifestsFactory;
+            private readonly IProtocolMethodFactory<Nothing, Manifest[]> _nothingToManifestsFactory;
 
             /// <summary>
             /// A factory for creating a method that takes in a <see cref="Manifest"/> and returns an <see cref="int"/>
             /// </summary>
-            private readonly ProtocolMethodFactory<Manifest, int> _manifestToIntFactory;
+            private readonly IProtocolMethodFactory<Manifest, int> _manifestToIntFactory;
 
             /// <summary>
             /// A factory for creating a method that takes in a <see cref="Manifest"/> and returns an array of <see cref="Slice"/>s
             /// </summary>
-            private readonly ProtocolMethodFactory<Manifest, Slice[]> _manifestToSlicesFactory;
+            private readonly IProtocolMethodFactory<Manifest, Slice[]> _manifestToSlicesFactory;
 
             /// <summary>
             /// Creates a new <see cref="Factory"/> which creates <see cref="Node"/>s
             /// </summary>
             public Factory(
-                ProtocolMethodFactory<Nothing, Manifest[]> nothingToManifestsFactory,
-                ProtocolMethodFactory<Manifest, int> manifestToIntFactory,
-                ProtocolMethodFactory<Manifest, Slice[]> manifestToSlicesFactory)
+                IProtocolMethodFactory<Nothing, Manifest[]> nothingToManifestsFactory,
+                IProtocolMethodFactory<Manifest, int> manifestToIntFactory,
+                IProtocolMethodFactory<Manifest, Slice[]> manifestToSlicesFactory)
             {
                 _nothingToManifestsFactory = nothingToManifestsFactory;
                 _manifestToIntFactory = manifestToIntFactory;
