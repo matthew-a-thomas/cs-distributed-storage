@@ -8,24 +8,24 @@
         /// <summary>
         /// The delegate for <see cref="IConverter{TFrom, TTo}.Convert"/>
         /// </summary>
-        public delegate TTo ConvertDelegate(TFrom from);
+        public delegate bool TryConvertDelegate(TFrom from, out TTo to);
 
         /// <summary>
-        /// The delegate to use for <see cref="Convert"/>
+        /// The delegate to use for <see cref="TryConvert"/>
         /// </summary>
-        private readonly ConvertDelegate _convertDelegate;
+        private readonly TryConvertDelegate _tryConvertDelegate;
 
         /// <summary>
-        /// Creates a new <see cref="Converter{TFrom, TTo}"/> using the given <paramref name="convertDelegate"/>
+        /// Creates a new <see cref="Converter{TFrom, TTo}"/> using the given <paramref name="tryConvertDelegate"/>
         /// </summary>
-        public Converter(ConvertDelegate convertDelegate)
+        public Converter(TryConvertDelegate tryConvertDelegate)
         {
-            _convertDelegate = convertDelegate;
+            _tryConvertDelegate = tryConvertDelegate;
         }
 
         /// <summary>
         /// Converts from the given thing
         /// </summary>
-        public TTo Convert(TFrom from) => _convertDelegate(from);
+        public bool TryConvert(TFrom from, out TTo to) => _tryConvertDelegate(from, out to);
     }
 }
