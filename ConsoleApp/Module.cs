@@ -47,6 +47,9 @@ namespace ConsoleApp
             builder.RegisterType<IntegerSerializer>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SliceSerializer>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ArraySerializer<Slice>>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ProtocolMethodFactory<Nothing, Manifest[]>>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ProtocolMethodFactory<Manifest, int>>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ProtocolMethodFactory<Manifest, Slice[]>>().AsImplementedInterfaces().SingleInstance();
         }
     }
 }
