@@ -268,7 +268,8 @@
                             return _cryptoRsa.CreateKey();
                         });
 
-                        $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
+                        "Your RSA key has this fingerprint:".Say();
+                         key.ToHash().HashCode.ToHex().Say();
 
                         TcpClient client;
                         var endpoint = new IPEndPoint(IPAddress.Loopback, 1337);
@@ -276,17 +277,22 @@
                         {
                             var listener = new TcpListener(endpoint);
                             listener.Start();
+                            $"Waiting for anyone to connect to {endpoint}...".Say();
                             client = listener.AcceptTcpClientAsync().WaitAndGet();
+                            $"A client connected from {client.Client.RemoteEndPoint}".Say();
                         }
                         catch
                         {
                             client = new TcpClient();
+                            $"Connecting to {endpoint}...".Say();
                             client.ConnectAsync(endpoint.Address, endpoint.Port).Wait();
+                            "Connected".Say();
                         }
                         using (client)
                         using (var stream = client.GetStream())
                         {
                             // Figure out what mode we should be in with regard to creating a SecureStream
+                            "Figuring out who should have what role with regard to creating a new secure stream...".Say();
                             SecureStreamFactory.Mode mode;
                             // ReSharper disable AccessToDisposedClosure
                             var tieBreaker = new TieBreaker(_entropy, ourNumber => stream.Write(ourNumber), () => stream.TryRead(out int theirNumber) ? theirNumber : throw new Exception("They didn't send a number"));
@@ -295,17 +301,20 @@
                             {
                                 case TieBreaker.Result.TheyWon:
                                     mode = SecureStreamFactory.Mode.Accept;
+                                    "They won the tie break".Say();
                                     break;
                                 case TieBreaker.Result.Tie:
                                     throw new Exception("No one won the tie break");
                                 case TieBreaker.Result.YouWon:
                                     mode = SecureStreamFactory.Mode.Make;
+                                    "We won the tie break".Say();
                                     break;
                                 default:
                                     throw new NotImplementedException();
                             }
 
                             // Create a SecureStream
+                            "Creating a secure stream...".Say();
                             if (!_secureStreamFactory.TryCreateConnection(stream, key, mode, out var theirs, out var secureStream))
                                 throw new Exception("Failed to create a secure stream");
                             var theirKeyHash = theirs.ToHash();
@@ -339,7 +348,7 @@
                             else
                             {
                                 var accept = false;
-                                "Unknown key".Choose(new Dictionary<string, Action>
+                                "They have an unknown key".Choose(new Dictionary<string, Action>
                                 {
                                     {
                                         "Trust it",
@@ -361,9 +370,11 @@
                             }
 
                             // Set up the protocol
+                            "Setting up a datagram protocol...".Say();
                             var protocol = _datagramProtocolFactory.Create(secureStream);
 
                             // Set up the corresponding node, which connects the protocol to our storage
+                            "Setting up a node, which connects the protocol to our storage...".Say();
                             if (!_nodeFactory.TryCreate(storage, protocol, out var node))
                                 throw new Exception("Failed to create a new node to connect our storage with the communication protocol");
 
@@ -378,7 +389,7 @@
                                         () => go = false
                                     },
                                     {
-                                        "Pump message queue",
+                                        "Pump datagram message queue",
                                         protocol.Pump
                                     },
                                     {
