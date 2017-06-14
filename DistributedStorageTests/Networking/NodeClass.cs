@@ -4,14 +4,47 @@
     using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking;
+    using DistributedStorage.Networking.Protocol;
     using DistributedStorage.Networking.Protocol.Methods;
     using DistributedStorage.Networking.Serialization;
+    using DistributedStorage.Storage;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
 
     [TestClass]
     public class NodeClass
     {
+        [TestClass]
+        public class FactoryClass
+        {
+            [TestClass]
+            public class TryCreateMethod
+            {
+                [TestMethod]
+                public void RegistersRequiredMethodsWithProtocol()
+                {
+                    // Setup
+                    var protocolMock = new Mock<IProtocol>();
+                    protocolMock.Setup(x => x.TryRegister(It.IsAny<string>(), It.IsAny<IHandler<byte[], byte[]>>())).Returns(true);
+                    var protocol = protocolMock.Object;
+
+                    var nothingToManifestsFactory = new ProtocolMethodFactory<Nothing, Manifest[]>(Helpers.CreateDummySerializer<Nothing>(), Helpers.CreateDummySerializer<Manifest[]>());
+                    var manifestToIntFactory = new ProtocolMethodFactory<Manifest, int>(Helpers.CreateDummySerializer<Manifest>(), Helpers.CreateDummySerializer<int>());
+                    var manifestToSlicesFactory = new ProtocolMethodFactory<Manifest, Slice[]>(Helpers.CreateDummySerializer<Manifest>(), Helpers.CreateDummySerializer<Slice[]>());
+                    var factory = new Node.Factory(nothingToManifestsFactory, manifestToIntFactory, manifestToSlicesFactory);
+
+                    // Invoke
+                    Assert.IsTrue(factory.TryCreate(It.IsAny<Storage>(), protocol, out _));
+
+                    // Assert
+                    foreach (var methodName in new[] {"Get manifests", "Get slice hashes for manifest", "Get slices for manifest" })
+                    {
+                        protocolMock.Verify(x => x.TryRegister(methodName, It.IsAny<IHandler<byte[], byte[]>>()));
+                    }
+                }
+            }
+        }
+
         [TestClass]
         public class GetManifestsAsyncMethod
         {
