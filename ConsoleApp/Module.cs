@@ -29,7 +29,7 @@ namespace ConsoleApp
                 return factory.Create(TimeSpan.FromSeconds(1));
             }).As<ICryptoSymmetric>();
             builder.RegisterType<CryptoSymmetric.Factory>().SingleInstance();
-            builder.RegisterType<Entropy>().As<IEntropy>();
+            builder.RegisterType<CryptoEntropy>().As<IEntropy>();
             builder.RegisterType<SecureStreamFactory>().SingleInstance();
 
             builder.RegisterType<GeneratorFactory>().As<IGeneratorFactory>().SingleInstance();

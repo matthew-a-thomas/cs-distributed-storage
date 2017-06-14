@@ -3,12 +3,11 @@
     using DistributedStorage.Actors;
     using DistributedStorage.Networking.Security;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Networking.Security.Utils;
 
     [TestClass]
     public class AuthorizedCommandManagerClass
     {
-        private static AuthorizedCommandManager<int> Create() => new AuthorizedCommandManager<int>(new Entropy(), 8);
+        private static AuthorizedCommandManager<int> Create() => new AuthorizedCommandManager<int>(new CryptoEntropy(), 8);
 
         [TestClass]
         public class InvokeMethod
@@ -51,7 +50,7 @@
             [TestMethod]
             public void ReturnsFalseForDuplicatedTokenThatHasNotBeenUsed()
             {
-                var manager = new AuthorizedCommandManager<int>(new NonsecureEntropy(), 1);
+                var manager = new AuthorizedCommandManager<int>(Helpers.CreateNonsecureEntropy(), 1);
                 Assert.IsTrue(manager.TryAuthorize(_ => { }, out _));
                 Assert.IsFalse(manager.TryAuthorize(_ => { }, out _));
             }
@@ -59,7 +58,7 @@
             [TestMethod]
             public void ReturnsTrueForDuplicatedTokenThatHasBeenUsed()
             {
-                var manager = new AuthorizedCommandManager<int>(new NonsecureEntropy(), 1);
+                var manager = new AuthorizedCommandManager<int>(Helpers.CreateNonsecureEntropy(), 1);
                 Assert.IsTrue(manager.TryAuthorize(_ => { }, out var token));
                 manager.Invoke(token, 0);
                 Assert.IsTrue(manager.TryAuthorize(_ => { }, out _));
@@ -79,7 +78,7 @@
             [TestMethod]
             public void MakesTryAuthorizeReturnTrueForSameToken()
             {
-                var manager = new AuthorizedCommandManager<int>(new NonsecureEntropy(), 1);
+                var manager = new AuthorizedCommandManager<int>(Helpers.CreateNonsecureEntropy(), 1);
                 Assert.IsTrue(manager.TryAuthorize(_ => { }, out var token));
                 Assert.IsTrue(manager.TryUnauthorize(token));
                 Assert.IsTrue(manager.TryAuthorize(_ => { }, out _));

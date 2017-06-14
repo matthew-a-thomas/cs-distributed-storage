@@ -2,6 +2,7 @@
 {
     using DistributedStorage.Common;
     using DistributedStorage.Networking;
+    using DistributedStorage.Networking.Security;
     using DistributedStorage.Storage.Containers;
     using DistributedStorage.Storage.FileSystem;
 
@@ -35,5 +36,10 @@
             var serializer = new Serializer<T>(new Serializer<T>.Options(Serialize, TryDeserialize));
             return serializer;
         }
+
+        /// <summary>
+        /// Creates a new <see cref="IEntropy"/> that always returns an empty array of the needed size
+        /// </summary>
+        public static IEntropy CreateNonsecureEntropy() => new Entropy(size => new byte[size]);
     }
 }
