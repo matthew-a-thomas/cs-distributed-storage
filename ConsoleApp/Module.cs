@@ -35,12 +35,6 @@ namespace ConsoleApp
             builder.RegisterType<GeneratorFactory>().As<IGeneratorFactory>().SingleInstance();
             builder.RegisterType<ManifestFactory>().As<IManifestFactory>().SingleInstance();
             builder.RegisterType<SolverFactory>().As<ISolverFactory>().SingleInstance();
-            builder.Register(c =>
-                {
-                    var random = new Random();
-                    return new RandomAdapter(random);
-                })
-                .As<IRandom>();
 
             builder.RegisterType<StorageFactory>().SingleInstance();
             builder.RegisterType<DatagramProtocol.Factory>().SingleInstance();

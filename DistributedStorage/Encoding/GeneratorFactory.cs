@@ -2,21 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
-    using Common;
+    using Networking.Security;
 
     public sealed class GeneratorFactory : IGeneratorFactory
     {
-        private readonly Func<IRandom> _randomFactory;
+        private readonly Func<IEntropy> _randomFactory;
 
-        public GeneratorFactory(Func<IRandom> randomFactory)
+        public GeneratorFactory(Func<IEntropy> randomFactory)
         {
             _randomFactory = randomFactory;
         }
 
         public IGenerator CreateGeneratorFor(IReadOnlyList<byte[]> source)
         {
-            var random = _randomFactory();
-            return new Generator(random, source);
+            var entropy = _randomFactory();
+            return new Generator(entropy, source);
         }
     }
 }

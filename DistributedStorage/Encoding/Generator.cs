@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using Common;
+    using Networking.Security;
 
     /// <summary>
     /// Generates <see cref="Slice"/>s from source data
@@ -16,7 +17,7 @@
         /// <summary>
         /// Our source of entropy
         /// </summary>
-        private readonly IRandom _random;
+        private readonly IEntropy _random;
 
         /// <summary>
         /// The source data
@@ -26,7 +27,7 @@
         /// <summary>
         /// Creates a new <see cref="Generator"/> that pulls entropy from <paramref name="random"/> and generates encoding symbols from <paramref name="source"/>
         /// </summary>
-        public Generator(IRandom random, IReadOnlyList<byte[]> source)
+        public Generator(IEntropy random, IReadOnlyList<byte[]> source)
         {
             _random = random;
             _source = source;
