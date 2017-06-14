@@ -6,7 +6,7 @@
     public sealed class Converter<TFrom, TTo> : IConverter<TFrom, TTo>
     {
         /// <summary>
-        /// The delegate for <see cref="IConverter{TFrom, TTo}.Convert"/>
+        /// The delegate for <see cref="IConverter{TFrom, TTo}.TryConvert(TFrom, out TTo)"/>
         /// </summary>
         public delegate bool TryConvertDelegate(TFrom from, out TTo to);
 
