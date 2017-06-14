@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using Common;
 
     /// <summary>
     /// An implementation of <see cref="IMethod{TParameter, TResult}"/> that wraps an <see cref="IProtocol"/>
@@ -28,11 +29,8 @@
             var parameterBytes = _parameterSerializer.Serialize(parameter);
             _protocol
                 .MakeRequestAsync(_signature, parameterBytes)
-                .ContinueWith(task =>
+                .DoAfterSuccess(responseBytes =>
                 {
-                    if (!task.IsCompleted || task.IsCanceled || task.IsFaulted)
-                        return;
-                    var responseBytes = task.Result;
                     if (!_resultSerializer.TryDeserialize(responseBytes, out var response))
                         return;
                     callback(response);
