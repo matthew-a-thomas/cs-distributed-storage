@@ -7,7 +7,7 @@
     [TestClass]
     public class RsaParametersExtensionsClass
     {
-        private static RsaKeyProvider KeyProvider = new RsaKeyProvider();
+        private static readonly RsaKeyProvider KeyProvider = new RsaKeyProvider();
 
         [TestClass]
         public class TryReadMethod
