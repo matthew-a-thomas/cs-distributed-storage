@@ -15,6 +15,7 @@
     using DistributedStorage.Networking.Security;
     using DistributedStorage.Solving;
     using DistributedStorage.Storage;
+    using DistributedStorage.Storage.Containers;
     using DistributedStorage.Storage.FileSystem;
     using Newtonsoft.Json;
     using Directory = System.IO.Directory;
@@ -43,6 +44,7 @@
         private readonly StorageFactory _storageFactory;
         private readonly DatagramProtocol.Factory _datagramProtocolFactory;
         private readonly Node.Factory _nodeFactory;
+        private readonly IEntropy _entropy;
 
         #endregion
 
@@ -60,7 +62,8 @@
             ISolverFactory solverFactory,
             StorageFactory storageFactory,
             DatagramProtocol.Factory datagramProtocolFactory,
-            Node.Factory nodeFactory)
+            Node.Factory nodeFactory,
+            IEntropy entropy)
         {
             _hashVisualizer = hashVisualizer;
             _secureStreamFactory = secureStreamFactory;
@@ -71,6 +74,7 @@
             _storageFactory = storageFactory;
             _datagramProtocolFactory = datagramProtocolFactory;
             _nodeFactory = nodeFactory;
+            _entropy = entropy;
         }
 
         #endregion
@@ -266,99 +270,132 @@
 
                         $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
 
-                        "Mode?".Choose(new Dictionary<string, Action>
+                        TcpClient client;
+                        var endpoint = new IPEndPoint(IPAddress.Loopback, 1337);
+                        try
                         {
+                            var listener = new TcpListener(endpoint);
+                            listener.Start();
+                            client = listener.AcceptTcpClientAsync().WaitAndGet();
+                        }
+                        catch
+                        {
+                            client = new TcpClient();
+                            client.ConnectAsync(endpoint.Address, endpoint.Port).Wait();
+                        }
+                        using (client)
+                        using (var stream = client.GetStream())
+                        {
+                            // Figure out what mode we should be in with regard to creating a SecureStream
+                            SecureStreamFactory.Mode mode;
+                            // ReSharper disable AccessToDisposedClosure
+                            var tieBreaker = new TieBreaker(_entropy, ourNumber => stream.Write(ourNumber), () => stream.TryRead(out int theirNumber) ? theirNumber : throw new Exception("They didn't send a number"));
+                            // ReSharper restore AccessToDisposedClosure
+                            switch (tieBreaker.Test())
                             {
-                                "Make", () =>
-                                {
-                                    using (var client = new TcpClient())
-                                    {
-                                        client.ConnectAsync(IPAddress.Loopback, 1337).Wait();
-                                        using (var stream = client.GetStream())
-                                        {
-                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Make, out var theirs, out var secureStream))
-                                            {
-                                                "Failed to connect".Say();
-                                                return;
-                                            }
-                                            var accept = false;
-                                            theirs.ToHash().HashCode.ToHex().Choose(new Dictionary<string, Action>
-                                            {
-                                                { "Accept", () => accept = true },
-                                                { "Reject", () => accept = false }
-                                            });
-                                            if (!accept)
-                                                return;
+                                case TieBreaker.Result.TheyWon:
+                                    mode = SecureStreamFactory.Mode.Accept;
+                                    break;
+                                case TieBreaker.Result.Tie:
+                                    throw new Exception("No one won the tie break");
+                                case TieBreaker.Result.YouWon:
+                                    mode = SecureStreamFactory.Mode.Make;
+                                    break;
+                                default:
+                                    throw new NotImplementedException();
+                            }
 
-                                            var protocol = _datagramProtocolFactory.Create(secureStream);
-                                            if (!_nodeFactory.TryCreate(storage, protocol, out var node))
-                                                throw new Exception("Failed to create a new node");
-                                            using (node)
-                                            while (true)
-                                            {
-                                                "Do what?".Choose(new Dictionary<string, Action>
-                                                {
-                                                    {
-                                                        "List manifests",
-                                                        () => node.GetManifestsAsync().ContinueWith(task =>
-                                                        {
-                                                            if (!task.IsCompleted || task.IsCanceled || task.IsFaulted)
-                                                                return;
-                                                            var manifests = task.Result;
-                                                            "<manifests>".Say();
-                                                            string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
-                                                            "</manifests>".Say();
-                                                        })
-                                                    },
-                                                    {
-                                                        "Pump message queue",
-                                                        protocol.Pump
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            },
+                            // Create a SecureStream
+                            if (!_secureStreamFactory.TryCreateConnection(stream, key, mode, out var theirs, out var secureStream))
+                                throw new Exception("Failed to create a secure stream");
+                            var theirKeyHash = theirs.ToHash();
+                            "This is their public key:".Say();
+                            theirKeyHash.HashCode.ToHex().Say();
+
+                            // Deal with their public key
+                            if (storage.TrustedPublicKeys.ContainsKey(theirKeyHash))
                             {
-                                "Accept",
-                                () =>
+                                var useIt = false;
+                                "We already trust their key".Choose(new Dictionary<string, Action>
                                 {
-                                    var listener = new TcpListener(IPAddress.Loopback, 1337);
-                                    listener.Start();
-                                    var acceptTask = listener.AcceptTcpClientAsync();
-                                    acceptTask.Wait();
-                                    using (var client = acceptTask.Result)
                                     {
-                                        using (var stream = client.GetStream())
-                                        {
-                                            if (!_secureStreamFactory.TryCreateConnection(stream, key, SecureStreamFactory.Mode.Accept, out var theirs, out var secureStream))
-                                            {
-                                                "Failed to accept a connection".Say();
-                                                return;
-                                            }
-                                            var accept = false;
-                                            theirs.ToHash().HashCode.ToHex().Choose(new Dictionary<string, Action>
-                                            {
-                                                { "Accept", () => accept = true },
-                                                { "Reject", () => accept = false }
-                                            });
-                                            if (!accept)
-                                                return;
-
-                                            var protocol = _datagramProtocolFactory.Create(secureStream);
-                                            if (!_nodeFactory.TryCreate(storage, protocol, out var node))
-                                                throw new Exception("Failed to create a new node");
-                                            using (node)
-                                            while (true)
-                                            {
-                                                protocol.Pump();
-                                            }
-                                        }
+                                        "Use it",
+                                        () => useIt = true
+                                    },
+                                    {
+                                        "Stop trusting it",
+                                        () => useIt = false
                                     }
+                                });
+
+                                if (!useIt)
+                                {
+                                    storage.TrustedPublicKeys.TryRemove(theirKeyHash);
+
+                                    "Goodbye".Say();
+                                    return;
                                 }
                             }
-                        });
+                            else
+                            {
+                                var accept = false;
+                                "Unknown key".Choose(new Dictionary<string, Action>
+                                {
+                                    {
+                                        "Trust it",
+                                        () => accept = true
+                                    },
+                                    {
+                                        "Reject it",
+                                        () => accept = false
+                                    }
+                                });
+
+                                if (!accept)
+                                {
+                                    "Goodbye".Say();
+                                    return;
+                                }
+
+                                storage.TrustedPublicKeys.TryAdd(theirKeyHash, theirs);
+                            }
+
+                            // Set up the protocol
+                            var protocol = _datagramProtocolFactory.Create(secureStream);
+
+                            // Set up the corresponding node, which connects the protocol to our storage
+                            if (!_nodeFactory.TryCreate(storage, protocol, out var node))
+                                throw new Exception("Failed to create a new node to connect our storage with the communication protocol");
+
+                            // Let the user drive
+                            var go = true;
+                            while (go)
+                            {
+                                "Do what?".Choose(new Dictionary<string, Action>
+                                {
+                                    {
+                                        "Quit",
+                                        () => go = false
+                                    },
+                                    {
+                                        "Pump message queue",
+                                        protocol.Pump
+                                    },
+                                    {
+                                        "List their manifests",
+                                        () =>
+                                            node
+                                            .GetManifestsAsync()
+                                            .DoAfterSuccess(manifests =>
+                                            {
+                                                "<manifests>".Say();
+                                                string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
+                                                "</manifests>".Say();
+                                            })
+                                    }
+                                });
+                            }
+                        }
                     }
                 }
             });

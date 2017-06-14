@@ -6,6 +6,15 @@
     public static class TaskExtensions
     {
         /// <summary>
+        /// Blocks until this <see cref="Task{T}"/> is done, then returns its <see cref="Task{T}.Result"/>
+        /// </summary>
+        public static T WaitAndGet<T>(this Task<T> task)
+        {
+            task.Wait();
+            return task.Result;
+        }
+
+        /// <summary>
         /// Determines if thie <see cref="Task"/> is completed successfully
         /// </summary>
         public static bool IsSuccessfullyCompleted(this Task task) => task.IsCompleted && !task.IsCanceled && !task.IsFaulted;
