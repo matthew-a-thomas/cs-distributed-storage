@@ -11,11 +11,11 @@
     {
         private readonly IProtocol _protocol;
         private readonly string _signature;
-        private readonly ISerializer<TParameter> _parameterSerializer;
-        private readonly ISerializer<TResult> _resultSerializer;
+        private readonly IConverter<TParameter, byte[]> _parameterSerializer;
+        private readonly IConverter<byte[], TResult> _resultSerializer;
         private Action _disposal;
 
-        public ProtocolMethod(IProtocol protocol, string signature, ISerializer<TParameter> parameterSerializer, ISerializer<TResult> resultSerializer, Action disposal)
+        public ProtocolMethod(IProtocol protocol, string signature, IConverter<TParameter, byte[]> parameterSerializer, IConverter<byte[], TResult> resultSerializer, Action disposal)
         {
             _protocol = protocol;
             _signature = signature;
@@ -26,12 +26,13 @@
         
         public void Invoke(TParameter parameter, Action<TResult> callback)
         {
-            var parameterBytes = _parameterSerializer.Serialize(parameter);
+            if (!_parameterSerializer.TryConvert(parameter, out var parameterBytes))
+                return;
             _protocol
                 .MakeRequestAsync(_signature, parameterBytes)
                 .DoAfterSuccess(responseBytes =>
                 {
-                    if (!_resultSerializer.TryDeserialize(responseBytes, out var response))
+                    if (!_resultSerializer.TryConvert(responseBytes, out var response))
                         return;
                     callback(response);
                 });
