@@ -8,7 +8,7 @@
     {
         public static Hash ToHash(this RSAParameters key)
         {
-            var bytes = key.ToBytes();
+            var bytes = key.ToBytes(false);
             return Hash.Create(bytes);
         }
 
@@ -52,25 +52,25 @@
             return true;
         }
 
-        public static byte[] ToBytes(this RSAParameters key)
+        public static byte[] ToBytes(this RSAParameters key, bool includePrivateParameters)
         {
             using (var buffer = new MemoryStream())
             {
-                buffer.Write(key);
+                buffer.Write(key, includePrivateParameters);
                 return buffer.ToArray();
             }
         }
         
-        public static void Write(this Stream stream, RSAParameters key)
+        public static void Write(this Stream stream, RSAParameters key, bool includePrivateParameters)
         {
-            stream.Write(key.D);
-            stream.Write(key.DP);
-            stream.Write(key.DQ);
+            stream.Write(includePrivateParameters ? key.D : null);
+            stream.Write(includePrivateParameters ? key.DP : null);
+            stream.Write(includePrivateParameters ? key.DQ : null);
             stream.Write(key.Exponent);
-            stream.Write(key.InverseQ);
+            stream.Write(includePrivateParameters ? key.InverseQ : null);
             stream.Write(key.Modulus);
-            stream.Write(key.P);
-            stream.Write(key.Q);
+            stream.Write(includePrivateParameters ? key.P : null);
+            stream.Write(includePrivateParameters ? key.Q : null);
         }
     }
 }

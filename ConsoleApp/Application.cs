@@ -279,7 +279,7 @@
                                     {
                                         "Generating an RSA key...".Say();
                                         key = _cryptoRsa.CreateKey();
-                                        stream.Write(key);
+                                        stream.Write(key, true);
                                     }
                                 }
                                 else

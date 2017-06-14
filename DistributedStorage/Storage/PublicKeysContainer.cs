@@ -85,7 +85,7 @@
                 return false;
             using (stream)
             {
-                stream.Write(key);
+                stream.Write(key, false);
                 return true;
             }
         }

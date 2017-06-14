@@ -39,7 +39,7 @@
                     swapper.SendChallenge(stream, KeyProvider.RsaKey1, challenge);
                     stream.Position = 0;
                     Assert.IsTrue(swapper.TryReceiveChallenge(stream, out var theirs, out var theirChallenge));
-                    Assert.IsTrue(theirs.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
+                    Assert.IsTrue(theirs.ToBytes(false).SequenceEqual(KeyProvider.RsaKey1.ToBytes(false)));
                     Assert.IsTrue(theirChallenge.SequenceEqual(challenge));
                 }
             }

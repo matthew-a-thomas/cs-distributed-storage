@@ -27,7 +27,7 @@
         /// </summary>
         public void SendChallenge(Stream stream, RSAParameters ours, byte[] ourChallenge)
         {
-            stream.Write(ours);
+            stream.Write(ours, false);
             stream.Write(ourChallenge);
         }
 

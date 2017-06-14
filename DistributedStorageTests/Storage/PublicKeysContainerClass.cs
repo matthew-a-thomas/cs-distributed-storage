@@ -81,7 +81,7 @@
                 var container = Create();
                 Assert.IsTrue(container.TryAdd(KeyProvider.RsaKey1.ToHash(), KeyProvider.RsaKey1));
                 Assert.IsTrue(container.TryGet(KeyProvider.RsaKey1.ToHash(), out var key));
-                Assert.IsTrue(key.ToBytes().SequenceEqual(KeyProvider.RsaKey1.ToBytes()));
+                Assert.IsTrue(key.ToBytes(false).SequenceEqual(KeyProvider.RsaKey1.ToBytes(false)));
             }
         }
 
