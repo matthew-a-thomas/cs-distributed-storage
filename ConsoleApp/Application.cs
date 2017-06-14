@@ -7,7 +7,6 @@
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
-    using System.Security.Cryptography;
     using System.Text;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
@@ -259,37 +258,13 @@
                     {
                         var storage = _storageFactory.CreateStorage(new DirectoryInfo("Working directory?".Ask()).ToDirectory());
 
-                        var key = default(RSAParameters);
+                        var key = storage.GetOrCreateOurRsaKey(() =>
                         {
-                            var create = true;
-                            if (storage.OurRsaKeyFile.TryOpenRead(out Stream stream))
-                            {
-                                using (stream)
-                                {
-                                    if (stream.TryRead(out key))
-                                        create = false;
-                                }
-                            }
+                            "A new RSA key is being generated. One moment...".Say();
+                            return _cryptoRsa.CreateKey();
+                        });
 
-                            if (create)
-                            {
-                                if (storage.OurRsaKeyFile.TryOpenWrite(out stream))
-                                {
-                                    using (stream)
-                                    {
-                                        "Generating an RSA key...".Say();
-                                        key = _cryptoRsa.CreateKey();
-                                        stream.Write(key, true);
-                                    }
-                                }
-                                else
-                                {
-                                    throw new Exception("RSA key could neither be read nor written");
-                                }
-                            }
-
-                            $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
-                        }
+                        $"Your RSA key has this fingerprint: {key.ToHash().HashCode.ToHex()}".Say();
 
                         "Mode?".Choose(new Dictionary<string, Action>
                         {
