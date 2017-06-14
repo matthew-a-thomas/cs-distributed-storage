@@ -52,6 +52,9 @@
             if (!stream.TryRead(out int length))
                 return false;
 
+            if (length == -1)
+                return true; // -1 is a magic number which means that a null is stored
+
             var buffer = new byte[length];
             var numBytesRead = stream.Read(buffer, 0, length);
             if (numBytesRead != length)
@@ -104,8 +107,15 @@
         /// </summary>
         public static void Write(this Stream stream, byte[] data)
         {
-            stream.Write(data.Length);
-            stream.Write(data, 0, data.Length);
+            if (data == null)
+            {
+                stream.Write(-1);
+            }
+            else
+            {
+                stream.Write(data.Length);
+                stream.Write(data, 0, data.Length);
+            }
         }
 
         /// <summary>
