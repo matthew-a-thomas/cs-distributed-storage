@@ -25,6 +25,7 @@
         /// </summary>
         public bool TryOpenRead(out Stream stream)
         {
+            _file.Refresh();
             stream = null;
             if (!_file.Exists)
                 return false;
@@ -37,6 +38,7 @@
         /// </summary>
         public bool TryOpenWrite(out Stream stream)
         {
+            _file.Refresh();
             stream = null;
             if (!_file.Exists)
                 return false;
