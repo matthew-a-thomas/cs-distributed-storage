@@ -19,6 +19,17 @@
             }
 
             [TestMethod]
+            public void NodeThatIsPassedToCallbackHasNullNext()
+            {
+                WorkQueue<int>.Node receivedNode = null;
+                var queue = new WorkQueue<int>(node => receivedNode = node);
+                queue.Enqueue(0);
+                Assert.IsNotNull(receivedNode);
+                Assert.AreNotSame(receivedNode, receivedNode.Next);
+                Assert.IsNull(receivedNode.Next);
+            }
+
+            [TestMethod]
             public void PassesNodeWithGivenValue()
             {
                 var receivedValue = -1;
