@@ -39,7 +39,14 @@
                 {
                     while (true)
                     {
-                        workingNode.Value();
+                        try
+                        {
+                            workingNode.Value();
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
                         var next = workingNode = workingNode.Next;
                         if (next == null)
                             break; // workingNode is null, so now it's up to the workQueue to invoke this Callback again for us to start processing actions again
