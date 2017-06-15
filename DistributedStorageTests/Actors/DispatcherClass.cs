@@ -21,6 +21,26 @@
             }
 
             [TestMethod]
+            public void ContinuesToWorkEvenWhenExceptionsAreThrown()
+            {
+                // Setup
+                var actionsToRun = new ConcurrentQueue<Action>();
+                var dispatcher = Dispatcher.Create(action => actionsToRun.Enqueue(action));
+
+                // Enqueue a couple of work items
+                dispatcher.BeginInvoke(() => throw new Exception());
+                var invoked = false;
+                dispatcher.BeginInvoke(() => invoked = true);
+
+                // Let the runner run
+                while (actionsToRun.TryDequeue(out var actionToRun))
+                    actionToRun();
+
+                // Assertions
+                Assert.IsTrue(invoked);
+            }
+
+            [TestMethod]
             public void DoesNotGetLostWhenRunnerIsBehind()
             {
                 // Setup
