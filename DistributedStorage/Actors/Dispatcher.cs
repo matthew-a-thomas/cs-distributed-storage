@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading;
-    using System.Threading.Tasks;
 
     public sealed class Dispatcher : IDispatcher
     {
@@ -15,7 +14,10 @@
 
         public void BeginInvoke(Action action) => _pendingActions.Enqueue(action);
 
-        public static IDispatcher Create()
+        /// <summary>
+        /// Creates a new <see cref="IDispatcher"/>, which executes actions on the given <paramref name="runner"/>
+        /// </summary>
+        public static IDispatcher Create(Action<Action> runner)
         {
             WorkQueue<Action>.Node workingNode = null;
 
@@ -24,7 +26,7 @@
                 if (Interlocked.CompareExchange(ref workingNode, node, null) != null)
                     return;
 
-                Task.Run(() =>
+                runner(() =>
                 {
                     while (true)
                     {
