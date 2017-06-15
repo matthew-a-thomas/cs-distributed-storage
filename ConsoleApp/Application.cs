@@ -8,6 +8,8 @@
     using System.Net;
     using System.Net.Sockets;
     using System.Text;
+    using System.Threading.Tasks;
+    using DistributedStorage.Actors;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking;
@@ -260,7 +262,11 @@
                     "Connect",
                     () =>
                     {
+                        var dispatcher = Dispatcher.Create(action => Task.Run(action));
                         var storage = _storageFactory.CreateStorage(new DirectoryInfo("Working directory?".Ask()).ToDirectory());
+
+                        // Set up a dummy manifest container
+                        storage.ContainersForManifests.GetOrCreate(_manifestFactory.CreateManifestFrom(Encoding.ASCII.GetBytes("Hello world. This is the data for a dummy manifest")));
 
                         var key = storage.GetOrCreateOurRsaKey(() =>
                         {
@@ -382,28 +388,34 @@
                             var go = true;
                             while (go)
                             {
-                                "Do what?".Choose(new Dictionary<string, Action>
+                                dispatcher.Invoke(() =>
                                 {
+                                    "Do what?".Choose(new Dictionary<string, Action>
                                     {
-                                        "Quit",
-                                        () => go = false
-                                    },
-                                    {
-                                        "Pump datagram message queue",
-                                        protocol.Pump
-                                    },
-                                    {
-                                        "List their manifests",
-                                        () =>
-                                            node
-                                            .GetManifestsAsync()
-                                            .DoAfterSuccess(manifests =>
-                                            {
-                                                "<manifests>".Say();
-                                                string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
-                                                "</manifests>".Say();
-                                            })
-                                    }
+                                        {
+                                            "Quit",
+                                            () => go = false
+                                        },
+                                        {
+                                            "Pump datagram message queue",
+                                            protocol.Pump
+                                        },
+                                        {
+                                            "List their manifests",
+                                            () =>
+                                                node
+                                                .GetManifestsAsync()
+                                                .DoAfterSuccess(manifests =>
+                                                {
+                                                    dispatcher.BeginInvoke(() =>
+                                                    {
+                                                        "<manifests>".Say();
+                                                        string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
+                                                        "</manifests>".Say();
+                                                    });
+                                                })
+                                        }
+                                    });
                                 });
                             }
                         }
