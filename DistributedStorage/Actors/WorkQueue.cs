@@ -57,9 +57,9 @@
         public void Enqueue(T item)
         {
             var node = new Node(item);
-            Interlocked.Exchange(ref _tail, node);
-            if (_tail != null)
-                _tail.Next = node;
+            var oldTail = Interlocked.Exchange(ref _tail, node);
+            if (oldTail != null)
+                oldTail.Next = node;
             _callback(node);
         }
     }
