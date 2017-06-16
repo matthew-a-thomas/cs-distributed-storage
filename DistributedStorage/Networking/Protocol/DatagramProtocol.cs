@@ -56,10 +56,11 @@
             /// <summary>
             /// Creates a new <see cref="DatagramProtocol"/> that will talk with the <paramref name="otherParty"/>
             /// </summary>
-            public DatagramProtocol Create(IDatagramChannel otherParty, Options options = null)
+            public DatagramProtocol Create(IDatagramChannel otherParty, IDispatcher handlerDispatcher, IDispatcher requestDispatcher, Options options = null)
             {
                 options = options ?? new Options();
-                return new DatagramProtocol(otherParty, _entropy, options.TokenSize, _timer, options.TokenLifetime);
+                var protocol = new DatagramProtocol(otherParty, _entropy, options.TokenSize, _timer, options.TokenLifetime, handlerDispatcher, requestDispatcher);
+                return protocol;
             }
         }
 
@@ -109,15 +110,31 @@
         /// The amount of time an authorization token is considered valid
         /// </summary>
         private readonly TimeSpan _tokenLifetime;
+        
+        /// <summary>
+        /// This <see cref="IDispatcher"/> is used to handle messages
+        /// </summary>
+        private readonly IDispatcher _handlerDispatcher;
+
+        private readonly IDispatcher _requestDispatcher;
 
         /// <summary>
         /// Creates a new <see cref="DatagramProtocol"/>, which facilitates communicating with another party via an <see cref="IDatagramChannel"/>
         /// </summary>
-        public DatagramProtocol(IDatagramChannel otherParty, IEntropy entropy, int tokenSize, ITimer timer, TimeSpan tokenLifetime)
+        public DatagramProtocol(
+            IDatagramChannel otherParty,
+            IEntropy entropy,
+            int tokenSize,
+            ITimer timer,
+            TimeSpan tokenLifetime,
+            IDispatcher handlerDispatcher,
+            IDispatcher requestDispatcher)
         {
             _otherParty = otherParty;
             _timer = timer;
             _tokenLifetime = tokenLifetime;
+            _handlerDispatcher = handlerDispatcher;
+            _requestDispatcher = requestDispatcher;
             _commandManager = new AuthorizedCommandManager<Stream>(entropy, tokenSize);
 
             _messageHandlers = new Dictionary<MessageType, Action<Stream>>
@@ -231,6 +248,7 @@
             );
 
             // Let the other party know our request
+            byte[] request;
             using (var stream = new MemoryStream())
             {
                 // Set up our request packet
@@ -240,8 +258,9 @@
                 stream.Write(token); // Here's their token for sending the response
 
                 // Send our request packet
-                _otherParty.SendDatagram(stream.ToArray());
+                request = stream.ToArray();
             }
+            _requestDispatcher.BeginInvoke(() => _otherParty.SendDatagram(request));
             
             // Now that we've done all that, we can return our task completion source
             return tcs.Task;
@@ -258,15 +277,18 @@
         public bool TryUnregister(string signature) => _requestHandlers.TryRemove(signature, out _);
 
         /// <summary>
-        /// Pumps our message queue, blocking to process and handle an incoming datagram until one is available
+        /// Pumps our message queue, blocking until an incoming datagram is available, then handling it on the <see cref="IDispatcher"/> that was passed through the constructor
         /// </summary>
+        [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
         public void Pump()
         {
             // Wait to receive a datagram from the other party
             if (!_otherParty.TryReceiveDatagram(out var data))
                 return;
 
-            using (var stream = new MemoryStream(data))
+            var stream = new MemoryStream(data);
+            var dispose = true;
+            try
             {
                 // See what kind of request it is
                 if (!stream.TryRead(out byte messageTypeNumber))
@@ -278,7 +300,17 @@
                     return;
 
                 // Act on the request
-                action(stream);
+                dispose = false;
+                _handlerDispatcher.BeginInvoke(() =>
+                {
+                    using (stream)
+                        action(stream);
+                });
+            }
+            finally
+            {
+                if (dispose)
+                    stream.Dispose();
             }
         }
     }

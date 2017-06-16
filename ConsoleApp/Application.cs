@@ -262,7 +262,6 @@
                     "Connect",
                     () =>
                     {
-                        var dispatcher = Dispatcher.Create(action => Task.Run(action));
                         var storage = _storageFactory.CreateStorage(new DirectoryInfo("Working directory?".Ask()).ToDirectory());
 
                         // Set up a dummy manifest container
@@ -377,45 +376,47 @@
 
                             // Set up the protocol
                             "Setting up a datagram protocol...".Say();
-                            var protocol = _datagramProtocolFactory.Create(secureStream);
+                            var handlerDispatcher = Dispatcher.Create(action => Task.Run(action));
+                            var protocol = _datagramProtocolFactory.Create(secureStream, handlerDispatcher, handlerDispatcher);
 
                             // Set up the corresponding node, which connects the protocol to our storage
                             "Setting up a node, which connects the protocol to our storage...".Say();
                             if (!_nodeFactory.TryCreate(storage, protocol, out var node))
                                 throw new Exception("Failed to create a new node to connect our storage with the communication protocol");
 
+                            // Begin pumping the protocol
+                            "Starting to pump the protocol...".Say();
+                            var datagramDispatcher = Dispatcher.Create(action => Task.Run(action));
+                            void PumpProtocol()
+                            {
+                                protocol.Pump();
+                                "Received a protocol message...".Say();
+                                datagramDispatcher.BeginInvoke(PumpProtocol);
+                            }
+                            datagramDispatcher.BeginInvoke(PumpProtocol);
+
                             // Let the user drive
                             var go = true;
                             while (go)
                             {
-                                dispatcher.Invoke(() =>
+                                "Do what?".Choose(new Dictionary<string, Action>
                                 {
-                                    "Do what?".Choose(new Dictionary<string, Action>
                                     {
-                                        {
-                                            "Quit",
-                                            () => go = false
-                                        },
-                                        {
-                                            "Pump datagram message queue",
-                                            protocol.Pump
-                                        },
-                                        {
-                                            "List their manifests",
-                                            () =>
-                                                node
-                                                .GetManifestsAsync()
-                                                .DoAfterSuccess(manifests =>
-                                                {
-                                                    dispatcher.BeginInvoke(() =>
-                                                    {
-                                                        "<manifests>".Say();
-                                                        string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
-                                                        "</manifests>".Say();
-                                                    });
-                                                })
-                                        }
-                                    });
+                                        "Quit",
+                                        () => go = false
+                                    },
+                                    {
+                                        "List their manifests",
+                                        () =>
+                                            node
+                                            .GetManifestsAsync()
+                                            .DoAfterSuccess(manifests =>
+                                            {
+                                                "<manifests>".Say();
+                                                string.Join(Environment.NewLine, manifests.Select(manifest => manifest.Id.HashCode.ToHex())).Say();
+                                                "</manifests>".Say();
+                                            })
+                                    }
                                 });
                             }
                         }
