@@ -9,6 +9,20 @@
     public static class SliceExtensions
     {
         /// <summary>
+        /// Computes the <see cref="Hash"/> for this <see cref="Slice"/>
+        /// </summary>
+        public static Hash ComputeHash(this Slice slice)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                memoryStream.Write(slice);
+                var bytes = memoryStream.ToArray();
+                var hash = Hash.Create(bytes);
+                return hash;
+            }
+        }
+
+        /// <summary>
         /// Deserializes a <see cref="Slice"/> from the given <paramref name="stream"/>
         /// </summary>
         public static bool TryRead(this Stream stream, out Slice slice)
