@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Networking.Model
+﻿namespace DistributedStorage.Model
 {
     using System.Collections.Generic;
 

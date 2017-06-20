@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Networking.Model
+﻿namespace DistributedStorage.Model
 {
     /// <summary>
     /// The identity of a party who can manage <see cref="IBucket"/>s

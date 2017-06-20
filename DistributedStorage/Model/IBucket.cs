@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Networking.Model
+﻿namespace DistributedStorage.Model
 {
     /// <summary>
     /// Some storage that is owned by someone and belongs to a pool

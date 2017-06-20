@@ -1,4 +1,4 @@
-﻿namespace DistributedStorage.Networking.Model
+﻿namespace DistributedStorage.Model
 {
     /// <summary>
     /// A restriction on the total storage allowed by an <see cref="Owner"/> in a <see cref="IPool"/>
