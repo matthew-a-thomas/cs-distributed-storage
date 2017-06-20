@@ -6,6 +6,9 @@
 
     public static class RsaParametersExtensions
     {
+        /// <summary>
+        /// Creates a <see cref="Hash"/> of this <see cref="RSAParameters"/> using only the public parts
+        /// </summary>
         public static Hash ToHash(this RSAParameters key)
         {
             var bytes = key.ToBytes(false);
@@ -72,5 +75,14 @@
             stream.Write(includePrivateParameters ? key.P : null);
             stream.Write(includePrivateParameters ? key.Q : null);
         }
+
+        /// <summary>
+        /// Returns only the public portion of this <see cref="RSAParameters"/>
+        /// </summary>
+        public static RSAParameters ToPublic(this RSAParameters key) => new RSAParameters
+        {
+            Exponent = key.Exponent,
+            Modulus = key.Modulus
+        };
     }
 }
