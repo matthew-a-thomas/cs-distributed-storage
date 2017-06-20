@@ -123,6 +123,11 @@
                 container.TryRemove(hash);
         }
 
+        public long GetCurrentSize()
+        {
+            
+        }
+
         public IEnumerable<Hash> GetHashes(Manifest forManifest) => _manifestFactoryContainer.TryGet(forManifest, out var container) ? container.GetKeys() : Enumerable.Empty<Hash>();
 
         public IEnumerable<Manifest> GetManifests() => _manifestFactoryContainer.GetKeys();

@@ -10,6 +10,11 @@
     public interface IBucket
     {
         /// <summary>
+        /// Gets the current size of the contents of this <see cref="IBucket"/>
+        /// </summary>
+        long GetCurrentSize();
+
+        /// <summary>
         /// Enumerates all <see cref="Slice"/> <see cref="Hash"/>es associated with the given <see cref="Manifest"/>
         /// </summary>
         IEnumerable<Hash> GetHashes(Manifest forManifest);

@@ -7,12 +7,14 @@ namespace DistributedStorage.Model
 
     public sealed class Bucket : IBucket
     {
+        public delegate long GetCurrentSizeDelegate();
         public delegate IEnumerable<Hash> GetHashesDelegate(Manifest forManifest);
         public delegate IEnumerable<Manifest> GetManifestsDelegate();
         public delegate IEnumerable<Slice> GetSlicesDelegate(Manifest forManifest, Hash[] hashes);
 
         public sealed class Options
         {
+            public GetCurrentSizeDelegate GetCurrentSize { get; }
             public GetHashesDelegate GetHashes { get; }
             public GetManifestsDelegate GetManifests { get; }
             public GetSlicesDelegate GetSlices { get; }
@@ -21,7 +23,7 @@ namespace DistributedStorage.Model
             public IIdentity SelfIdentity { get; }
             public long Size { get; }
 
-            public Options(GetHashesDelegate getHashes, GetManifestsDelegate getManifests, GetSlicesDelegate getSlices, IIdentity ownerIdentity, IIdentity poolIdentity, IIdentity selfIdentity, long size)
+            public Options(GetHashesDelegate getHashes, GetManifestsDelegate getManifests, GetSlicesDelegate getSlices, IIdentity ownerIdentity, IIdentity poolIdentity, IIdentity selfIdentity, long size, GetCurrentSizeDelegate getCurrentSize)
             {
                 GetHashes = getHashes;
                 GetManifests = getManifests;
@@ -30,6 +32,7 @@ namespace DistributedStorage.Model
                 PoolIdentity = poolIdentity;
                 SelfIdentity = selfIdentity;
                 Size = size;
+                GetCurrentSize = getCurrentSize;
             }
         }
 
@@ -44,6 +47,8 @@ namespace DistributedStorage.Model
         {
             _options = options;
         }
+
+        public long GetCurrentSize() => _options.GetCurrentSize();
 
         public IEnumerable<Hash> GetHashes(Manifest forManifest) => _options.GetHashes(forManifest);
 
