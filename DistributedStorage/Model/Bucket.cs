@@ -36,7 +36,7 @@ namespace DistributedStorage.Model
         public IIdentity SelfIdentity => _options.SelfIdentity;
         public IIdentity OwnerIdentity => _options.OwnerIdentity;
         public IIdentity PoolIdentity => _options.PoolIdentity;
-        public long Size => _options.Size;
+        public long MaxSize => _options.Size;
 
         private readonly Options _options;
 

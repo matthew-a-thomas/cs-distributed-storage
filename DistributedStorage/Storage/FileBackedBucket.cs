@@ -76,7 +76,7 @@
         /// <summary>
         /// The maximum size that this <see cref="FileBackedBucket"/> should be
         /// </summary>
-        public long Size => TryGetSize(out var size) ? size : 0;
+        public long MaxSize => TryGetMaxSize(out var size) ? size : 0;
 
         #endregion
 
@@ -145,7 +145,7 @@
 
         public bool TryGetSelfIdentity(out RsaIdentity selfIdentity) => TryGetIdentity(_options.SelfIdentityFileName, out selfIdentity);
 
-        public bool TryGetSize(out long size)
+        public bool TryGetMaxSize(out long size)
         {
             size = -1;
             if (!_files.TryGet(_options.SizeFileName, out var sizeFile))
@@ -162,7 +162,7 @@
 
         public bool TrySetSelfIdentity(RsaIdentity selfIdentity) => TrySetIdentity(_options.SelfIdentityFileName, selfIdentity);
 
-        public bool TrySetSize(long size)
+        public bool TrySetMaxSize(long size)
         {
             var sizeFile = _files.GetOrCreate(_options.SizeFileName);
             if (!sizeFile.TryOpenWrite(out var stream))

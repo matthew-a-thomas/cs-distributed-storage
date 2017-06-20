@@ -30,7 +30,7 @@
         /// <summary>
         /// The maximum size that the <see cref="OwnerIdentity"/> desires this <see cref="IBucket"/> to be
         /// </summary>
-        long Size { get; }
+        long MaxSize { get; }
 
         /// <summary>
         /// Enumerates all <see cref="Slice"/> <see cref="Hash"/>es associated with the given <see cref="Manifest"/>
