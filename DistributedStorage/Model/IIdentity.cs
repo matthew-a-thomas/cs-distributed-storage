@@ -1,13 +1,15 @@
 ﻿namespace DistributedStorage.Model
 {
+    using Common;
+
     /// <summary>
     /// A party's identity
     /// </summary>
     public interface IIdentity
     {
         /// <summary>
-        /// The claimed identity
+        /// A <see cref="Hash"/> of the claimed identity
         /// </summary>
-        long Claim { get; }
+        Hash Claim { get; }
     }
 }

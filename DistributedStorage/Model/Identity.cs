@@ -1,12 +1,14 @@
 ﻿namespace DistributedStorage.Model
 {
+    using Common;
+
     public sealed class Identity : IIdentity
     {
-        public Identity(long claim)
+        public Identity(Hash claim)
         {
             Claim = claim;
         }
 
-        public long Claim { get; }
+        public Hash Claim { get; }
     }
 }
