@@ -21,6 +21,15 @@
         }
 
         /// <summary>
+        /// Returns the current size of this file
+        /// </summary>
+        public long GetCurrentSize()
+        {
+            _file.Refresh();
+            return _file.Length;
+        }
+
+        /// <summary>
         /// Opens a read-only stream for the wrapped <see cref="FileInfo"/>, if the file exists
         /// </summary>
         public bool TryOpenRead(out Stream stream)

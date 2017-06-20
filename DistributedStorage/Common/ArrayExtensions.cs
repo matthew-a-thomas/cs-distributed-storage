@@ -111,6 +111,7 @@
 
             return new File(new File.Options
             {
+                GetCurrentSize = () => data.Length,
                 TryOpenRead = TryOpen,
                 TryOpenWrite = TryOpen
             });
