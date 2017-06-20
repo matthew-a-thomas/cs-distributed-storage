@@ -3,15 +3,17 @@ namespace DistributedStorage.Model
 {
     public sealed class Bucket : IBucket
     {
-        public Bucket(IOwner owner, IPool pool, long size)
+        public Bucket(IIdentity identity, IIdentity owner, IIdentity pool, long size)
         {
-            Owner = owner;
-            Pool = pool;
+            SelfIdentity = identity;
+            OwnerIdentity = owner;
+            PoolIdentity = pool;
             Size = size;
         }
 
-        public IOwner Owner { get; }
-        public IPool Pool { get; }
+        public IIdentity SelfIdentity { get; }
+        public IIdentity OwnerIdentity { get; }
+        public IIdentity PoolIdentity { get; }
         public long Size { get; }
     }
 }
