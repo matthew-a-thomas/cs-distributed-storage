@@ -1,5 +1,9 @@
 ﻿namespace DistributedStorage.Model
 {
+    using System.Collections.Generic;
+    using Common;
+    using Encoding;
+
     /// <summary>
     /// Some storage that is owned by someone and belongs to a pool
     /// </summary>
@@ -27,5 +31,20 @@
         /// The maximum size that the <see cref="OwnerIdentity"/> desires this <see cref="IBucket"/> to be
         /// </summary>
         long Size { get; }
+
+        /// <summary>
+        /// Enumerates all <see cref="Slice"/> <see cref="Hash"/>es associated with the given <see cref="Manifest"/>
+        /// </summary>
+        IEnumerable<Hash> GetHashes(Manifest forManifest);
+
+        /// <summary>
+        /// Enumerates all <see cref="Manifest"/>s in this bucket
+        /// </summary>
+        IEnumerable<Manifest> GetManifests();
+
+        /// <summary>
+        /// Enumerates all <see cref="Slice"/>s that are associated with the given <see cref="Manifest"/> in this bucket and have the given <paramref name="hashes"/>
+        /// </summary>
+        IEnumerable<Slice> GetSlices(Manifest forManifest, Hash[] hashes);
     }
 }
