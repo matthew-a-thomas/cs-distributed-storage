@@ -10,9 +10,24 @@
     public interface IBucket
     {
         /// <summary>
-        /// An identifier for this <see cref="IBucket"/>
+        /// Enumerates all <see cref="Slice"/> <see cref="Hash"/>es associated with the given <see cref="Manifest"/>
         /// </summary>
-        IIdentity SelfIdentity { get; }
+        IEnumerable<Hash> GetHashes(Manifest forManifest);
+
+        /// <summary>
+        /// Enumerates all <see cref="Manifest"/>s in this bucket
+        /// </summary>
+        IEnumerable<Manifest> GetManifests();
+
+        /// <summary>
+        /// Enumerates all <see cref="Slice"/>s that are associated with the given <see cref="Manifest"/> in this bucket and have the given <paramref name="hashes"/>
+        /// </summary>
+        IEnumerable<Slice> GetSlices(Manifest forManifest, Hash[] hashes);
+
+        /// <summary>
+        /// The maximum size that the <see cref="OwnerIdentity"/> desires this <see cref="IBucket"/> to be
+        /// </summary>
+        long MaxSize { get; }
 
         /// <summary>
         /// The identity of the party who owns this <see cref="IBucket"/>.
@@ -28,23 +43,8 @@
         IIdentity PoolIdentity { get; }
 
         /// <summary>
-        /// The maximum size that the <see cref="OwnerIdentity"/> desires this <see cref="IBucket"/> to be
+        /// An identifier for this <see cref="IBucket"/>
         /// </summary>
-        long MaxSize { get; }
-
-        /// <summary>
-        /// Enumerates all <see cref="Slice"/> <see cref="Hash"/>es associated with the given <see cref="Manifest"/>
-        /// </summary>
-        IEnumerable<Hash> GetHashes(Manifest forManifest);
-
-        /// <summary>
-        /// Enumerates all <see cref="Manifest"/>s in this bucket
-        /// </summary>
-        IEnumerable<Manifest> GetManifests();
-
-        /// <summary>
-        /// Enumerates all <see cref="Slice"/>s that are associated with the given <see cref="Manifest"/> in this bucket and have the given <paramref name="hashes"/>
-        /// </summary>
-        IEnumerable<Slice> GetSlices(Manifest forManifest, Hash[] hashes);
+        IIdentity SelfIdentity { get; }
     }
 }
