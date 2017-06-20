@@ -85,6 +85,7 @@
         private readonly IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>> _manifestFactoryContainer;
         private readonly Options _options;
         private readonly IFactoryContainer<string, IFile> _files;
+        private readonly IDirectory _workingDirectory;
 
         #endregion
 
@@ -93,6 +94,7 @@
         public FileBackedBucket(IDirectory workingDirectory, Options options = null)
         {
             _options = options ?? new Options();
+            _workingDirectory = workingDirectory;
             _files = workingDirectory.Files;
             var manifestsFolder = workingDirectory.Directories.GetOrCreate(_options.ManifestsFolderName);
             _manifestFactoryContainer = new ManifestsAndSlicesFactoryContainer(new ManifestsAndSlicesFactoryContainer.Options(_options.ManifestExtension, _options.SliceExtension, manifestsFolder));
@@ -123,10 +125,7 @@
                 container.TryRemove(hash);
         }
 
-        public long GetCurrentSize()
-        {
-            
-        }
+        public long GetCurrentSize() => _workingDirectory.GetCurrentSize();
 
         public IEnumerable<Hash> GetHashes(Manifest forManifest) => _manifestFactoryContainer.TryGet(forManifest, out var container) ? container.GetKeys() : Enumerable.Empty<Hash>();
 
