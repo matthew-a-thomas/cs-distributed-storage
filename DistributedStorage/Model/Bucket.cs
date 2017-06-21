@@ -5,7 +5,8 @@ namespace DistributedStorage.Model
     using Common;
     using Encoding;
 
-    public sealed class Bucket : IBucket
+    public sealed class Bucket<TIdentity> : IBucket<TIdentity>
+        where TIdentity : IIdentity
     {
         public delegate long GetCurrentSizeDelegate();
         public delegate IEnumerable<Hash> GetHashesDelegate(Manifest forManifest);
@@ -18,12 +19,12 @@ namespace DistributedStorage.Model
             public GetHashesDelegate GetHashes { get; }
             public GetManifestsDelegate GetManifests { get; }
             public GetSlicesDelegate GetSlices { get; }
-            public IIdentity OwnerIdentity { get; }
-            public IIdentity PoolIdentity { get; }
-            public IIdentity SelfIdentity { get; }
+            public TIdentity OwnerIdentity { get; }
+            public TIdentity PoolIdentity { get; }
+            public TIdentity SelfIdentity { get; }
             public long Size { get; }
 
-            public Options(GetHashesDelegate getHashes, GetManifestsDelegate getManifests, GetSlicesDelegate getSlices, IIdentity ownerIdentity, IIdentity poolIdentity, IIdentity selfIdentity, long size, GetCurrentSizeDelegate getCurrentSize)
+            public Options(GetHashesDelegate getHashes, GetManifestsDelegate getManifests, GetSlicesDelegate getSlices, TIdentity ownerIdentity, TIdentity poolIdentity, TIdentity selfIdentity, long size, GetCurrentSizeDelegate getCurrentSize)
             {
                 GetHashes = getHashes;
                 GetManifests = getManifests;
@@ -36,9 +37,9 @@ namespace DistributedStorage.Model
             }
         }
 
-        public IIdentity SelfIdentity => _options.SelfIdentity;
-        public IIdentity OwnerIdentity => _options.OwnerIdentity;
-        public IIdentity PoolIdentity => _options.PoolIdentity;
+        public TIdentity SelfIdentity => _options.SelfIdentity;
+        public TIdentity OwnerIdentity => _options.OwnerIdentity;
+        public TIdentity PoolIdentity => _options.PoolIdentity;
         public long MaxSize => _options.Size;
 
         private readonly Options _options;
