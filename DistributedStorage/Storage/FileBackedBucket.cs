@@ -1,5 +1,6 @@
 ﻿namespace DistributedStorage.Storage
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Cryptography;
@@ -13,8 +14,55 @@
     /// <summary>
     /// An implementation of both <see cref="IBucket"/> and <see cref="IPoolBucket"/> that builds on an <see cref="IDirectory"/>
     /// </summary>
-    public sealed class FileBackedBucket : IBucket, IPoolBucket
+    public sealed class FileBackedBucket : IBucket<RsaIdentity>, IPoolBucket
     {
+        public sealed class Factory
+        {
+            /// <summary>
+            /// Tries to create a new <see cref="FileBackedBucket"/> within the given <paramref name="workingDirectory"/>
+            /// </summary>
+            public bool TryCreateNew(IDirectory workingDirectory, RsaIdentity ownerIdentity, RsaIdentity poolIdentity, RsaIdentity selfIdentity, long maxSize, out FileBackedBucket bucket, Options options = null)
+            {
+                bucket = new FileBackedBucket(workingDirectory, options);
+                return
+                    TryInitializeIdentity(bucket, bucket._options.SelfIdentityFileName, selfIdentity)
+                    &&
+                    TryInitializeIdentity(bucket, bucket._options.OwnerIdentityFileName, ownerIdentity)
+                    &&
+                    TryInitializeIdentity(bucket, bucket._options.PoolIdentityFileName, poolIdentity)
+                    &&
+                    TryInitializeMaxSize(bucket, maxSize);
+            }
+            
+            /// <summary>
+            /// Attempts to initialize the given <paramref name="identity"/> of the given <paramref name="bucket"/>
+            /// </summary>
+            private static bool TryInitializeIdentity(FileBackedBucket bucket, string identityFileName, RsaIdentity identity)
+            {
+                if (!bucket._files.TryCreate(identityFileName, out var identityFile))
+                    return false;
+                if (!identityFile.TryOpenWrite(out var stream))
+                    return false;
+                using (stream)
+                    stream.Write(identity.PrivateKey, true);
+                return true;
+            }
+            
+            /// <summary>
+            /// Attempts to initialize the max size of the given <paramref name="bucket"/>
+            /// </summary>
+            private static bool TryInitializeMaxSize(FileBackedBucket bucket, long maxSize)
+            {
+                if (!bucket._files.TryCreate(bucket._options.SizeFileName, out var sizeFile))
+                    return false;
+                if (!sizeFile.TryOpenWrite(out var stream))
+                    return false;
+                using (stream)
+                    stream.Write(maxSize);
+                return true;
+            }
+        }
+
         /// <summary>
         /// Different options for creating a <see cref="FileBackedBucket"/>
         /// </summary>
@@ -59,24 +107,24 @@
         #region Public properties
 
         /// <summary>
-        /// This <see cref="FileBackedBucket"/>'s identity
+        /// Lazily loads this <see cref="FileBackedBucket"/>'s identity
         /// </summary>
-        public IIdentity SelfIdentity => TryGetSelfIdentity(out var identity) ? identity : null;
+        public RsaIdentity SelfIdentity => _selfIdentityLazy.Value;
 
         /// <summary>
-        /// The identity of the owner of this <see cref="FileBackedBucket"/>
+        /// Lazily loads the identity of the owner of this <see cref="FileBackedBucket"/>
         /// </summary>
-        public IIdentity OwnerIdentity => TryGetOwnerIdentity(out var identity) ? identity : null;
+        public RsaIdentity OwnerIdentity => _ownerIdentityLazy.Value;
 
         /// <summary>
-        /// The identity of the pool to which this <see cref="FileBackedBucket"/> belongs
+        /// Lazily loads the identity of the pool to which this <see cref="FileBackedBucket"/> belongs
         /// </summary>
-        public IIdentity PoolIdentity => TryGetPoolIdentity(out var identity) ? identity : null;
+        public RsaIdentity PoolIdentity => _poolIdentityLazy.Value;
 
         /// <summary>
-        /// The maximum size that this <see cref="FileBackedBucket"/> should be
+        /// Lazily loads the maximum size that this <see cref="FileBackedBucket"/> should be
         /// </summary>
-        public long MaxSize => TryGetMaxSize(out var size) ? size : 0;
+        public long MaxSize => _maxSizeLazy.Value;
 
         #endregion
 
@@ -86,11 +134,20 @@
         private readonly Options _options;
         private readonly IFactoryContainer<string, IFile> _files;
         private readonly IDirectory _workingDirectory;
+        private readonly Lazy<RsaIdentity>
+            _ownerIdentityLazy,
+            _poolIdentityLazy,
+            _selfIdentityLazy;
+        private readonly Lazy<long>
+            _maxSizeLazy;
 
         #endregion
 
         #region Constructor
 
+        /// <summary>
+        /// Creates a new <see cref="FileBackedBucket"/> that is based on the given <paramref name="workingDirectory"/>
+        /// </summary>
         public FileBackedBucket(IDirectory workingDirectory, Options options = null)
         {
             _options = options ?? new Options();
@@ -98,6 +155,11 @@
             _files = workingDirectory.Files;
             var manifestsFolder = workingDirectory.Directories.GetOrCreate(_options.ManifestsFolderName);
             _manifestFactoryContainer = new ManifestsAndSlicesFactoryContainer(new ManifestsAndSlicesFactoryContainer.Options(_options.ManifestExtension, _options.SliceExtension, manifestsFolder));
+
+            _ownerIdentityLazy = new Lazy<RsaIdentity>(() => TryGetIdentity(_options.OwnerIdentityFileName, out var identity) ? identity : null);
+            _poolIdentityLazy = new Lazy<RsaIdentity>(() => TryGetIdentity(_options.PoolIdentityFileName, out var identity) ? identity : null);
+            _selfIdentityLazy = new Lazy<RsaIdentity>(() => TryGetIdentity(_options.SelfIdentityFileName, out var identity) ? identity : null);
+            _maxSizeLazy = new Lazy<long>(() => TryGetMaxSize(out var maxSize) ? maxSize : 0);
         }
 
         #endregion
@@ -143,42 +205,20 @@
             }
         }
 
-        public bool TryGetOwnerIdentity(out RsaIdentity ownerIdentity) => TryGetIdentity(_options.OwnerIdentityFileName, out ownerIdentity);
+        #endregion
 
-        public bool TryGetPoolIdentity(out RsaIdentity poolIdentity) => TryGetIdentity(_options.PoolIdentityFileName, out poolIdentity);
-
-        public bool TryGetSelfIdentity(out RsaIdentity selfIdentity) => TryGetIdentity(_options.SelfIdentityFileName, out selfIdentity);
-
-        public bool TryGetMaxSize(out long size)
+        #region Private methods
+        
+        private bool TryGetMaxSize(out long maxSize)
         {
-            size = -1;
+            maxSize = -1;
             if (!_files.TryGet(_options.SizeFileName, out var sizeFile))
                 return false;
             if (!sizeFile.TryOpenRead(out var stream))
                 return false;
             using (stream)
-                return stream.TryRead(out size);
+                return stream.TryRead(out maxSize);
         }
-
-        public bool TrySetOwnerIdentity(RsaIdentity ownerIdentity) => TrySetIdentity(_options.OwnerIdentityFileName, ownerIdentity);
-
-        public bool TrySetPoolIdentity(RsaIdentity poolIdentity) => TrySetIdentity(_options.PoolIdentityFileName, poolIdentity);
-
-        public bool TrySetSelfIdentity(RsaIdentity selfIdentity) => TrySetIdentity(_options.SelfIdentityFileName, selfIdentity);
-
-        public bool TrySetMaxSize(long size)
-        {
-            var sizeFile = _files.GetOrCreate(_options.SizeFileName);
-            if (!sizeFile.TryOpenWrite(out var stream))
-                return false;
-            using (stream)
-                stream.Write(size);
-            return true;
-        }
-
-        #endregion
-
-        #region Private methods
 
         private bool TryGetIdentity(string identityFileName, out RsaIdentity identity)
         {
@@ -194,16 +234,6 @@
                 identity = new RsaIdentity(key);
                 return true;
             }
-        }
-
-        private bool TrySetIdentity(string identityFileName, RsaIdentity identity)
-        {
-            var identityFile = _files.GetOrCreate(identityFileName);
-            if (!identityFile.TryOpenWrite(out var stream))
-                return false;
-            using (stream)
-                stream.Write(identity.PrivateKey, true);
-            return true;
         }
 
         #endregion
