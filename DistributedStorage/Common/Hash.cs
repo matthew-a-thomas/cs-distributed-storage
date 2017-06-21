@@ -6,7 +6,7 @@
     /// <summary>
     /// Contains space for a 256-bit hash code
     /// </summary>
-    public class Hash : IComparable<Hash>, IComparable
+    public class Hash : IComparable<Hash>, IComparable, IEquatable<Hash>
     {
         /// <summary>
         /// The number of bytes to store
@@ -42,6 +42,15 @@
         public int CompareTo(Hash other) => FindDifference(this, other);
 
         int IComparable.CompareTo(object other) => CompareTo(other as Hash);
+
+        #endregion
+
+        #region IEquatable
+
+        /// <summary>
+        /// Determines if this <see cref="Hash"/> matches the <paramref name="other"/> <see cref="Hash"/>
+        /// </summary>
+        public bool Equals(Hash other) => !ReferenceEquals(other, null) && FindDifference(this, other) == 0;
 
         #endregion
 
