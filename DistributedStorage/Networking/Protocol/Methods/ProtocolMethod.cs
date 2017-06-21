@@ -40,4 +40,20 @@
 
         public void Dispose() => Interlocked.Exchange(ref _disposal, null)?.Invoke();
     }
+
+    public static class ProtocolMethod
+    {
+        public static ProtocolMethod<TParameter, TResult> Create<TParameter, TResult>(
+            IProtocol protocol,
+            string signature,
+            IConverter<TParameter, byte[]> parameterSerializer,
+            IConverter<byte[], TResult> resultSerializer,
+            Action disposal) => new ProtocolMethod<TParameter, TResult>(
+                protocol,
+                signature,
+                parameterSerializer,
+                resultSerializer,
+                disposal
+            );
+    }
 }
