@@ -1,7 +1,7 @@
 ﻿namespace DistributedStorage.Model
 {
     /// <summary>
-    /// The identity of a party who can manage <see cref="IBucket"/>s
+    /// The identity of a party who can manage <see cref="IBucket{TIdentity}"/>s
     /// </summary>
     public interface IOwner
     {

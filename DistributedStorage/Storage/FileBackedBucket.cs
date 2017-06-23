@@ -12,7 +12,7 @@
     using Encoding;
 
     /// <summary>
-    /// An implementation of both <see cref="IBucket"/> and <see cref="IPoolBucket"/> that builds on an <see cref="IDirectory"/>
+    /// An implementation of both <see cref="IBucket{TIdentity}"/> and <see cref="IPoolBucket"/> that builds on an <see cref="IDirectory"/>
     /// </summary>
     public sealed class FileBackedBucket : IBucket<RsaIdentity>, IPoolBucket
     {

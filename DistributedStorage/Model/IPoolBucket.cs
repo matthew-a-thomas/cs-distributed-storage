@@ -4,7 +4,7 @@
     using Encoding;
 
     /// <summary>
-    /// A bucket from the perspective of the <see cref="IPool"/> that is authorized to manage it
+    /// A bucket from the perspective of the <see cref="IPool{TIdentity}"/> that is authorized to manage it
     /// </summary>
     public interface IPoolBucket
     {

@@ -1,7 +1,7 @@
 ﻿namespace DistributedStorage.Model
 {
     /// <summary>
-    /// A restriction on the total storage allowed by an <see cref="Owner"/> in a <see cref="IPool"/>
+    /// A restriction on the total storage allowed by an <see cref="Owner"/> in a <see cref="IPool{TIdentity}"/>
     /// </summary>
     public interface IQuota
     {
