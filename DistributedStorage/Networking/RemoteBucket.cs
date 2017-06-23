@@ -15,6 +15,72 @@
     public sealed class RemoteBucket<TIdentity> : IBucket<TIdentity>
         where TIdentity : IIdentity
     {
+        /// <summary>
+        /// A factory which can create instances of <see cref="RemoteBucket{TIdentity}"/> using injected <see cref="IConverter{TFrom, TTo}"/>s
+        /// </summary>
+        public sealed class Factory
+        {
+            #region Private fields
+            
+            private readonly IConverter<Nothing, byte[]> _nothingToBytesConverter;
+            private readonly IConverter<byte[], long> _bytesToLongConverter;
+            private readonly IConverter<Manifest, byte[]> _manifestToBytesConverter;
+            private readonly IConverter<byte[], Hash[]> _bytesToHashArrayConverter;
+            private readonly IConverter<byte[], Manifest[]> _bytesToManifestArrayConverter;
+            private readonly IConverter<Tuple<Manifest, Hash[]>, byte[]> _manifestAndHashArrayTupleToBytesConverter;
+            private readonly IConverter<byte[], Slice[]> _bytesToSliceArrayConverter;
+            private readonly IConverter<byte[], TIdentity> _bytesToTIdentityConverter;
+
+            #endregion
+
+            #region Constructor
+
+            /// <summary>
+            /// Creates a new <see cref="Factory"/> that will use all the given <see cref="IConverter{TFrom, TTo}"/>s to create instances of <see cref="RemoteBucket{TIdentity}"/>
+            /// </summary>
+            public Factory(
+                IConverter<Nothing, byte[]> nothingToBytesConverter,
+                IConverter<byte[], long> bytesToLongConverter,
+                IConverter<Manifest, byte[]> manifestToBytesConverter,
+                IConverter<byte[], Hash[]> bytesToHashArrayConverter,
+                IConverter<byte[], Manifest[]> bytesToManifestArrayConverter,
+                IConverter<Tuple<Manifest, Hash[]>, byte[]> manifestAndHashArrayTupleToBytesConverter,
+                IConverter<byte[], Slice[]> bytesToSliceArrayConverter,
+                IConverter<byte[], TIdentity> bytesToTIdentityConverter
+                )
+            {
+                _nothingToBytesConverter = nothingToBytesConverter;
+                _bytesToLongConverter = bytesToLongConverter;
+                _manifestToBytesConverter = manifestToBytesConverter;
+                _bytesToHashArrayConverter = bytesToHashArrayConverter;
+                _bytesToManifestArrayConverter = bytesToManifestArrayConverter;
+                _manifestAndHashArrayTupleToBytesConverter = manifestAndHashArrayTupleToBytesConverter;
+                _bytesToSliceArrayConverter = bytesToSliceArrayConverter;
+                _bytesToTIdentityConverter = bytesToTIdentityConverter;
+            }
+
+            #endregion
+
+            #region Public methods
+
+            /// <summary>
+            /// Creates a new <see cref="RemoteBucket{TIdentity}"/> from the given <paramref name="protocol"/>
+            /// </summary>
+            public RemoteBucket<TIdentity> CreateFrom(IProtocol protocol) => new RemoteBucket<TIdentity>(
+                protocol,
+                _nothingToBytesConverter,
+                _bytesToLongConverter,
+                _manifestToBytesConverter,
+                _bytesToHashArrayConverter,
+                _bytesToManifestArrayConverter,
+                _manifestAndHashArrayTupleToBytesConverter,
+                _bytesToSliceArrayConverter,
+                _bytesToTIdentityConverter
+            );
+
+            #endregion
+        }
+
         #region Public properties
 
         public long MaxSize => _getMaxSizePropertyMethod.InvokeAndWait(Nothing.Instance);
