@@ -138,14 +138,14 @@
             IConverter<byte[], TIdentity> bytesToTIdentityConverter
             )
         {
-            _getCurrentSizeMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetCurrentSize), nothingToBytesConverter, bytesToLongConverter, () => { });
-            _getHashesMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetHashes), manifestToBytesConverter, bytesToHashArrayConverter, () => { });
-            _getManifestsMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetManifests), nothingToBytesConverter, bytesToManifestArrayConverter, () => { });
-            _getMaxSizePropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.MaxSize), nothingToBytesConverter, bytesToLongConverter, () => { });
-            _getOwnerIdentityPropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.OwnerIdentity), nothingToBytesConverter, bytesToTIdentityConverter, () => { });
-            _getPoolIdentityPropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.PoolIdentity), nothingToBytesConverter, bytesToTIdentityConverter, () => { });
-            _getSlicesMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetSlices), manifestAndHashArrayTupleToBytesConverter, bytesToSliceArrayConverter, () => { });
-            _getSelfIdentityPropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.SelfIdentity), nothingToBytesConverter, bytesToTIdentityConverter, () => { });
+            _getCurrentSizeMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetCurrentSize), nothingToBytesConverter, bytesToLongConverter);
+            _getHashesMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetHashes), manifestToBytesConverter, bytesToHashArrayConverter);
+            _getManifestsMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetManifests), nothingToBytesConverter, bytesToManifestArrayConverter);
+            _getMaxSizePropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.MaxSize), nothingToBytesConverter, bytesToLongConverter);
+            _getOwnerIdentityPropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.OwnerIdentity), nothingToBytesConverter, bytesToTIdentityConverter);
+            _getPoolIdentityPropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.PoolIdentity), nothingToBytesConverter, bytesToTIdentityConverter);
+            _getSlicesMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.GetSlices), manifestAndHashArrayTupleToBytesConverter, bytesToSliceArrayConverter);
+            _getSelfIdentityPropertyMethod = ProtocolMethod.Create(protocol, nameof(IBucket<TIdentity>.SelfIdentity), nothingToBytesConverter, bytesToTIdentityConverter);
         }
 
         #endregion

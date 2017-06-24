@@ -60,8 +60,7 @@
                 protocol,
                 signature,
                 _parameterToByteArrayConverter,
-                _byteArrayToResultConverter,
-                () => protocol.TryUnregister(signature)
+                _byteArrayToResultConverter
             );
             return true;
         }

@@ -1,7 +1,6 @@
 ﻿namespace DistributedStorage.Networking.Protocol.Methods
 {
     using System;
-    using System.Threading;
     using Common;
 
     /// <summary>
@@ -13,15 +12,13 @@
         private readonly string _signature;
         private readonly IConverter<TParameter, byte[]> _parameterSerializer;
         private readonly IConverter<byte[], TResult> _resultSerializer;
-        private Action _disposal;
 
-        public ProtocolMethod(IProtocol protocol, string signature, IConverter<TParameter, byte[]> parameterSerializer, IConverter<byte[], TResult> resultSerializer, Action disposal)
+        public ProtocolMethod(IProtocol protocol, string signature, IConverter<TParameter, byte[]> parameterSerializer, IConverter<byte[], TResult> resultSerializer)
         {
             _protocol = protocol;
             _signature = signature;
             _parameterSerializer = parameterSerializer;
             _resultSerializer = resultSerializer;
-            _disposal = disposal;
         }
         
         public void Invoke(TParameter parameter, Action<TResult> callback)
@@ -37,8 +34,6 @@
                     callback(response);
                 });
         }
-
-        public void Dispose() => Interlocked.Exchange(ref _disposal, null)?.Invoke();
     }
 
     public static class ProtocolMethod
@@ -47,13 +42,11 @@
             IProtocol protocol,
             string signature,
             IConverter<TParameter, byte[]> parameterSerializer,
-            IConverter<byte[], TResult> resultSerializer,
-            Action disposal) => new ProtocolMethod<TParameter, TResult>(
+            IConverter<byte[], TResult> resultSerializer) => new ProtocolMethod<TParameter, TResult>(
                 protocol,
                 signature,
                 parameterSerializer,
-                resultSerializer,
-                disposal
+                resultSerializer
             );
     }
 }

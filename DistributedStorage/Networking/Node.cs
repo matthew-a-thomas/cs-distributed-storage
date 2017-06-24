@@ -1,6 +1,5 @@
 ﻿namespace DistributedStorage.Networking
 {
-    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Encoding;
@@ -17,7 +16,7 @@
     /// 
     /// Thus every method you find in <see cref="Node"/> can be invoked by the remote party
     /// </summary>
-    public sealed class Node : IDisposable
+    public sealed class Node
     {
         /// <summary>
         /// Creates new <see cref="Node"/>s
@@ -114,15 +113,6 @@
             var tcs = new TaskCompletionSource<Slice[]>();
             _getSlicesForMethod.Invoke(manifest, tcs.SetResult);
             return tcs.Task;
-        }
-
-        /// <summary>
-        /// Releases internal resources
-        /// </summary>
-        public void Dispose()
-        {
-            foreach (var disposable in new IDisposable[] { _getManifestsMethod, _getSliceCountForMethod, _getSlicesForMethod })
-                disposable.Dispose();
         }
     }
 }
