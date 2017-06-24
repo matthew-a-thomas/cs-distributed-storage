@@ -29,7 +29,7 @@
             var shift = 0;
             byte b;
             const byte highBit = 0x80;
-            const byte maxNumBytes = sizeof(long) + 1;
+            const byte maxNumBytes = sizeof(long) + 2;
             const byte notHighBit = highBit ^ 0xFF;
             const byte numBits = 7;
             do
