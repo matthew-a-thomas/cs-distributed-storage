@@ -55,7 +55,7 @@
                 var initializer = CreateInitializer();
                 var bucket = new Mock<IBucket<IIdentity>>().Object;
                 var protocolMock = CreateProtocolMock();
-                Assert.IsTrue(initializer.TrySetup(bucket, protocolMock.Object));
+                Assert.IsTrue(initializer.TrySetup(protocolMock.Object, bucket));
 
                 var type = typeof(IBucket<IIdentity>);
                 var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
@@ -77,7 +77,7 @@
                 var initializer = CreateInitializer();
                 var bucket = new Mock<IBucket<IIdentity>>().Object;
                 var protocolMock = CreateProtocolMock();
-                Assert.IsTrue(initializer.TrySetup(bucket, protocolMock.Object));
+                Assert.IsTrue(initializer.TrySetup(protocolMock.Object, bucket));
             }
         }
     }

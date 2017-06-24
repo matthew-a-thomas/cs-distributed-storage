@@ -12,7 +12,7 @@
     /// <summary>
     /// Implements the client side of a networked <see cref="IBucket{TIdentity}"/> by registering the properties and methods of an <see cref="IBucket{TIdentity}"/> to be exposed over an <see cref="IProtocol"/> to a corresponding <see cref="RemoteBucket{TIdentity}"/>
     /// </summary>
-    public sealed class LocalBucketProtocolInitializer<TIdentity>
+    public sealed class LocalBucketProtocolInitializer<TIdentity> : IProtocolInitializer<IBucket<TIdentity>>
         where TIdentity : IIdentity
     {
         #region Private fields
@@ -63,8 +63,8 @@
         /// </summary>
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
         public bool TrySetup(
-            IBucket<TIdentity> bucket,
-            IProtocol protocol
+            IProtocol protocol,
+            IBucket<TIdentity> bucket
             )
         {
             // Register methods
