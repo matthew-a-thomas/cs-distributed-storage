@@ -1,6 +1,7 @@
 ﻿namespace DistributedStorage.Networking.Protocol.Model.Bucket
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using Common;
@@ -64,28 +65,46 @@
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
         public bool TrySetup(
             IProtocol protocol,
-            IBucket<TIdentity> bucket
+            IBucket<TIdentity> bucket,
+            out IDisposable tearDown
             )
         {
+            // Start a list of registered names, and a method that can unregister them all
+            var registeredNames = new List<string>();
+            tearDown = new Disposable(() =>
+            {
+                foreach (var x in registeredNames)
+                    protocol.TryUnregister(x);
+            });
+
             // Register methods
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.GetCurrentSize), Handler.CreateFrom(_bytesToNothingConverter, _longToBytesConverter, nothing => bucket.GetCurrentSize())))
+            string name;
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.GetCurrentSize), Handler.CreateFrom(_bytesToNothingConverter, _longToBytesConverter, nothing => bucket.GetCurrentSize())))
                 return false;
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.GetHashes), Handler.CreateFrom(_bytesToManifestConverter, _hashArrayToBytesConverter, forManifest => bucket.GetHashes(forManifest).ToArray())))
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.GetHashes), Handler.CreateFrom(_bytesToManifestConverter, _hashArrayToBytesConverter, forManifest => bucket.GetHashes(forManifest).ToArray())))
                 return false;
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.GetManifests), Handler.CreateFrom(_bytesToNothingConverter, _manifestArrayToBytesConverter, nothing => bucket.GetManifests().ToArray())))
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.GetManifests), Handler.CreateFrom(_bytesToNothingConverter, _manifestArrayToBytesConverter, nothing => bucket.GetManifests().ToArray())))
                 return false;
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.GetSlices), Handler.CreateFrom(_bytesToManifestAndHashArrayTupleConverter, _sliceArrayToBytesConverter, tuple => bucket.GetSlices(tuple.Item1, tuple.Item2).ToArray())))
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.GetSlices), Handler.CreateFrom(_bytesToManifestAndHashArrayTupleConverter, _sliceArrayToBytesConverter, tuple => bucket.GetSlices(tuple.Item1, tuple.Item2).ToArray())))
                 return false;
+            registeredNames.Add(name);
 
             // Register properties
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.MaxSize), Handler.CreateFrom(_bytesToNothingConverter, _longToBytesConverter, nothing => bucket.MaxSize)))
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.MaxSize), Handler.CreateFrom(_bytesToNothingConverter, _longToBytesConverter, nothing => bucket.MaxSize)))
                 return false;
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.OwnerIdentity), Handler.CreateFrom(_bytesToNothingConverter, _tIdentityToBytesConverter, nothing => bucket.OwnerIdentity)))
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.OwnerIdentity), Handler.CreateFrom(_bytesToNothingConverter, _tIdentityToBytesConverter, nothing => bucket.OwnerIdentity)))
                 return false;
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.PoolIdentity), Handler.CreateFrom(_bytesToNothingConverter, _tIdentityToBytesConverter, nothing => bucket.PoolIdentity)))
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.PoolIdentity), Handler.CreateFrom(_bytesToNothingConverter, _tIdentityToBytesConverter, nothing => bucket.PoolIdentity)))
                 return false;
-            if (!protocol.TryRegister(nameof(IBucket<TIdentity>.SelfIdentity), Handler.CreateFrom(_bytesToNothingConverter, _tIdentityToBytesConverter, nothing => bucket.SelfIdentity)))
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IBucket<TIdentity>.SelfIdentity), Handler.CreateFrom(_bytesToNothingConverter, _tIdentityToBytesConverter, nothing => bucket.SelfIdentity)))
                 return false;
+            registeredNames.Add(name);
 
             return true;
         }

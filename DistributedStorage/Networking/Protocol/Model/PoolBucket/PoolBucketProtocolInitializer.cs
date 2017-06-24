@@ -1,6 +1,7 @@
 ﻿namespace DistributedStorage.Networking.Protocol.Model.PoolBucket
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using Common;
     using DistributedStorage.Model;
@@ -25,20 +26,32 @@
         }
 
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
-        public bool TrySetup(IProtocol protocol, IPoolBucket with)
+        public bool TrySetup(IProtocol protocol, IPoolBucket with, out IDisposable tearDown)
         {
-            if (!protocol.TryRegister(nameof(IPoolBucket.AddSlices), Handler.CreateFrom(_bytesToManifestAndSliceArrayTupleConverter, _nothingToBytesConverter, tuple =>
+            // Start a list of registered names, and the IDisposable to unregister them all
+            var registeredNames = new List<string>();
+            tearDown = new Disposable(() =>
+            {
+                foreach (var x in registeredNames)
+                    protocol.TryUnregister(x);
+            });
+
+            // Register methods
+            string name;
+            if (!protocol.TryRegister(name = nameof(IPoolBucket.AddSlices), Handler.CreateFrom(_bytesToManifestAndSliceArrayTupleConverter, _nothingToBytesConverter, tuple =>
             {
                 with.AddSlices(tuple.Item1, tuple.Item2);
                 return Nothing.Instance;
             })))
                 return false;
-            if (!protocol.TryRegister(nameof(IPoolBucket.DeleteSlices), Handler.CreateFrom(_bytesToManifestAndHashArrayTupleConverter, _nothingToBytesConverter, tuple =>
+            registeredNames.Add(name);
+            if (!protocol.TryRegister(name = nameof(IPoolBucket.DeleteSlices), Handler.CreateFrom(_bytesToManifestAndHashArrayTupleConverter, _nothingToBytesConverter, tuple =>
             {
                 with.DeleteSlices(tuple.Item1, tuple.Item2);
                 return Nothing.Instance;
             })))
                 return false;
+            registeredNames.Add(name);
 
             return true;
         }

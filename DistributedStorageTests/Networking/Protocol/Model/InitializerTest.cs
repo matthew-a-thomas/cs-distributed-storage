@@ -11,7 +11,7 @@
         public static void RegistersAllPublicPropertiesAndMethods<T>(IProtocolInitializer<T> initializer, T with)
         {
             var protocolMock = ProtocolHelper.CreateProtocolMock();
-            Assert.IsTrue(initializer.TrySetup(protocolMock.Object, with));
+            Assert.IsTrue(initializer.TrySetup(protocolMock.Object, with, out _));
 
             var type = typeof(T);
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;

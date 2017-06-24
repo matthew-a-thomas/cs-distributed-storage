@@ -53,7 +53,7 @@
                 var initializer = CreateInitializer();
                 var bucket = new Mock<IBucket<IIdentity>>().Object;
                 var protocolMock = ProtocolHelper.CreateProtocolMock();
-                Assert.IsTrue(initializer.TrySetup(protocolMock.Object, bucket));
+                Assert.IsTrue(initializer.TrySetup(protocolMock.Object, bucket, out _));
             }
         }
     }
