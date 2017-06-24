@@ -1,12 +1,9 @@
 ﻿namespace DistributedStorageTests.Networking.Protocol.Model.Bucket
 {
     using System;
-    using System.Linq;
-    using System.Reflection;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Model;
-    using DistributedStorage.Networking.Protocol;
     using DistributedStorage.Networking.Protocol.Model.Bucket;
     using DistributedStorage.Networking.Serialization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,15 +34,7 @@
                 );
             return initializer;
         }
-
-        private static Mock<IProtocol> CreateProtocolMock()
-        {
-            var mock = new Mock<IProtocol>();
-            mock.Setup(x => x.TryRegister(It.IsAny<string>(), It.IsAny<IHandler<byte[], byte[]>>())).Returns(true);
-            mock.Setup(x => x.TryUnregister(It.IsAny<string>())).Returns(true);
-            return mock;
-        }
-
+        
         [TestClass]
         public class TrySetupMethod
         {
@@ -54,21 +43,8 @@
             {
                 var initializer = CreateInitializer();
                 var bucket = new Mock<IBucket<IIdentity>>().Object;
-                var protocolMock = CreateProtocolMock();
-                Assert.IsTrue(initializer.TrySetup(protocolMock.Object, bucket));
 
-                var type = typeof(IBucket<IIdentity>);
-                var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
-                var members =
-                    type
-                    .GetMethods(bindingFlags)
-                    .Where(method => !method.IsSpecialName) // Exclude property get_Methods https://stackoverflow.com/a/16238581/3063273
-                    .Cast<MemberInfo>()
-                    .Concat(type.GetProperties(bindingFlags));
-                foreach (var member in members)
-                {
-                    protocolMock.Verify(x => x.TryRegister(member.Name, It.IsAny<IHandler<byte[], byte[]>>()), $"Property or method \"{member.Name}\" wasn't registered");
-                }
+                InitializerTest.RegistersAllPublicPropertiesAndMethods(initializer, bucket);
             }
 
             [TestMethod]
@@ -76,7 +52,7 @@
             {
                 var initializer = CreateInitializer();
                 var bucket = new Mock<IBucket<IIdentity>>().Object;
-                var protocolMock = CreateProtocolMock();
+                var protocolMock = ProtocolHelper.CreateProtocolMock();
                 Assert.IsTrue(initializer.TrySetup(protocolMock.Object, bucket));
             }
         }
