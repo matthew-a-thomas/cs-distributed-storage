@@ -83,10 +83,28 @@
 
         #region Public properties
 
-        public long MaxSize => _getMaxSizePropertyMethod.InvokeAndWait(Nothing.Instance);
-        public TIdentity OwnerIdentity => _getOwnerIdentityPropertyMethod.InvokeAndWait(Nothing.Instance);
-        public TIdentity PoolIdentity => _getPoolIdentityPropertyMethod.InvokeAndWait(Nothing.Instance);
-        public TIdentity SelfIdentity => _getSelfIdentityPropertyMethod.InvokeAndWait(Nothing.Instance);
+        /// <summary>
+        /// The maximum size that the <see cref="IBucket{TIdentity}.OwnerIdentity"/> desires this <see cref="IBucket{TIdentity}"/> to be
+        /// </summary>
+        public long MaxSize => _getMaxSizePropertyMethod.InvokeAsync(Nothing.Instance).WaitAndGet();
+
+        /// <summary>
+        /// The identity of the party who owns this <see cref="IBucket{TIdentity}"/>.
+        /// This party has the authority to remove this <see cref="IBucket{TIdentity}"/> and owns the associated <see cref="Storage"/>,
+        /// but shouldn't be directly adding and removing slices--that's the job of the <see cref="IBucket{TIdentity}.PoolIdentity"/>
+        /// </summary>
+        public TIdentity OwnerIdentity => _getOwnerIdentityPropertyMethod.InvokeAsync(Nothing.Instance).WaitAndGet();
+
+        /// <summary>
+        /// The identity of the pool to which this <see cref="IBucket{TIdentity}"/> belongs.
+        /// This <see cref="IBucket{TIdentity}.PoolIdentity"/> has the authority to add and delete slices from this <see cref="IBucket{TIdentity}"/>
+        /// </summary>
+        public TIdentity PoolIdentity => _getPoolIdentityPropertyMethod.InvokeAsync(Nothing.Instance).WaitAndGet();
+
+        /// <summary>
+        /// An identifier for this <see cref="IBucket{TIdentity}"/>
+        /// </summary>
+        public TIdentity SelfIdentity => _getSelfIdentityPropertyMethod.InvokeAsync(Nothing.Instance).WaitAndGet();
 
         #endregion
 
@@ -134,11 +152,26 @@
 
         #region Public methods
 
-        public long GetCurrentSize() => _getCurrentSizeMethod.InvokeAndWait(Nothing.Instance);
-        public IEnumerable<Hash> GetHashes(Manifest forManifest) => _getHashesMethod.InvokeAndWait(forManifest);
-        public IEnumerable<Manifest> GetManifests() => _getManifestsMethod.InvokeAndWait(Nothing.Instance);
-        public IEnumerable<Slice> GetSlices(Manifest forManifest, Hash[] hashes) => _getSlicesMethod.InvokeAndWait(Tuple.Create(forManifest, hashes));
+        /// <summary>
+        /// Gets the current size of the contents of this <see cref="IBucket{TIdentity}"/>
+        /// </summary>
+        public long GetCurrentSize() => _getCurrentSizeMethod.InvokeAsync(Nothing.Instance).WaitAndGet();
 
+        /// <summary>
+        /// Enumerates all <see cref="Slice"/> <see cref="Hash"/>es associated with the given <see cref="Manifest"/>
+        /// </summary>
+        public IEnumerable<Hash> GetHashes(Manifest forManifest) => _getHashesMethod.InvokeAsync(forManifest).WaitAndGet();
+
+        /// <summary>
+        /// Enumerates all <see cref="Manifest"/>s in this bucket
+        /// </summary>
+        public IEnumerable<Manifest> GetManifests() => _getManifestsMethod.InvokeAsync(Nothing.Instance).WaitAndGet();
+
+        /// <summary>
+        /// Enumerates all <see cref="Slice"/>s that are associated with the given <see cref="Manifest"/> in this bucket and have the given <paramref name="hashes"/>
+        /// </summary>
+        public IEnumerable<Slice> GetSlices(Manifest forManifest, Hash[] hashes) => _getSlicesMethod.InvokeAsync(Tuple.Create(forManifest, hashes)).WaitAndGet();
+        
         #endregion
     }
 }
