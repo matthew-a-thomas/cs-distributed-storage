@@ -1,4 +1,4 @@
-﻿namespace DistributedStorageTests.Networking
+﻿namespace DistributedStorageTests.Networking.Protocol.Model.Bucket
 {
     using System;
     using System.Linq;
@@ -6,8 +6,8 @@
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Model;
-    using DistributedStorage.Networking;
     using DistributedStorage.Networking.Protocol;
+    using DistributedStorage.Networking.Protocol.Model.Bucket;
     using DistributedStorage.Networking.Serialization;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;

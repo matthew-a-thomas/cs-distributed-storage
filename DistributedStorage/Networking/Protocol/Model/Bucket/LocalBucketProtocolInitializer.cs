@@ -1,11 +1,11 @@
-﻿namespace DistributedStorage.Networking
+﻿namespace DistributedStorage.Networking.Protocol.Model.Bucket
 {
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using Common;
+    using DistributedStorage.Model;
     using Encoding;
-    using Model;
     using Protocol;
     using Serialization;
 
