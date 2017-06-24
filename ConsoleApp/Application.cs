@@ -7,11 +7,14 @@
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Security.Cryptography;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using DistributedStorage.Actors;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
+    using DistributedStorage.Model;
     using DistributedStorage.Networking;
     using DistributedStorage.Networking.Protocol;
     using DistributedStorage.Networking.Security;
@@ -47,6 +50,8 @@
         private readonly DatagramProtocol.Factory _datagramProtocolFactory;
         private readonly Node.Factory _nodeFactory;
         private readonly IEntropy _entropy;
+        private readonly FileBackedBucket.Factory _fileBackedBucketFactory;
+        private readonly IProtocolInitializer<IBucket<RsaIdentity>> _bucketProtocolInitializer;
 
         #endregion
 
@@ -65,7 +70,9 @@
             StorageFactory storageFactory,
             DatagramProtocol.Factory datagramProtocolFactory,
             Node.Factory nodeFactory,
-            IEntropy entropy)
+            IEntropy entropy,
+            FileBackedBucket.Factory fileBackedBucketFactory,
+            IProtocolInitializer<IBucket<RsaIdentity>> bucketProtocolInitializer)
         {
             _hashVisualizer = hashVisualizer;
             _secureStreamFactory = secureStreamFactory;
@@ -77,11 +84,70 @@
             _datagramProtocolFactory = datagramProtocolFactory;
             _nodeFactory = nodeFactory;
             _entropy = entropy;
+            _fileBackedBucketFactory = fileBackedBucketFactory;
+            _bucketProtocolInitializer = bucketProtocolInitializer;
         }
 
         #endregion
 
         #region Methods
+
+        private void BeABucketForAnyoneToUse()
+        {
+            var workingDirectory = new DirectoryInfo("Working directory?".Ask()).ToDirectory();
+            var dummyIdentity = new RsaIdentity(new RSAParameters());
+            if (!_fileBackedBucketFactory.TryCreateNew(workingDirectory, dummyIdentity, dummyIdentity, dummyIdentity, 1024 * 1024, out var bucket))
+            {
+                bucket = new FileBackedBucket(workingDirectory);
+            }
+
+            void HandleChannel(IDatagramChannel channel, CancellationToken cancellationToken)
+            {
+                var dispatcher = Dispatcher.Create(action => Task.Run(action, cancellationToken));
+
+                "Standing up a new protocol...".Say();
+                var protocol = _datagramProtocolFactory.Create(channel, dispatcher, dispatcher);
+                if (!_bucketProtocolInitializer.TrySetup(protocol, bucket, out var tearDown))
+                    "Failed to initialize the protocol with our bucket for some reason.".Say();
+
+                using (tearDown)
+                {
+                    "Starting to pump the protocol...".Say();
+                    var datagramDispatcher = Dispatcher.Create(action => Task.Run(action, cancellationToken));
+                    void PumpProtocol()
+                    {
+                        protocol.Pump();
+                        "Received a protocol message...".Say();
+                        datagramDispatcher.BeginInvoke(PumpProtocol);
+                    }
+                    datagramDispatcher.BeginInvoke(PumpProtocol);
+                }
+            }
+
+            "Starting the listener...".Say();
+            var listener = new TcpListener(IPAddress.Any, 1337);
+            listener.Start();
+            var cancellationSource = new CancellationTokenSource();
+            Task.Run(async () =>
+                {
+                    while (!cancellationSource.IsCancellationRequested)
+                    {
+                        var wrappedChannel = await listener.AcceptDatagramChannelAsync();
+#pragma warning disable 4014
+                        // ReSharper disable once MethodSupportsCancellation
+                        Task.Run(() =>
+#pragma warning restore 4014
+                        {
+                            using (wrappedChannel)
+                                HandleChannel(wrappedChannel.Value, cancellationSource.Token);
+                        });
+                    }
+                },
+                cancellationSource.Token);
+
+            "Press any key to stop listening. . .".Wait();
+            cancellationSource.Cancel();
+        }
 
         /// <summary>
         /// Guides the user through a visual representation of a hash code
@@ -257,6 +323,10 @@
                 {
                     "Display hash code",
                     DisplayHashCode
+                },
+                {
+                    "Be a bucket for anyone to use",
+                    BeABucketForAnyoneToUse
                 },
                 {
                     "Connect",
