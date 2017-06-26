@@ -52,6 +52,7 @@
         private readonly IEntropy _entropy;
         private readonly FileBackedBucket.Factory _fileBackedBucketFactory;
         private readonly IProtocolInitializer<IBucket<RsaIdentity>> _bucketProtocolInitializer;
+        private readonly IProtocolInitializer<IPoolBucket> _poolBucketProtocolInitializer;
 
         #endregion
 
@@ -72,7 +73,8 @@
             Node.Factory nodeFactory,
             IEntropy entropy,
             FileBackedBucket.Factory fileBackedBucketFactory,
-            IProtocolInitializer<IBucket<RsaIdentity>> bucketProtocolInitializer)
+            IProtocolInitializer<IBucket<RsaIdentity>> bucketProtocolInitializer,
+            IProtocolInitializer<IPoolBucket> poolBucketProtocolInitializer)
         {
             _hashVisualizer = hashVisualizer;
             _secureStreamFactory = secureStreamFactory;
@@ -86,6 +88,7 @@
             _entropy = entropy;
             _fileBackedBucketFactory = fileBackedBucketFactory;
             _bucketProtocolInitializer = bucketProtocolInitializer;
+            _poolBucketProtocolInitializer = poolBucketProtocolInitializer;
         }
 
         #endregion
@@ -107,10 +110,13 @@
 
                 "Standing up a new protocol...".Say();
                 var protocol = _datagramProtocolFactory.Create(channel, dispatcher, dispatcher);
-                if (!_bucketProtocolInitializer.TrySetup(protocol, bucket, out var tearDown))
+                if (!_bucketProtocolInitializer.TrySetup(protocol, bucket, out var tearDownBucket))
                     "Failed to initialize the protocol with our bucket for some reason.".Say();
+                if (!_poolBucketProtocolInitializer.TrySetup(protocol, bucket, out var tearDownPoolBucket))
+                    "Failed to initialize the protocol with our pool bucket for some reason.".Say();
 
-                using (tearDown)
+                using (tearDownPoolBucket)
+                using (tearDownBucket)
                 {
                     "Starting to pump the protocol...".Say();
                     var datagramDispatcher = Dispatcher.Create(action => Task.Run(action, cancellationToken));
