@@ -5,9 +5,9 @@
     using Common;
 
     /// <summary>
-    /// Using this module registers an <see cref="IProtocolInitializer{T}"/>, implemented by <see cref="GuidProtocolInitializer{T}"/>
+    /// Using this module registers an <see cref="IProtocolInitializer{T}"/>, implemented by <see cref="ProtocolInitializer{T}"/>
     /// </summary>
-    public sealed class GuidProtocolInitializerModule<T> : Module
+    public sealed class ProtocolInitializerModule<T> : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -40,8 +40,8 @@
                     return deserializer;
                 }
 
-                if (!GuidProtocolInitializer.TryCreate<T>(DeserializerLookup, SerializerLookup, out var initializer))
-                    throw new Exception($"Unable to create a new {nameof(GuidProtocolInitializer)}");
+                if (!ProtocolInitializer.TryCreate<T>(DeserializerLookup, SerializerLookup, out var initializer))
+                    throw new Exception($"Unable to create a new {nameof(ProtocolInitializer)}");
 
                 return (IProtocolInitializer<T>) initializer;
             }).SingleInstance();

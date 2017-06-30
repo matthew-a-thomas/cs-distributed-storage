@@ -52,10 +52,8 @@ namespace ConsoleApp
             builder.RegisterType<ProtocolMethodFactory<Manifest, int>>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ProtocolMethodFactory<Manifest, Slice[]>>().AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterModule<GuidProtocolInitializerModule<IBucket<RsaIdentity>>>();
-            builder.RegisterModule<GuidProtocolInitializerModule<IPoolBucket>>();
-            // TODO: Remove "Nothing" class, if it can be replaced with built-in "void" type.
-            // TODO: Add property getter/setter registration in GuidProtocolInitializer
+            builder.RegisterModule<ProtocolInitializerModule<IBucket<RsaIdentity>>>();
+            builder.RegisterModule<ProtocolInitializerModule<IPoolBucket>>();
         }
     }
 }
