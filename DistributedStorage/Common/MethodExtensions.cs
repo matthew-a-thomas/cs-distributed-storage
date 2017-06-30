@@ -76,6 +76,11 @@
         }
 
         /// <summary>
+        /// Gets a string that can be used to register this <paramref name="method"/> with an <see cref="IProtocol"/>
+        /// </summary>
+        public static string GetNameForProtocolRegistration(this MethodInfo method) => Hash.Create(System.Text.Encoding.UTF8.GetBytes(method.GetStrongName())).HashCode.ToHex();
+
+        /// <summary>
         /// Returns a strong name for this method
         /// </summary>
         public static string GetStrongName(this MethodInfo method) =>

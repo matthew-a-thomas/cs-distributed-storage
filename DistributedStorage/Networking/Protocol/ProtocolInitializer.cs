@@ -68,8 +68,7 @@
                 foreach (var method in typeof(T).GetMethods())
                 {
                     // Grab a string that uniquely identifies this method
-                    var name = method.GetStrongName();
-                    name = Hash.Create(System.Text.Encoding.UTF8.GetBytes(name)).HashCode.ToHex();
+                    var name = method.GetNameForProtocolRegistration();
                     
                     // Set up a handler factory for this method and a given object of the type T
                     IHandler<byte[], byte[]> CreateHandlerFor(T obj)

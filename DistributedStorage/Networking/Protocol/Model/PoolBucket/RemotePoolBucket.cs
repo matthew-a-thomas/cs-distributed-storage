@@ -1,6 +1,7 @@
 ﻿namespace DistributedStorage.Networking.Protocol.Model.PoolBucket
 {
     using System;
+    using System.Reflection;
     using Common;
     using DistributedStorage.Model;
     using Encoding;
@@ -49,8 +50,10 @@
             IConverter<Tuple<Manifest, Hash[]>, byte[]> manifestAndHashArrayTupleToBytesConverter
         )
         {
-            _addSlicesMethod = ProtocolMethod.Create(protocol, nameof(IPoolBucket.AddSlices), manifestAndSliceArrayTupleToBytesConverter, bytesToNothingConverter);
-            _deleteSlicesMethod = ProtocolMethod.Create(protocol, nameof(IPoolBucket.DeleteSlices), manifestAndHashArrayTupleToBytesConverter, bytesToNothingConverter);
+            var type = typeof(IPoolBucket);
+
+            _addSlicesMethod = ProtocolMethod.Create(protocol, type.GetMethod(nameof(IPoolBucket.AddSlices)).GetNameForProtocolRegistration(), manifestAndSliceArrayTupleToBytesConverter, bytesToNothingConverter);
+            _deleteSlicesMethod = ProtocolMethod.Create(protocol, type.GetMethod(nameof(IPoolBucket.DeleteSlices)).GetNameForProtocolRegistration(), manifestAndHashArrayTupleToBytesConverter, bytesToNothingConverter);
         }
 
         #endregion
