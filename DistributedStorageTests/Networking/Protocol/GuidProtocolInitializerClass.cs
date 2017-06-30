@@ -73,11 +73,12 @@
 
                 Assert.IsTrue(requestedSerializerTypes.Remove(typeof(object)));
                 Assert.IsTrue(requestedSerializerTypes.Remove(typeof(int)));
+                Assert.IsTrue(requestedSerializerTypes.Remove(typeof(void)));
                 Assert.IsTrue(requestedSerializerTypes.Count == 0);
             }
 
             [TestMethod]
-            public void ReturnsFalseWithMEthodsWithInvalidGuids()
+            public void ReturnsFalseWithMethodsWithInvalidGuids()
             {
                 Assert.IsFalse(GuidProtocolInitializer.TryCreateHandlerFactoryTuples<ClassWithMethodWithInvalidGuid>(_ => null, _ => null, out _));
             }
