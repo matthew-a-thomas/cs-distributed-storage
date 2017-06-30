@@ -54,6 +54,8 @@ namespace ConsoleApp
 
             builder.RegisterModule<GuidProtocolInitializerModule<IBucket<RsaIdentity>>>();
             builder.RegisterModule<GuidProtocolInitializerModule<IPoolBucket>>();
+            // TODO: Remove "Nothing" class, if it can be replaced with built-in "void" type.
+            // TODO: Add property getter/setter registration in GuidProtocolInitializer
         }
     }
 }
