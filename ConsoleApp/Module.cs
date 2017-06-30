@@ -6,6 +6,7 @@ namespace ConsoleApp
     using System.Security.Cryptography;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
+    using DistributedStorage.Model;
     using DistributedStorage.Networking;
     using DistributedStorage.Networking.Protocol;
     using DistributedStorage.Networking.Protocol.Methods;
@@ -50,6 +51,9 @@ namespace ConsoleApp
             builder.RegisterType<ProtocolMethodFactory<Nothing, Manifest[]>>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ProtocolMethodFactory<Manifest, int>>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ProtocolMethodFactory<Manifest, Slice[]>>().AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterModule<GuidProtocolInitializerModule<IBucket<RsaIdentity>>>();
+            builder.RegisterModule<GuidProtocolInitializerModule<IPoolBucket>>();
         }
     }
 }
