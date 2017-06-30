@@ -106,20 +106,20 @@
         /// </summary>
         public static string GetStrongName(this MethodInfo method) =>
             $@"{
-                method.DeclaringType.AssemblyQualifiedName
+                method.DeclaringType.AssemblyQualifiedName ?? method.DeclaringType.Name
             }.{
                 method.Name
             }<{
-                string.Join(",", method.GetGenericArguments().Select(x => x.AssemblyQualifiedName))
+                string.Join(",", method.GetGenericArguments().Select(x => x.AssemblyQualifiedName ?? x.Name))
             }>({
                 string.Join(
                     ",",
                     method
                     .GetParameters()
-                    .Select(x => $"{(x.IsOut ? "out " : "")}{x.ParameterType.AssemblyQualifiedName}")
+                    .Select(x => x.ParameterType.AssemblyQualifiedName ?? x.ParameterType.Name)
                 )
             })->{
-                method.ReturnType.AssemblyQualifiedName
+                method.ReturnType.AssemblyQualifiedName ?? method.ReturnType.Name
             }";
     }
 }
