@@ -95,6 +95,7 @@
 
         #region Methods
 
+        [SuppressMessage("ReSharper", "All")]
         private void BeABucketForAnyoneToUse()
         {
             var workingDirectory = new DirectoryInfo("Working directory?".Ask()).ToDirectory();
@@ -144,8 +145,8 @@
                         Task.Run(() =>
 #pragma warning restore 4014
                         {
-                            using (wrappedChannel)
-                                HandleChannel(wrappedChannel.Value, cancellationSource.Token);
+                            //using (wrappedChannel)
+                            //    HandleChannel(wrappedChannel.Value, cancellationSource.Token);
                         });
                     }
                 },
