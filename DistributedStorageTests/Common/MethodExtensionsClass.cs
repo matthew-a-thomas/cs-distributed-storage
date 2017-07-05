@@ -14,6 +14,7 @@
         [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
         [SuppressMessage("ReSharper", "UnusedTypeParameter")]
         [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+        [SuppressMessage("ReSharper", "UnusedMember.Local")]
         private class Example
         {
             public void MethodWithNoParametersAndNoReturnValue() { }
@@ -24,13 +25,19 @@
 
             public void MethodWithTypeParameter<T>() { }
 
-            public void MethodWithOutParameter(out string o) => o = "";
-
-            public void MethodWithTypedOutParameter<T>(out T value) => value = default(T);
-
             public int ReadOnlyIntegerProperty => 0;
 
             public double ReadAndWriteDoubleProperty { get; set; }
+        }
+
+        [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+        [SuppressMessage("ReSharper", "UnusedTypeParameter")]
+        [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+        private class Example2
+        {
+            public void MethodWithOutParameter(out string o) => o = "";
+
+            public void MethodWithTypedOutParameter<T>(out T value) => value = default(T);
         }
 
         [TestClass]
@@ -74,7 +81,9 @@
                     typeof(object),
                     typeof(string),
                     typeof(int),
-                    typeof(double)
+                    typeof(double),
+                    typeof(bool),
+                    typeof(Type)
                 })
                     Assert.IsTrue(requestedSerializers.Remove(expectedSerializer), $"The serializer for {expectedSerializer.Name} wasn't requested, but it was supposed to have been");
                 Assert.IsTrue(requestedSerializers.Count == 0, $"These serializers were surprisingly requested in addition: {string.Join(", ", requestedSerializers.Select(x => x.Name))}");
@@ -82,8 +91,6 @@
                 foreach (var expectedDeserializer in new[]
                 {
                     typeof(object),
-                    typeof(string),
-                    typeof(int),
                     typeof(double)
                 })
                     Assert.IsTrue(requestedDeserializers.Remove(expectedDeserializer), $"The deserializer for {expectedDeserializer.Name} wasn't requested, but it was supposed to have been");
@@ -154,14 +161,14 @@
             [TestMethod]
             public void WorksForMethodWithOutParameter()
             {
-                var method = typeof(Example).GetMethod(nameof(Example.MethodWithOutParameter));
+                var method = typeof(Example2).GetMethod(nameof(Example2.MethodWithOutParameter));
                 method.GetStrongName();
             }
 
             [TestMethod]
             public void WorksForMethodWithTypedOutParameter()
             {
-                var method = typeof(Example).GetMethod(nameof(Example.MethodWithTypedOutParameter));
+                var method = typeof(Example2).GetMethod(nameof(Example2.MethodWithTypedOutParameter));
                 method.GetStrongName();
             }
         }
