@@ -1,17 +1,15 @@
-﻿using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-
-namespace AspNet
+﻿namespace AspNet
 {
-    using System.Linq;
-    using System.Reflection;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using System;
+    using System.Linq;
 
     public class Startup
     {
@@ -36,26 +34,23 @@ namespace AspNet
             using (var scope = container.BeginLifetimeScope())
             {
                 var unregisteredTypes =
-                    Assembly
-                        .GetEntryAssembly()
-                        .GetTypes()
-                        .Where(type => typeof(Controller).IsAssignableFrom(type))
-                        .Select(type =>
+                    DistributedStorage.Common.AssemblyExtensions.GetTypesAssignableTo<ControllerBase>()
+                    .Select(type =>
+                    {
+                        try
                         {
-                            try
-                            {
-                                if (!scope.IsRegistered(type))
-                                    return new { Error = new Exception("Cannot resolve type"), Type = type };
-                                scope.Resolve(type);
-                                return null;
-                            }
-                            catch (Exception e)
-                            {
-                                return new { Error = e, Type = type };
-                            }
-                        })
-                        .Where(x => !ReferenceEquals(x, null))
-                        .ToList();
+                            if (!scope.IsRegistered(type))
+                                return new { Error = new Exception("Cannot resolve type"), Type = type };
+                            scope.Resolve(type);
+                            return null;
+                        }
+                        catch (Exception e)
+                        {
+                            return new { Error = e, Type = type };
+                        }
+                    })
+                    .Where(x => !ReferenceEquals(x, null))
+                    .ToList();
 
                 if (unregisteredTypes.Any())
                     throw new Exception(
