@@ -21,5 +21,10 @@
         /// The hash codes of the individual slices
         /// </summary>
         public Hash[] SliceHashes { get; set; }
+
+        /// <summary>
+        /// Returns a string representation of this <see cref="Manifest"/>
+        /// </summary>
+        public override string ToString() => Id.ToString();
     }
 }

@@ -73,7 +73,12 @@
             }
             return BitConverter.ToInt32(combined, 0);
         }
-        
+
+        /// <summary>
+        /// Returns a hex representation of this <see cref="Hash"/>
+        /// </summary>
+        public override string ToString() => HashCode.ToHex();
+
         #endregion
 
         #region Static methods
