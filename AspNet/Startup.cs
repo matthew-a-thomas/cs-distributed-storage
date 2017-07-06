@@ -13,8 +13,11 @@
 
     public class Startup
     {
+        private readonly IHostingEnvironment _hostingEnvironment;
+
         public Startup(IHostingEnvironment env)
         {
+            _hostingEnvironment = env;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -77,6 +80,7 @@
 
             // Add Autofac
             var builder = new ContainerBuilder();
+            builder.RegisterInstance(_hostingEnvironment).SingleInstance(); // Register the hosting environment
             builder.RegisterModule<Module>();
             builder.Populate(services);
             var container = builder.Build();
