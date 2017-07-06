@@ -9,6 +9,7 @@ namespace AspNet
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using System.IO;
+    using DistributedStorage.Encoding;
 
     internal class Module : Autofac.Module
     {
@@ -40,6 +41,13 @@ namespace AspNet
                     var manifestsDirectory = appDataDirectory.Directories.GetOrCreate(ManifestsDirectoryName);
                     return new ManifestsAndSlicesFactoryContainer.Options(".manifest", ".slice", manifestsDirectory);
                 }).SingleInstance();
+            builder.Register(c =>
+                {
+                    // Register the listing of manifests
+                    var manifestFactoryContainer = c.Resolve<IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>>>();
+                    return manifestFactoryContainer.GetKeys();
+                })
+                .SingleInstance();
         }
     }
 }
