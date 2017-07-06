@@ -10,7 +10,7 @@ namespace AspNet.Controllers
 
     [Produces("application/json")]
     [Route("api/[controller]")]
-    public class ManifestController : Controller
+    public class ManifestsController : Controller
     {
         /// <summary>
         /// The container for manifests
@@ -18,9 +18,9 @@ namespace AspNet.Controllers
         private readonly IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>> _manifestsContainer;
 
         /// <summary>
-        /// Creates a new <see cref="ManifestController"/> using the given <see cref="Manifest"/> container
+        /// Creates a new <see cref="ManifestsController"/> using the given <see cref="Manifest"/> container
         /// </summary>
-        public ManifestController(IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>> manifestsContainer)
+        public ManifestsController(IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>> manifestsContainer)
         {
             _manifestsContainer = manifestsContainer;
         }
