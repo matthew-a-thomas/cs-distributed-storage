@@ -10,12 +10,21 @@ namespace AspNet
     using Microsoft.AspNetCore.Mvc;
     using System.IO;
     using DistributedStorage.Encoding;
+    using Microsoft.AspNetCore.Authorization;
+    using Models;
+    using Models.Authorization.Handlers;
+    using Models.Authorization.Policies;
+    using Models.Authorization.Requirements;
     using Models.Manifests;
 
     internal class Module : Autofac.Module
     {
-        private const string AppDataDirectoryName = "AppData";
-        private const string ManifestsDirectoryName = "Manifests";
+        private const string
+            AppDataDirectoryName = "AppData",
+            ManifestExtension = ".manifest",
+            ManifestsDirectoryName = "Manifests",
+            OwnerFileName = "owner",
+            SliceExtension = ".slice";
 
         protected override void Load(ContainerBuilder builder)
         {
@@ -27,30 +36,39 @@ namespace AspNet
             builder.RegisterType<ManifestsAndSlicesFactoryContainer>().AsImplementedInterfaces().SingleInstance();
             builder.Register(c =>
                 {
-                    // Register the content root directory as an IDirectory singleton
+                    // Register the AppData directory as an IDirectory singleton
                     var hostingEnvironment = c.Resolve<IHostingEnvironment>();
                     var contentRoot = new DirectoryInfo(hostingEnvironment.ContentRootPath);
                     var contentRootDirectory = contentRoot.ToDirectory();
-                    return contentRootDirectory;
+                    var appDataDirectory = contentRootDirectory.Directories.GetOrCreate(AppDataDirectoryName);
+                    return appDataDirectory;
                 })
                 .SingleInstance();
             builder.Register(c =>
                 {
                     // Register the default ManifestsAndSlicesFactoryContainer.Options
-                    var contentRootDirectory = c.Resolve<IDirectory>();
-                    var appDataDirectory = contentRootDirectory.Directories.GetOrCreate(AppDataDirectoryName);
+                    var appDataDirectory = c.Resolve<IDirectory>();
                     var manifestsDirectory = appDataDirectory.Directories.GetOrCreate(ManifestsDirectoryName);
-                    return new ManifestsAndSlicesFactoryContainer.Options(".manifest", ".slice", manifestsDirectory);
+                    return new ManifestsAndSlicesFactoryContainer.Options(ManifestExtension, SliceExtension, manifestsDirectory);
                 })
                 .SingleInstance();
             builder.Register(c =>
                 {
-                    // Register the adapter foe IManifestRepository
+                    // Register the adapter for IManifestRepository
                     var manifestContainer = c.Resolve<IFactoryContainer<Manifest, IAddableContainer<Hash, Slice>>>();
                     var adapter = new ManifestContainerToManifestRepositoryAdapter(manifestContainer);
                     return (IManifestRepository)adapter;
                 })
                 .SingleInstance();
+
+            // Authorization handlers
+            builder.RegisterType<OwnerOnlyPolicyFactory>().SingleInstance();
+            builder.RegisterType<IsOwnerRequirement>().SingleInstance();
+            builder.RegisterType<IsOwnerHandler>().As<IAuthorizationHandler>().SingleInstance();
+
+            // Owner repository
+            builder.RegisterType<OwnerRepository>().SingleInstance();
+            builder.Register(c => new OwnerRepository.Options(OwnerFileName)).SingleInstance();
         }
     }
 }

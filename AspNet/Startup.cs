@@ -10,6 +10,7 @@
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
+    using Models.Authorization.Policies;
 
     public class Startup
     {
@@ -73,11 +74,16 @@
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
+        // ReSharper disable once UnusedMember.Global
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
             services.AddMvc();
-
+            
+            // Add authorization policies
+            var ownerOnlyPolicy = new OwnerOnlyPolicyFactory().CreatePolicy();
+            services.AddAuthorization(options => options.AddPolicy(OwnerOnlyPolicyFactory.PolicyName, ownerOnlyPolicy));
+            
             // Add Autofac
             var builder = new ContainerBuilder();
             builder.RegisterInstance(_hostingEnvironment).SingleInstance(); // Register the hosting environment
@@ -92,11 +98,13 @@
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        // ReSharper disable once UnusedMember.Global
+        // ReSharper disable once UnusedParameter.Global
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-
+            
             app.UseMvc();
         }
     }

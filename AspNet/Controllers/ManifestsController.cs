@@ -2,9 +2,12 @@ namespace AspNet.Controllers
 {
     using System.Linq;
     using DistributedStorage.Encoding;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Models.Authorization.Policies;
     using Models.Manifests;
 
+    [Authorize(OwnerOnlyPolicyFactory.PolicyName)]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class ManifestsController : Controller
@@ -57,6 +60,7 @@ namespace AspNet.Controllers
         /// <summary>
         /// Get the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("{manifestId}")]
         public IActionResult GetManifest(string manifestId) => _manifestRepository.TryGetManifestWithId(manifestId, out var manifest) ? (IActionResult)new OkObjectResult(manifest) : new NotFoundResult();
 
@@ -73,6 +77,7 @@ namespace AspNet.Controllers
         /// <summary>
         /// Gets a listing of all <see cref="Slice"/> IDs associated with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("{manifestId}/slices")]
         public IActionResult GetSliceIds(string manifestId) => _manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository) ? (IActionResult)new OkObjectResult(sliceRepository.ListSliceIds().ToList()) : new NotFoundResult();
 
@@ -89,6 +94,7 @@ namespace AspNet.Controllers
         /// <summary>
         /// Gets the <see cref="Slice"/> associated with the given <paramref name="manifestId"/> and having the given <paramref name="sliceId"/>
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("{manifestId}/slices/{sliceId}")]
         public IActionResult GetSlice(string manifestId, string sliceId) => _manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository) && sliceRepository.TryGetSliceWithId(sliceId, out var slice) ? (IActionResult)new OkObjectResult(slice) : new NotFoundResult();
 
