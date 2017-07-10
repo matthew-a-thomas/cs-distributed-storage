@@ -4,7 +4,6 @@
 
     public interface IFile
     {
-        long GetCurrentSize();
         bool TryOpenRead(out Stream stream);
         bool TryOpenWrite(out Stream stream);
     }

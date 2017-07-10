@@ -5,8 +5,6 @@
 
     public static class ContainerExtensions
     {
-        public static bool ContainsKey<TKey, TValue>(this IReadableContainer<TKey, TValue> container, TKey key) => container.TryGet(key, out _);
-
         public static IEnumerable<KeyValuePair<TKey, TValue>> GetKeysAndValues<TKey, TValue>(this IReadableContainer<TKey, TValue> container)
         {
             // ReSharper disable once LoopCanBeConvertedToQuery

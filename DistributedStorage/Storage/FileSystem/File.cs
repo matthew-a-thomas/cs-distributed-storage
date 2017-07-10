@@ -8,12 +8,6 @@
     public sealed class File : IFile
     {
         /// <summary>
-        /// Delegate that can be used for <see cref="IFile.GetCurrentSize"/>
-        /// </summary>
-        /// <returns></returns>
-        public delegate long GetCurrentSizeDelegate();
-
-        /// <summary>
         /// Delegate that can be used for <see cref="IFile.TryOpenRead"/>
         /// </summary>
         public delegate bool TryOpenReadDelegate(out Stream stream);
@@ -28,11 +22,6 @@
         /// </summary>
         public sealed class Options
         {
-            /// <summary>
-            /// The method to use for <see cref="File.GetCurrentSize"/>
-            /// </summary>
-            public GetCurrentSizeDelegate GetCurrentSize { get; set; } = () => 0L;
-
             /// <summary>
             /// The method to use for <see cref="File.TryOpenRead"/>
             /// </summary>
@@ -65,9 +54,7 @@
         {
             _options = options ?? new Options();
         }
-
-        public long GetCurrentSize() => _options.GetCurrentSize();
-
+        
         public bool TryOpenRead(out Stream stream) => _options.TryOpenRead(out stream);
 
         public bool TryOpenWrite(out Stream stream) => _options.TryOpenWrite(out stream);

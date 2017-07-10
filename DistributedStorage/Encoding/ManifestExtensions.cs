@@ -1,33 +1,13 @@
 ﻿namespace DistributedStorage.Encoding
 {
     using System.IO;
-    using System.Threading.Tasks;
     using Common;
-    using Networking.Protocol;
 
     /// <summary>
     /// Extension methods for a <see cref="Manifest"/> in the context of serialization
     /// </summary>
     public static class ManifestExtensions
     {
-        public static async Task<Manifest[]> GetManifestsAsync(this IProtocol protocol)
-        {
-            var response = await protocol.MakeRequestAsync("Get Manifests", new byte[0]);
-            using (var stream = new MemoryStream(response))
-            {
-                if (!stream.TryRead(out int numManifests))
-                    return null;
-                var manifests = new Manifest[numManifests];
-                for (var i = 0; i < numManifests; ++i)
-                {
-                    if (!stream.TryRead(out Manifest manifest))
-                        return null;
-                    manifests[i] = manifest;
-                }
-                return manifests;
-            }
-        }
-
         public static bool TryRead(this Stream stream, out Manifest manifest)
         {
             manifest = null;

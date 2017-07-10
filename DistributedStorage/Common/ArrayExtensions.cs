@@ -111,27 +111,9 @@
 
             return new File(new File.Options
             {
-                GetCurrentSize = () => data.Length,
                 TryOpenRead = TryOpen,
                 TryOpenWrite = TryOpen
             });
-        }
-
-        /// <summary>
-        /// Tries to convert the hex string to a byte array
-        /// </summary>
-        public static bool TryToBytes(this string hex, out byte[] bytes)
-        {
-            try
-            {
-                bytes = hex.ToBytes();
-                return true;
-            }
-            catch
-            {
-                bytes = null;
-                return false;
-            }
         }
 
         /// <summary>

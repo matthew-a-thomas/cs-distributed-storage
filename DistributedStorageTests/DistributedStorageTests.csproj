@@ -39,4 +39,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Networking\Security\Utils\" />
+  </ItemGroup>
+
 </Project>

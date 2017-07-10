@@ -106,10 +106,10 @@
             const byte numBits = 7;
             while (v >= highBit)
             {
-                stream.WriteByte((byte)(v | highBit));
+                stream.Write((byte)(v | highBit));
                 v >>= numBits;
             }
-            stream.WriteByte((byte)v);
+            stream.Write((byte)v);
         }
 
         public static void Write(this Stream stream, int number) => Write(stream, (long)number);
