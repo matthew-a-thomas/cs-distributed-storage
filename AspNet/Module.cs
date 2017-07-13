@@ -24,6 +24,7 @@ namespace AspNet
             ManifestExtension = ".manifest",
             ManifestsDirectoryName = "Manifests",
             OwnerFileName = "owner",
+            SecretFileName = "secret",
             SliceExtension = ".slice";
 
         protected override void Load(ContainerBuilder builder)
@@ -69,6 +70,13 @@ namespace AspNet
             // Owner repository
             builder.RegisterType<OwnerRepository>().SingleInstance();
             builder.Register(c => new OwnerRepository.Options(OwnerFileName)).SingleInstance();
+
+            // Secret repository
+            builder.RegisterType<SecretRepository>().SingleInstance();
+            builder.Register(c => new SecretRepository.Options(SecretFileName)).SingleInstance();
+
+            // Token factory
+            builder.RegisterType<TokenFactory>().SingleInstance();
         }
     }
 }
