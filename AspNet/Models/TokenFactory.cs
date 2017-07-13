@@ -16,19 +16,28 @@
 
         public Token GenerateNewToken()
         {
-            var secret = _secretRepository.GetCachedSecret();
-            if (secret == null)
+            var serverSecret = _secretRepository.GetCachedSecret();
+            if (serverSecret == null)
                 return null;
             using (var rng = RandomNumberGenerator.Create())
             {
-                var idBytes = new byte[8];
-                rng.GetBytes(idBytes);
-                var id = Convert.ToBase64String(idBytes);
+                var tokenSecretBytes = new byte[256 / 8];
+                rng.GetBytes(tokenSecretBytes);
+                byte[] tokenPublicBytes;
+                using (var hmacer = SHA256.Create())
+                {
+                    tokenPublicBytes = hmacer.ComputeHash(tokenSecretBytes);
+                }
+
+                var tokenSecret = Convert.ToBase64String(tokenSecretBytes);
+                var tokenPublic = Convert.ToBase64String(tokenPublicBytes);
+
                 var claims = new Dictionary<string, string>
                 {
-                    { "id", id}
+                    { "public", tokenPublic },
+                    { "secret", tokenSecret }
                 };
-                var token = claims.ToToken(secret);
+                var token = claims.ToToken(serverSecret);
                 return token;
             }
         }
