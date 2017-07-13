@@ -38,8 +38,15 @@
             stream = null;
             if (!_file.Exists)
                 return false;
-            stream = _file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
-            return true;
+            try
+            {
+                stream = _file.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -51,8 +58,15 @@
             stream = null;
             if (!_file.Exists)
                 return false;
-            stream = _file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            return true;
+            try
+            {
+                stream = _file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
