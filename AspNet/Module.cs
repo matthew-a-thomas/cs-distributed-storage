@@ -12,6 +12,7 @@ namespace AspNet
     using DistributedStorage.Encoding;
     using Microsoft.AspNetCore.Authorization;
     using Models;
+    using Models.Authentication;
     using Models.Authorization.Handlers;
     using Models.Authorization.Policies;
     using Models.Authorization.Requirements;
@@ -75,8 +76,8 @@ namespace AspNet
             builder.RegisterType<SecretRepository>().SingleInstance();
             builder.Register(c => new SecretRepository.Options(SecretFileName)).SingleInstance();
 
-            // Token factory
-            builder.RegisterType<TokenFactory>().SingleInstance();
+            // Credential factory
+            builder.RegisterType<CredentialFactory>().SingleInstance();
         }
     }
 }
