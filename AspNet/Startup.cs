@@ -10,7 +10,7 @@
     using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
-    using Microsoft.AspNetCore.Authentication.Cookies;
+    using Models.Authentication.Middleware;
     using Models.Authorization.Policies;
 
     public class Startup
@@ -106,11 +106,7 @@
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions
-            {
-                AuthenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme,
-                AutomaticAuthenticate = true
-            });
+            app.UseMiddleware<AuthenticationMiddleware>();
             app.UseMvc();
         }
     }
