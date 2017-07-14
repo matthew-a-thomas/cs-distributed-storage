@@ -21,12 +21,12 @@
                 return null;
             using (var rng = RandomNumberGenerator.Create())
             {
-                var tokenSecretBytes = new byte[256 / 8];
-                rng.GetBytes(tokenSecretBytes);
-                byte[] tokenPublicBytes;
-                using (var hmacer = SHA256.Create())
+                var tokenPublicBytes = new byte[256 / 8];
+                rng.GetBytes(tokenPublicBytes);
+                byte[] tokenSecretBytes;
+                using (var hmacer = new HMACSHA256(serverSecret))
                 {
-                    tokenPublicBytes = hmacer.ComputeHash(tokenSecretBytes);
+                    tokenSecretBytes = hmacer.ComputeHash(tokenPublicBytes);
                 }
 
                 var tokenSecret = Convert.ToBase64String(tokenSecretBytes);
