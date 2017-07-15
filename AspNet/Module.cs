@@ -1,6 +1,7 @@
 ﻿
 namespace AspNet
 {
+    using System;
     using Autofac;
     using DistributedStorage.Common;
     using DistributedStorage.Storage;
@@ -13,6 +14,8 @@ namespace AspNet
     using Microsoft.AspNetCore.Authorization;
     using Models;
     using Models.Authentication;
+    using Models.Authentication.Schemes;
+    using Models.Authorization;
     using Models.Authorization.Handlers;
     using Models.Authorization.Policies;
     using Models.Authorization.Requirements;
@@ -78,6 +81,37 @@ namespace AspNet
 
             // Credential factory
             builder.RegisterType<CredentialFactory>().SingleInstance();
+
+            // String to AuthorizationToken factory
+            builder.RegisterType<StringToAuthorizationTokenAdapter>().SingleInstance();
+
+            // Request to AuthorizationToken factory
+            builder.RegisterType<RequestToAuthorizationTokenFactory>().SingleInstance();
+
+            // Identity claim factory
+            builder.RegisterType<IdentityClaimFactory>().SingleInstance();
+
+            // Authentication scheme
+            builder.Register(c =>
+                {
+                    var secretRepository = c.Resolve<SecretRepository>();
+                    var stringToAuthorizationTokenFactory = c.Resolve<StringToAuthorizationTokenAdapter>();
+                    var requestToAuthorizationTokenFactory = c.Resolve<RequestToAuthorizationTokenFactory>();
+                    var replayAttentionSpan = TimeSpan.FromMinutes(15);
+
+                    var scheme = new MattHttpRequestAuthenticationScheme(
+                        secretRepository,
+                        stringToAuthorizationTokenFactory,
+                        requestToAuthorizationTokenFactory,
+                        replayAttentionSpan
+                        );
+
+                    return (IHttpRequestAuthenticationScheme) scheme;
+                })
+                .SingleInstance();
+
+            // Credential to ClaimsIdentity adapter
+            builder.RegisterType<CredentialToClaimsIdentityAdapter>().SingleInstance();
         }
     }
 }
