@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DistributedStorage", "DistributedStorage\DistributedStorage.csproj", "{3AD0BBED-50E5-4518-AE1E-3A11E6DA2E43}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNet", "AspNet\AspNet.csproj", "{B0A81F49-6B36-405C-ABDB-92028AC72392}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{B0A81F49-6B36-405C-ABDB-92028AC72392}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DistributedStorageTests", "DistributedStorageTests\DistributedStorageTests.csproj", "{B8AE7D73-9F15-4F05-B99C-8F79B1C419CD}"
 EndProject
