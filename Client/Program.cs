@@ -1,27 +1,38 @@
-﻿using System;
-
-namespace Client
+﻿namespace Client
 {
-    using Autofac;
+    using System;
+    using System.Collections.Generic;
 
-    // ReSharper disable once UnusedMember.Global
-    internal class Program
+    internal partial class Program
     {
-        // ReSharper disable once UnusedMember.Local
-        private static void Main()
+        #region Constructor
+
+        public Program()
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterModule<Module>();
-            using (var container = builder.Build())
-            {
-                var program = container.Resolve<Program>();
-                program.Run();
-            }
+
         }
+
+        #endregion
+
+        #region Public methods
 
         public void Run()
         {
-            Console.WriteLine("Hello world");
+            "Pick one".Choose(new Dictionary<string, Action>
+            {
+                { "Manage owned servers", ManageOwnedServers },
+                { "Upload file", UploadFile }
+            });
         }
+
+        #endregion
+
+        #region Private methods
+
+        private void ManageOwnedServers() => throw new NotImplementedException();
+
+        private void UploadFile() => throw new NotImplementedException();
+
+        #endregion
     }
 }
