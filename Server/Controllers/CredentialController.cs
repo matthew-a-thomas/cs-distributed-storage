@@ -1,11 +1,12 @@
 ﻿namespace Server.Controllers
 {
+    using DistributedStorage.Networking.Controllers;
     using Microsoft.AspNetCore.Mvc;
     using Models.Authentication;
 
     [Produces("application/json")]
     [Route("api/[controller]")]
-    public class CredentialController : Controller
+    public class CredentialController : Controller, ICredentialController
     {
         private readonly CredentialFactory _credentialFactory;
 

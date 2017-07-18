@@ -1,6 +1,7 @@
 namespace Server.Controllers
 {
     using System.Threading.Tasks;
+    using DistributedStorage.Networking.Controllers;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Models;
@@ -8,7 +9,7 @@ namespace Server.Controllers
 
     [Produces("application/json")]
     [Route("api/[controller]")]
-    public class OwnerController : Controller
+    public class OwnerController : Controller, IOwnerController
     {
         private readonly OwnerRepository _ownerRepository;
         private readonly IAuthorizationService _authorizationService;
