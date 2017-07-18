@@ -5,6 +5,7 @@
     using System.Security.Cryptography;
     using System.Text;
     using Authentication;
+    using DistributedStorage.Authentication;
     using Microsoft.AspNetCore.Http;
 
     public sealed class RequestToAuthorizationTokenFactory

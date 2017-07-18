@@ -1,6 +1,7 @@
 ﻿namespace Server.Models.Authentication
 {
     using System.Security.Cryptography;
+    using DistributedStorage.Authentication;
 
     public sealed class CredentialFactory
     {

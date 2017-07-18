@@ -2,6 +2,7 @@
 {
     using System;
     using System.Security.Claims;
+    using DistributedStorage.Authentication;
 
     public sealed class CredentialToClaimsIdentityAdapter
     {

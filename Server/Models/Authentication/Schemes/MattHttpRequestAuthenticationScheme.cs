@@ -5,6 +5,7 @@
     using System.Security.Cryptography;
     using System.Text.RegularExpressions;
     using Authorization;
+    using DistributedStorage.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Net.Http.Headers;
 

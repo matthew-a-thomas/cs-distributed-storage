@@ -1,4 +1,4 @@
-﻿namespace Server.Models.Authentication
+﻿namespace DistributedStorage.Authentication
 {
     public sealed class Credential
     {

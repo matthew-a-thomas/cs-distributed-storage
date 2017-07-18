@@ -1,5 +1,6 @@
 namespace Server.Models.Authentication.Schemes
 {
+    using DistributedStorage.Authentication;
     using Microsoft.AspNetCore.Http;
 
     /// <summary>
