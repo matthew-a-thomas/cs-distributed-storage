@@ -31,6 +31,7 @@
         {
             "Pick one".Choose(new Dictionary<string, Action>
             {
+                { "List available manifests", ListAvailableManifests },
                 { "Manage owned servers", ManageOwnedServers },
                 { "Upload file", UploadFile }
             });
@@ -53,6 +54,15 @@
         }
 
         private void DeleteServer(string serverName) => _serverContainer.TryRemove(serverName);
+
+        private void ListAvailableManifests()
+        {
+            foreach (var kvp in _serverContainer.GetKeysAndValues())
+            {
+                var serverName = kvp.Key;
+                var server = kvp.Value;
+            }
+        }
 
         private void ListServers()
         {
