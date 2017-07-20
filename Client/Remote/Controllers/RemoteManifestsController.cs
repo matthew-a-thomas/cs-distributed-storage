@@ -1,4 +1,6 @@
-﻿namespace Client.Remote.Controllers
+﻿using Microsoft.Net.Http.Headers;
+
+namespace Client.Remote.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -20,9 +22,10 @@
         public IReadOnlyList<string> GetManifestIds()
         {
             var client = new HttpClient();
+            client.BaseAddress = new Uri("http://localhost");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("User-Agent", "Matt's distributed storage client");
+            client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "Matt's distributed storage client");
 
             throw new NotImplementedException();
         }
