@@ -1,4 +1,6 @@
-﻿namespace Server.Models.Authentication.Schemes
+﻿using DistributedStorage.Authorization;
+
+namespace Server.Models.Authentication.Schemes
 {
     using System;
     using System.Linq;

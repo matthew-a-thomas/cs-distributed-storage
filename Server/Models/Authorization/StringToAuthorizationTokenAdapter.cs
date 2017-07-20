@@ -1,5 +1,6 @@
 ﻿namespace Server.Models.Authorization
 {
+    using DistributedStorage.Authorization;
     using System;
     using System.Text.RegularExpressions;
 

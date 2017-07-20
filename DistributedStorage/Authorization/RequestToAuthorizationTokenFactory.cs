@@ -1,12 +1,10 @@
-﻿namespace Server.Models.Authorization
+﻿namespace DistributedStorage.Authorization
 {
+    using Authentication;
+    using Microsoft.AspNetCore.Http;
     using System;
     using System.IO;
     using System.Security.Cryptography;
-    using System.Text;
-    using Authentication;
-    using DistributedStorage.Authentication;
-    using Microsoft.AspNetCore.Http;
 
     public sealed class RequestToAuthorizationTokenFactory
     {
@@ -32,7 +30,7 @@
                     request.ContentType // Write the request content type
                 })
                 {
-                    var bytes = Encoding.UTF8.GetBytes(part);
+                    var bytes = System.Text.Encoding.UTF8.GetBytes(part);
                     stream.Write(bytes, 0, bytes.Length);
                 }
                 request.Body.CopyTo(stream); // Copy the request stream

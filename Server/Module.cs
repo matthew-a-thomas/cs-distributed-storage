@@ -1,9 +1,9 @@
-﻿
-namespace Server
+﻿namespace Server
 {
     using System;
     using System.IO;
     using Autofac;
+    using DistributedStorage.Authorization;
     using DistributedStorage.Common;
     using DistributedStorage.Encoding;
     using DistributedStorage.Storage;

@@ -7,6 +7,7 @@ namespace Client.Remote.Controllers
     using System.Net.Http;
     using System.Net.Http.Headers;
     using DistributedStorage.Authentication;
+    using DistributedStorage.Authorization;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
 
@@ -27,6 +28,10 @@ namespace Client.Remote.Controllers
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "Matt's distributed storage client");
 
+
+            var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
+            RequestToAuthorizationTokenFactory a;
+            var token = a.CreateTokenFor(request, _credential, nonce, unixTime);
             throw new NotImplementedException();
         }
 

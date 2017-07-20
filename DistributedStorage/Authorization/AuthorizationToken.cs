@@ -1,4 +1,4 @@
-﻿namespace Server.Models.Authorization
+﻿namespace DistributedStorage.Authorization
 {
     public sealed class AuthorizationToken
     {
