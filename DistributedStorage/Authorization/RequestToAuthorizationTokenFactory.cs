@@ -1,10 +1,11 @@
 ﻿namespace DistributedStorage.Authorization
 {
     using Authentication;
-    using Microsoft.AspNetCore.Http;
     using System;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography;
+    using Networking.Http;
 
     public sealed class RequestToAuthorizationTokenFactory
     {
@@ -12,7 +13,7 @@
         /// Creates an <see cref="AuthorizationToken"/> for the given <paramref name="request"/>,
         /// signifying that the given <paramref name="credential"/> is performing it
         /// </summary>
-        public AuthorizationToken CreateTokenFor(HttpRequest request, Credential credential, byte[] nonce, long unixTime)
+        public AuthorizationToken CreateTokenFor(IRequest request, Credential credential, byte[] nonce, long unixTime)
         {
             using (var stream = new MemoryStream())
             {
@@ -23,17 +24,16 @@
                 stream.Write(nonce, 0, nonce.Length); // Write the given nonce
                 foreach (var part in new[]
                 {
-                    request.Host.ToString(), // Write the request host name
+                    request.Host, // Write the request host name
                     request.Method, // Write the request method
-                    request.Path.ToString(), // Write the request path
-                    request.QueryString.ToString(), // Write the request query string
+                    request.PathAndQuery, // Write the request path and query string
                     request.ContentType // Write the request content type
                 })
                 {
                     var bytes = System.Text.Encoding.UTF8.GetBytes(part);
                     stream.Write(bytes, 0, bytes.Length);
                 }
-                request.Body.CopyTo(stream); // Copy the request stream
+                stream.Write(request.Body.ToArray(), 0, request.Body.Count); // Copy the request body
 
                 // Compute the HMAC of those things using the given credential
                 stream.Position = 0;

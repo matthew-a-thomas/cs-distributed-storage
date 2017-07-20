@@ -10,6 +10,7 @@ namespace Server.Models.Authentication.Schemes
     using DistributedStorage.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Net.Http.Headers;
+    using Networking.Http;
 
     public sealed class MattHttpRequestAuthenticationScheme : IHttpRequestAuthenticationScheme
     {
@@ -80,8 +81,11 @@ namespace Server.Models.Authentication.Schemes
             // Turn the client's ID and secret into a Credential
             var clientCredentialGeneratedByServer = new Credential(tokenProvidedByClient.Id, secret);
 
+            // Adapt the request into the interface required for the authorization token factory
+            var requestAdapter = new HttpRequestToRequestAdapter(request);
+
             // Let's create a new authorization token using the information given by the client's token (and using the client's secret), and see if we come up with the same HMAC
-            var tokenGeneratedByServer = _requestToAuthorizationTokenFactory.CreateTokenFor(request, clientCredentialGeneratedByServer, tokenProvidedByClient.Nonce, tokenProvidedByClient.UnixTime);
+            var tokenGeneratedByServer = _requestToAuthorizationTokenFactory.CreateTokenFor(requestAdapter, clientCredentialGeneratedByServer, tokenProvidedByClient.Nonce, tokenProvidedByClient.UnixTime);
             if (!tokenGeneratedByServer.Hmac.SequenceEqual(tokenProvidedByClient.Hmac))
                 return false; // The HMACs don't match
 

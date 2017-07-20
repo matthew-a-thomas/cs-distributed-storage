@@ -10,6 +10,7 @@ namespace Client.Remote.Controllers
     using DistributedStorage.Authorization;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
+    using Networking.Http;
 
     public sealed class RemoteManifestsController : IManifestsController
     {
@@ -30,8 +31,9 @@ namespace Client.Remote.Controllers
 
 
             var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
+            var requestAdapter = new HttpRequestMessageToRequestAdapter(request);
             RequestToAuthorizationTokenFactory a;
-            var token = a.CreateTokenFor(request, _credential, nonce, unixTime);
+            var token = a.CreateTokenFor(requestAdapter, _credential, nonce, unixTime);
             throw new NotImplementedException();
         }
 
