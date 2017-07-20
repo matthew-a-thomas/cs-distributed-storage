@@ -83,7 +83,7 @@
             builder.RegisterType<CredentialFactory>().SingleInstance();
 
             // String to AuthorizationToken factory
-            builder.RegisterType<StringToAuthorizationTokenAdapter>().SingleInstance();
+            builder.RegisterType<StringAndAuthorizationTokenAdapter>().SingleInstance();
 
             // Request to AuthorizationToken factory
             builder.RegisterType<RequestToAuthorizationTokenFactory>().SingleInstance();
@@ -95,7 +95,7 @@
             builder.Register(c =>
                 {
                     var secretRepository = c.Resolve<SecretRepository>();
-                    var stringToAuthorizationTokenFactory = c.Resolve<StringToAuthorizationTokenAdapter>();
+                    var stringToAuthorizationTokenFactory = c.Resolve<StringAndAuthorizationTokenAdapter>();
                     var requestToAuthorizationTokenFactory = c.Resolve<RequestToAuthorizationTokenFactory>();
                     var replayAttentionSpan = TimeSpan.FromMinutes(15);
 

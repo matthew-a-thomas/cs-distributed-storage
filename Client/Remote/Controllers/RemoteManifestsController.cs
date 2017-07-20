@@ -1,39 +1,25 @@
-﻿using Microsoft.Net.Http.Headers;
-
-namespace Client.Remote.Controllers
+﻿namespace Client.Remote.Controllers
 {
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using System.Net.Http.Headers;
-    using DistributedStorage.Authentication;
-    using DistributedStorage.Authorization;
+    using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
-    using Networking.Http;
 
     public sealed class RemoteManifestsController : IManifestsController
     {
-        private readonly Credential _credential;
+        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _sendRequestAsyncDelegate;
 
-        public RemoteManifestsController(Credential credential)
+        public RemoteManifestsController(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendRequestAsyncDelegate)
         {
-            _credential = credential;
+            _sendRequestAsyncDelegate = sendRequestAsyncDelegate;
         }
 
         public IReadOnlyList<string> GetManifestIds()
         {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri("http://localhost");
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "Matt's distributed storage client");
-
-
             var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
-            var requestAdapter = new HttpRequestMessageToRequestAdapter(request);
-            RequestToAuthorizationTokenFactory a;
-            var token = a.CreateTokenFor(requestAdapter, _credential, nonce, unixTime);
+            _sendRequestAsyncDelegate(request);
             throw new NotImplementedException();
         }
 

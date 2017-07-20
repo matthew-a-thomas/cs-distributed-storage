@@ -6,7 +6,6 @@ namespace Server.Models.Authentication.Schemes
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text.RegularExpressions;
-    using Authorization;
     using DistributedStorage.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Net.Http.Headers;
@@ -18,7 +17,7 @@ namespace Server.Models.Authentication.Schemes
         private static readonly Regex Regex = new Regex($@"^{ConstAuthenticationType} (.*)$");
 
         private readonly SecretRepository _secretRepository;
-        private readonly StringToAuthorizationTokenAdapter _stringToAuthorizationTokenAdapter;
+        private readonly StringAndAuthorizationTokenAdapter _stringAndAuthorizationTokenAdapter;
         private readonly RequestToAuthorizationTokenFactory _requestToAuthorizationTokenFactory;
         private readonly TimeSpan _maxSkew;
         private readonly ReplayDetector<string> _replayDetector;
@@ -27,13 +26,13 @@ namespace Server.Models.Authentication.Schemes
 
         public MattHttpRequestAuthenticationScheme(
             SecretRepository secretRepository,
-            StringToAuthorizationTokenAdapter stringToAuthorizationTokenAdapter,
+            StringAndAuthorizationTokenAdapter stringAndAuthorizationTokenAdapter,
             RequestToAuthorizationTokenFactory requestToAuthorizationTokenFactory,
             TimeSpan replayAttentionSpan
             )
         {
             _secretRepository = secretRepository;
-            _stringToAuthorizationTokenAdapter = stringToAuthorizationTokenAdapter;
+            _stringAndAuthorizationTokenAdapter = stringAndAuthorizationTokenAdapter;
             _requestToAuthorizationTokenFactory = requestToAuthorizationTokenFactory;
             _replayDetector = new ReplayDetector<string>(replayAttentionSpan); // Note we don't dispose of the replay detector, because middleware will be alive for the life of the web application
             _maxSkew = new TimeSpan(replayAttentionSpan.Ticks / 2); // We cut it in half so that the replay detector can catch tokens provided both this far in the future and this far in the past
@@ -59,7 +58,7 @@ namespace Server.Models.Authentication.Schemes
             var tokenString = match.Groups[1].Value;
 
             // Try to get an authorization token from the authorization header value
-            if (!_stringToAuthorizationTokenAdapter.TryCreateFromString(tokenString, out var tokenProvidedByClient))
+            if (!_stringAndAuthorizationTokenAdapter.TryCreateFromString(tokenString, out var tokenProvidedByClient))
                 return false;
 
             // Make sure the time isn't too far out of whack

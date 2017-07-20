@@ -1,11 +1,12 @@
 ﻿namespace Client.Remote
 {
+    using System;
     using DistributedStorage.Networking.Controllers;
 
     /// <summary>
     /// A connection to a remote server
     /// </summary>
-    public interface IRemoteServer
+    public interface IRemoteServer : IDisposable
     {
         /// <summary>
         /// Gets the credential controller

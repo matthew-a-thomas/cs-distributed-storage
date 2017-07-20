@@ -1,13 +1,12 @@
-﻿namespace Server.Models.Authorization
+﻿namespace DistributedStorage.Authorization
 {
-    using DistributedStorage.Authorization;
     using System;
     using System.Text.RegularExpressions;
 
     /// <summary>
     /// Something which knows how to create <see cref="AuthorizationToken"/>s from strings
     /// </summary>
-    public sealed class StringToAuthorizationTokenAdapter
+    public sealed class StringAndAuthorizationTokenAdapter
     {
         private readonly Regex _regex = new Regex(@"^([^:]+):([^:]+):([^:]+):(.+)$");
         /*                                           ^ ID    ^ nonce ^ time  ^ hmac */
@@ -51,5 +50,19 @@
             token = new AuthorizationToken(id, hmac, nonce, unixTime);
             return true;
         }
+
+        /// <summary>
+        /// Creates a string that can be parsed by <see cref="TryCreateFromString"/>
+        /// </summary>
+        public string CreateFromToken(AuthorizationToken token) =>
+            $@"{
+                Convert.ToBase64String(token.Id)
+            }:{
+                Convert.ToBase64String(token.Nonce)
+            }:{
+                token.UnixTime
+            }:{
+                Convert.ToBase64String(token.Hmac)
+            }";
     }
 }
