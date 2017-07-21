@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
+    using DistributedStorage.Networking.Http.Exceptions;
 
     public sealed class RemoteManifestsController : IManifestsController
     {
@@ -16,10 +17,12 @@
             _sendRequestAsyncDelegate = sendRequestAsyncDelegate;
         }
 
-        public Task<IReadOnlyList<string>> GetManifestIdsAsync()
+        public async Task<IReadOnlyList<string>> GetManifestIdsAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
-            _sendRequestAsyncDelegate(request);
+            var response = await _sendRequestAsyncDelegate(request);
+            if (!response.IsSuccessStatusCode)
+                throw HttpException.GenerateException(response.StatusCode);
             throw new NotImplementedException();
         }
 

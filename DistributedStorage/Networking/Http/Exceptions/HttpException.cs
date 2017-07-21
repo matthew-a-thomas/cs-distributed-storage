@@ -1,11 +1,23 @@
 ﻿namespace DistributedStorage.Networking.Http.Exceptions
 {
     using System;
+    using System.Collections.Generic;
+    using System.Net;
 
-    public abstract class HttpException : Exception
+    public sealed class HttpException : Exception
     {
-        public int HttpStatusCode { get; }
+        private static readonly IReadOnlyDictionary<HttpStatusCode, string> CommonExceptions = new Dictionary<HttpStatusCode, string>
+        {
+            { HttpStatusCode.Unauthorized, "You lack the authorization to perform this action" },
+            { HttpStatusCode.Forbidden, "This action is not allowed right now" },
+            { HttpStatusCode.NotFound, "The resource was not found" },
+            { HttpStatusCode.Conflict, "This action cannot be performed due to the current state of the resource" }
+        };
 
-        protected HttpException(int httpStatusCode, string meaning) : base(meaning) => HttpStatusCode = httpStatusCode;
+        public static HttpException GenerateException(HttpStatusCode statusCode) => CommonExceptions.TryGetValue(statusCode, out var message) ? new HttpException(statusCode, message) : new HttpException(statusCode, $"An HTTP exception with status code {statusCode} has happened.");
+
+        public HttpStatusCode StatusCode { get; }
+        
+        private HttpException(HttpStatusCode httpStatusCode, string meaning) : base(meaning) => StatusCode = httpStatusCode;
     }
 }

@@ -3,6 +3,7 @@ namespace Server.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
@@ -118,29 +119,29 @@ namespace Server.Controllers
         Task IManifestsController.AddNewManifestAsync(Manifest manifest) => Task.Run(() =>
         {
             if (!_manifestRepository.TryAddManifest(manifest))
-                throw new ConflictException();
+                throw HttpException.GenerateException(HttpStatusCode.Conflict);
         });
 
         Task IManifestsController.DeleteManifestAsync(string manifestId) => Task.Run(() =>
         {
             if (!_manifestRepository.TryDeleteManifestWithId(manifestId))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
         });
 
-        Task<Manifest> IManifestsController.GetManifestAsync(string manifestId) => Task.Run(() => _manifestRepository.TryGetManifestWithId(manifestId, out var manifest) ? manifest : throw new NotFoundException());
+        Task<Manifest> IManifestsController.GetManifestAsync(string manifestId) => Task.Run(() => _manifestRepository.TryGetManifestWithId(manifestId, out var manifest) ? manifest : throw HttpException.GenerateException(HttpStatusCode.NotFound));
 
         Task IManifestsController.AddNewSliceAsync(string manifestId, Slice slice) => Task.Run(() =>
         {
             if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
             if (!sliceRepository.TryAddSlice(slice))
-                throw new ConflictException();
+                throw HttpException.GenerateException(HttpStatusCode.Conflict);
         });
 
         Task<IReadOnlyList<string>> IManifestsController.GetSliceIdsAsync(string manifestId) => Task.Run(() =>
         {
             if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
             IReadOnlyList<string> sliceIds = sliceRepository.ListSliceIds().ToList();
             return sliceIds;
         });
@@ -148,17 +149,17 @@ namespace Server.Controllers
         Task IManifestsController.DeleteSliceAsync(string manifestId, string sliceId) => Task.Run(() =>
         {
             if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
             if (!sliceRepository.TryDeleteSliceWithId(sliceId))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
         });
 
         Task<Slice> IManifestsController.GetSliceAsync(string manifestId, string sliceId) => Task.Run(() =>
         {
             if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
             if (!sliceRepository.TryGetSliceWithId(sliceId, out var slice))
-                throw new NotFoundException();
+                throw HttpException.GenerateException(HttpStatusCode.NotFound);
             return slice;
         });
 
@@ -175,7 +176,7 @@ namespace Server.Controllers
             }
             catch (HttpException e)
             {
-                return new StatusCodeResult(e.HttpStatusCode);
+                return new StatusCodeResult((int)e.StatusCode);
             }
         }
 
@@ -188,7 +189,7 @@ namespace Server.Controllers
             }
             catch (HttpException e)
             {
-                return new StatusCodeResult(e.HttpStatusCode);
+                return new StatusCodeResult((int)e.StatusCode);
             }
         }
 
