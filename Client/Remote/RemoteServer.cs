@@ -14,6 +14,20 @@
 
     public sealed class RemoteServer : IRemoteServer
     {
+        public sealed class Factory
+        {
+            private readonly HttpRequestMessageAuthorizer _httpRequestMessageAuthorizer;
+            private readonly Credential _credential;
+
+            public Factory(HttpRequestMessageAuthorizer httpRequestMessageAuthorizer, Credential credential)
+            {
+                _httpRequestMessageAuthorizer = httpRequestMessageAuthorizer;
+                _credential = credential;
+            }
+
+            public RemoteServer Create(IPEndPoint endpoint) => new RemoteServer(endpoint, _credential, _httpRequestMessageAuthorizer);
+        }
+
         #region Public properties
 
         #endregion

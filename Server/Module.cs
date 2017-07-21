@@ -15,7 +15,6 @@
     using Models;
     using Models.Authentication;
     using Models.Authentication.Schemes;
-    using Models.Authorization;
     using Models.Authorization.Handlers;
     using Models.Authorization.Policies;
     using Models.Authorization.Requirements;
