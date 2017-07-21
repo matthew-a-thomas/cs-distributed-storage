@@ -53,7 +53,7 @@
             while (!IPAddress.TryParse("IP address?".Ask(), out ipAddress)) { }
             while (!int.TryParse("Port?".Ask(), out port)) { }
             var endpoint = new IPEndPoint(ipAddress, port);
-            var server = _remoteServerFactory.Create(endpoint);
+            var server = _remoteServerFactory.Create(endpoint, null);
             if (!_serverContainer.TryAdd(server.ToString(), server))
                 "Failed to add this server".Say();
         }
