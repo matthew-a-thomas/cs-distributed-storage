@@ -14,7 +14,7 @@
             { HttpStatusCode.Conflict, "This action cannot be performed due to the current state of the resource" }
         };
 
-        public static HttpException GenerateException(HttpStatusCode statusCode) => CommonExceptions.TryGetValue(statusCode, out var message) ? new HttpException(statusCode, message) : new HttpException(statusCode, $"An HTTP exception with status code {statusCode} has happened.");
+        public static HttpException GenerateException(HttpStatusCode statusCode) => CommonExceptions.TryGetValue(statusCode, out var message) ? new HttpException(statusCode, message) : new HttpException(statusCode, $"An HTTP exception with status code {(int)statusCode} ({statusCode}) has happened.");
 
         public HttpStatusCode StatusCode { get; }
         
