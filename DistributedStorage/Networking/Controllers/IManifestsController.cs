@@ -1,17 +1,18 @@
 ﻿namespace DistributedStorage.Networking.Controllers
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Encoding;
 
     public interface IManifestsController
     {
-        IReadOnlyList<string> GetManifestIds();
-        bool TryAddNewManifest(Manifest manifest);
-        bool TryDeleteManifest(string manifestId);
-        bool TryGetManifest(string manifestId, out Manifest manifest);
-        bool TryAddNewSlice(string manifestId, Slice slice);
-        bool TryGetSliceIds(string manifestId, out IReadOnlyList<string> sliceIds);
-        bool TryDeleteSlice(string manifestId, string sliceId);
-        bool TryGetSlice(string manifestId, string sliceId, out Slice slice);
+        Task<IReadOnlyList<string>> GetManifestIdsAsync();
+        Task AddNewManifestAsync(Manifest manifest);
+        Task DeleteManifestAsync(string manifestId);
+        Task<Manifest> GetManifestAsync(string manifestId);
+        Task AddNewSliceAsync(string manifestId, Slice slice);
+        Task<IReadOnlyList<string>> GetSliceIdsAsync(string manifestId);
+        Task DeleteSliceAsync(string manifestId, string sliceId);
+        Task<Slice> GetSliceAsync(string manifestId, string sliceId);
     }
 }

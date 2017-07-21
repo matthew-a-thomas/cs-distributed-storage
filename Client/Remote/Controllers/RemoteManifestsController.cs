@@ -16,25 +16,25 @@
             _sendRequestAsyncDelegate = sendRequestAsyncDelegate;
         }
 
-        public IReadOnlyList<string> GetManifestIds()
+        public Task<IReadOnlyList<string>> GetManifestIdsAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
             _sendRequestAsyncDelegate(request);
             throw new NotImplementedException();
         }
 
-        public bool TryAddNewManifest(Manifest manifest) => throw new NotImplementedException();
+        public Task AddNewManifestAsync(Manifest manifest) => throw new NotImplementedException();
 
-        public bool TryDeleteManifest(string manifestId) => throw new NotImplementedException();
+        public Task DeleteManifestAsync(string manifestId) => throw new NotImplementedException();
 
-        public bool TryGetManifest(string manifestId, out Manifest manifest) => throw new NotImplementedException();
+        public Task<Manifest> GetManifestAsync(string manifestId) => throw new NotImplementedException();
 
-        public bool TryAddNewSlice(string manifestId, Slice slice) => throw new NotImplementedException();
+        public Task AddNewSliceAsync(string manifestId, Slice slice) => throw new NotImplementedException();
 
-        public bool TryGetSliceIds(string manifestId, out IReadOnlyList<string> sliceIds) => throw new NotImplementedException();
+        public Task<IReadOnlyList<string>> GetSliceIdsAsync(string manifestId) => throw new NotImplementedException();
 
-        public bool TryDeleteSlice(string manifestId, string sliceId) => throw new NotImplementedException();
+        public Task DeleteSliceAsync(string manifestId, string sliceId) => throw new NotImplementedException();
 
-        public bool TryGetSlice(string manifestId, string sliceId, out Slice slice) => throw new NotImplementedException();
+        public Task<Slice> GetSliceAsync(string manifestId, string sliceId) => throw new NotImplementedException();
     }
 }

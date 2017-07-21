@@ -1,9 +1,12 @@
 namespace Server.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
+    using DistributedStorage.Networking.Http.Exceptions;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Models.Authorization.Policies;
@@ -47,13 +50,13 @@ namespace Server.Controllers
         /// Retrieves a listing of all manifest hashes
         /// </summary>
         [HttpGet]
-        public IActionResult GetManifestIds() => new OkObjectResult(_this.GetManifestIds());
+        public async Task<IActionResult> GetManifestIdsAsync() => await ToActionResult(_this.GetManifestIdsAsync);
 
         /// <summary>
         /// Creates a new container for the given <paramref name="manifest"/>
         /// </summary>
         [HttpPost]
-        public IActionResult TryAddNewManifest([FromBody] Manifest manifest) => new OkObjectResult(_this.TryAddNewManifest(manifest));
+        public async Task<IActionResult> AddNewManifestAsync([FromBody] Manifest manifest) => await ToActionResult(() => _this.AddNewManifestAsync(manifest));
 
         #endregion
 
@@ -63,14 +66,14 @@ namespace Server.Controllers
         /// Tries to delete the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [HttpDelete("{manifestId}")]
-        public IActionResult TryDeleteManifest(string manifestId) => new OkObjectResult(_this.TryDeleteManifest(manifestId));
+        public async Task<IActionResult> DeleteManifestAsync(string manifestId) => await ToActionResult(() => _this.DeleteManifestAsync(manifestId));
 
         /// <summary>
         /// Get the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [AllowAnonymous]
         [HttpGet("{manifestId}")]
-        public IActionResult GetManifest(string manifestId) => _this.TryGetManifest(manifestId, out var manifest) ? (IActionResult)new OkObjectResult(manifest) : new NotFoundResult();
+        public async Task<IActionResult> GetManifestAsync(string manifestId) => await ToActionResult(() => _this.GetManifestAsync(manifestId));
 
         #endregion
 
@@ -80,14 +83,14 @@ namespace Server.Controllers
         /// Tries to add a new <see cref="Slice"/> to associate with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [HttpPost("{manifestId}/slices")]
-        public IActionResult TryAddNewSlice(string manifestId, [FromBody] Slice slice) => new OkObjectResult(_this.TryAddNewSlice(manifestId, slice));
+        public async Task<IActionResult> AddNewSliceAsync(string manifestId, [FromBody] Slice slice) => await ToActionResult(() => _this.AddNewSliceAsync(manifestId, slice));
 
         /// <summary>
         /// Gets a listing of all <see cref="Slice"/> IDs associated with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [AllowAnonymous]
         [HttpGet("{manifestId}/slices")]
-        public IActionResult TryGetSliceIds(string manifestId) => _this.TryGetSliceIds(manifestId, out var sliceIds) ? (IActionResult)new OkObjectResult(sliceIds) : new NotFoundResult();
+        public async Task<IActionResult> GetSliceIdsAsync(string manifestId) => await ToActionResult(() => _this.GetSliceIdsAsync(manifestId));
         
         #endregion
 
@@ -97,44 +100,96 @@ namespace Server.Controllers
         /// Tries to delete the <see cref="Slice"/> associated with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>, and which has the given <paramref name="sliceId"/>
         /// </summary>
         [HttpDelete("{manifestId}/slices/{sliceId}")]
-        public IActionResult TryDeleteSlice(string manifestId, string sliceId) => new OkObjectResult(_this.TryDeleteSlice(manifestId, sliceId));
+        public async Task<IActionResult> DeleteSliceAsync(string manifestId, string sliceId) => await ToActionResult(() => _this.DeleteSliceAsync(manifestId, sliceId));
 
         /// <summary>
         /// Gets the <see cref="Slice"/> associated with the given <paramref name="manifestId"/> and having the given <paramref name="sliceId"/>
         /// </summary>
         [AllowAnonymous]
         [HttpGet("{manifestId}/slices/{sliceId}")]
-        public IActionResult GetSlice(string manifestId, string sliceId) => _this.TryGetSlice(manifestId, sliceId, out var slice) ? (IActionResult)new OkObjectResult(slice) : new NotFoundResult();
+        public async Task<IActionResult> GetSliceAsync(string manifestId, string sliceId) => await ToActionResult(() => _this.GetSliceAsync(manifestId, sliceId));
 
         #endregion
 
         #region IManifestsController
 
-        IReadOnlyList<string> IManifestsController.GetManifestIds() => _manifestRepository.ListManifestIds().ToList();
+        Task<IReadOnlyList<string>> IManifestsController.GetManifestIdsAsync() => Task.Run(() => (IReadOnlyList<string>)_manifestRepository.ListManifestIds().ToList());
 
-        bool IManifestsController.TryAddNewManifest(Manifest manifest) => _manifestRepository.TryAddManifest(manifest);
-
-        bool IManifestsController.TryDeleteManifest(string manifestId) => _manifestRepository.TryDeleteManifestWithId(manifestId);
-
-        bool IManifestsController.TryGetManifest(string manifestId, out Manifest manifest) => _manifestRepository.TryGetManifestWithId(manifestId, out manifest);
-
-        bool IManifestsController.TryAddNewSlice(string manifestId, Slice slice) => _manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository) && sliceRepository.TryAddSlice(slice);
-
-        bool IManifestsController.TryGetSliceIds(string manifestId, out IReadOnlyList<string> sliceIds)
+        Task IManifestsController.AddNewManifestAsync(Manifest manifest) => Task.Run(() =>
         {
-            sliceIds = null;
+            if (!_manifestRepository.TryAddManifest(manifest))
+                throw new ConflictException();
+        });
+
+        Task IManifestsController.DeleteManifestAsync(string manifestId) => Task.Run(() =>
+        {
+            if (!_manifestRepository.TryDeleteManifestWithId(manifestId))
+                throw new NotFoundException();
+        });
+
+        Task<Manifest> IManifestsController.GetManifestAsync(string manifestId) => Task.Run(() => _manifestRepository.TryGetManifestWithId(manifestId, out var manifest) ? manifest : throw new NotFoundException());
+
+        Task IManifestsController.AddNewSliceAsync(string manifestId, Slice slice) => Task.Run(() =>
+        {
             if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
-                return false;
-            sliceIds = sliceRepository.ListSliceIds().ToList();
-            return true;
+                throw new NotFoundException();
+            if (!sliceRepository.TryAddSlice(slice))
+                throw new ConflictException();
+        });
+
+        Task<IReadOnlyList<string>> IManifestsController.GetSliceIdsAsync(string manifestId) => Task.Run(() =>
+        {
+            if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
+                throw new NotFoundException();
+            IReadOnlyList<string> sliceIds = sliceRepository.ListSliceIds().ToList();
+            return sliceIds;
+        });
+
+        Task IManifestsController.DeleteSliceAsync(string manifestId, string sliceId) => Task.Run(() =>
+        {
+            if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
+                throw new NotFoundException();
+            if (!sliceRepository.TryDeleteSliceWithId(sliceId))
+                throw new NotFoundException();
+        });
+
+        Task<Slice> IManifestsController.GetSliceAsync(string manifestId, string sliceId) => Task.Run(() =>
+        {
+            if (!_manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository))
+                throw new NotFoundException();
+            if (!sliceRepository.TryGetSliceWithId(sliceId, out var slice))
+                throw new NotFoundException();
+            return slice;
+        });
+
+        #endregion
+
+        #region Static methods
+
+        private static async Task<IActionResult> ToActionResult<T>(Func<Task<T>> asyncFunc)
+        {
+            try
+            {
+                var result = await asyncFunc();
+                return new OkObjectResult(result);
+            }
+            catch (HttpException e)
+            {
+                return new StatusCodeResult(e.HttpStatusCode);
+            }
         }
 
-        bool IManifestsController.TryDeleteSlice(string manifestId, string sliceId) => _manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository) && sliceRepository.TryDeleteSliceWithId(sliceId);
-
-        bool IManifestsController.TryGetSlice(string manifestId, string sliceId, out Slice slice)
+        private static async Task<IActionResult> ToActionResult(Func<Task> asyncFunc)
         {
-            slice = null;
-            return _manifestRepository.TryGetSliceRepositoryForManifestWithId(manifestId, out var sliceRepository) && sliceRepository.TryGetSliceWithId(sliceId, out slice);
+            try
+            {
+                await asyncFunc();
+                return new OkResult();
+            }
+            catch (HttpException e)
+            {
+                return new StatusCodeResult(e.HttpStatusCode);
+            }
         }
 
         #endregion
