@@ -6,8 +6,7 @@
     using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
-    using DistributedStorage.Networking.Http.Exceptions;
-    using Newtonsoft.Json;
+    using Networking.Http;
 
     public sealed class RemoteManifestsController : IManifestsController
     {
@@ -22,10 +21,7 @@
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
             var response = await _sendRequestAsyncDelegate(request);
-            if (!response.IsSuccessStatusCode)
-                throw HttpException.GenerateException(response.StatusCode);
-            var responseString = await response.Content.ReadAsStringAsync();
-            var list = JsonConvert.DeserializeObject<IReadOnlyList<string>>(responseString);
+            var list = await response.GetContentsAsync<IReadOnlyList<string>>();
             return list;
         }
 
