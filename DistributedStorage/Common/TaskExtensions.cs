@@ -29,5 +29,13 @@
                 return;
             success(t.Result);
         });
+
+        public static T WaitAndGet<T>(this Task<T> task)
+        {
+            task.Wait();
+            if (!task.IsSuccessfullyCompleted())
+                throw task.Exception;
+            return task.Result;
+        }
     }
 }

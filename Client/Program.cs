@@ -5,6 +5,8 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Net;
+    using DistributedStorage.Authentication;
+    using DistributedStorage.Common;
     using DistributedStorage.Storage.Containers;
     using Remote;
 
@@ -12,6 +14,7 @@
     {
         #region Private fields
 
+        private readonly IAddableContainer<string, Credential> _credentialContainer;
         private readonly IAddableContainer<string, IRemoteServer> _serverContainer;
         private readonly RemoteServer.Factory _remoteServerFactory;
 
@@ -21,11 +24,12 @@
 
         public Program(
             IAddableContainer<string, IRemoteServer> serverContainer,
-            RemoteServer.Factory remoteServerFactory
-            )
+            RemoteServer.Factory remoteServerFactory,
+            IAddableContainer<string, Credential> credentialContainer)
         {
             _serverContainer = serverContainer;
             _remoteServerFactory = remoteServerFactory;
+            _credentialContainer = credentialContainer;
         }
 
         #endregion
@@ -53,7 +57,17 @@
             while (!IPAddress.TryParse("IP address?".Ask(), out ipAddress)) { }
             while (!int.TryParse("Port?".Ask(), out port)) { }
             var endpoint = new IPEndPoint(ipAddress, port);
-            var server = _remoteServerFactory.Create(endpoint, null);
+            if (!_credentialContainer.TryGet(endpoint.ToString(), out var credential))
+            {
+                "No credential could be found for this server, so I'll grab one from this server for you...".Say();
+                using (var tempServer = _remoteServerFactory.Create(endpoint, null))
+                {
+                    var credentialController = tempServer.GetCredentialController();
+                    credential = credentialController.GenerateCredentialAsync().WaitAndGet();
+                    $"The credential's ID is {Convert.ToBase64String(credential.Public)}".Say();
+                }
+            }
+            var server = _remoteServerFactory.Create(endpoint, credential);
             if (!_serverContainer.TryAdd(server.ToString(), server))
                 "Failed to add this server".Say();
         }

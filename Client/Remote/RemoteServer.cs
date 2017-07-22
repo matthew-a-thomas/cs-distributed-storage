@@ -98,7 +98,7 @@
         public IManifestsController GetManifestsController() => new RemoteManifestsController(SendRequestAsync);
 
         public IOwnerController GetOwnerController() => throw new NotImplementedException();
-
+        
         #endregion
     }
 }
