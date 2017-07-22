@@ -8,7 +8,6 @@
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<RemoteServer.Factory>().SingleInstance();
-            builder.RegisterModule<Storage>();
         }
     }
 }
