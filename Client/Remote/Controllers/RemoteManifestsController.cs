@@ -19,7 +19,7 @@
 
         public async Task<IReadOnlyList<string>> GetManifestIdsAsync()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "/manifests");
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/manifests");
             var response = await _sendRequestAsyncDelegate(request);
             var list = await response.GetContentsAsync<IReadOnlyList<string>>();
             return list;
