@@ -14,7 +14,7 @@
             builder.RegisterType<MemoryAddableContainer<Uri, IRemoteServer>>().AsImplementedInterfaces().SingleInstance();
 
             // Use in-memory storage of credentials
-            builder.RegisterType<MemoryAddableContainer<string, Credential>>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<MemoryAddableContainer<Uri, Credential>>().AsImplementedInterfaces().SingleInstance();
         }
     }
 }
