@@ -26,12 +26,12 @@ namespace DistributedStorage.Storage.FileSystem
         /// <summary>
         /// Produces a <see cref="FileInfo"/> for the file within the <see cref="_directory"/> having the given <paramref name="filename"/>
         /// </summary>
-        private FileInfo GetFileInfoFor(string filename) => new FileInfo(Path.Combine(_directory.FullName, filename));
+        private FileInfo GetFileInfoFor(string filename) => new FileInfo(Path.Combine(_directory.FullName, FileSystemSafeStringAdapter.MakeSafe(filename)));
 
         /// <summary>
         /// Enumerates all file names that currently exist in the wrapped <see cref="DirectoryInfo"/>
         /// </summary>
-        public IEnumerable<string> GetKeys() => _directory.EnumerateFiles().Select(file => file.Name);
+        public IEnumerable<string> GetKeys() => _directory.EnumerateFiles().Select(file => file.Name).Select(FileSystemSafeStringAdapter.MakeRaw);
 
         /// <summary>
         /// Creates a new <see cref="IFile"/> for the file having the given <paramref name="key"/>, if it exists

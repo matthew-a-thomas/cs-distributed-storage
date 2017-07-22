@@ -23,12 +23,12 @@
         /// <summary>
         /// Returns all directory names that are currently in the wrapped <see cref="DirectoryInfo"/>
         /// </summary>
-        public IEnumerable<string> GetKeys() => _directory.EnumerateDirectories().Select(directory => directory.Name);
+        public IEnumerable<string> GetKeys() => _directory.EnumerateDirectories().Select(directory => directory.Name).Select(FileSystemSafeStringAdapter.MakeRaw);
 
         /// <summary>
         /// Produces a <see cref="DirectoryInfo"/> for a subdirectory that would have the given <paramref name="name"/>
         /// </summary>
-        private DirectoryInfo GetSubDirectory(string name) => new DirectoryInfo(Path.Combine(_directory.FullName, name));
+        private DirectoryInfo GetSubDirectory(string name) => new DirectoryInfo(Path.Combine(_directory.FullName, FileSystemSafeStringAdapter.MakeSafe(name)));
 
         /// <summary>
         /// Tries to get an existing <see cref="IDirectory"/> for the given key.
