@@ -1,6 +1,5 @@
 namespace Server.Controllers
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -12,6 +11,7 @@ namespace Server.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Models.Authorization.Policies;
     using Models.Manifests;
+    using Models.Networking.Http;
 
     [Authorize(OwnerOnlyPolicyFactory.PolicyName)]
     [Produces("application/json")]
@@ -51,13 +51,13 @@ namespace Server.Controllers
         /// Retrieves a listing of all manifest hashes
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetManifestIdsAsync() => await ToActionResult(_this.GetManifestIdsAsync);
+        public async Task<IActionResult> GetManifestIdsAsync() => await FuncExtensions.ToActionResultAsync(_this.GetManifestIdsAsync);
 
         /// <summary>
         /// Creates a new container for the given <paramref name="manifest"/>
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AddNewManifestAsync([FromBody] Manifest manifest) => await ToActionResult(() => _this.AddNewManifestAsync(manifest));
+        public async Task<IActionResult> AddNewManifestAsync([FromBody] Manifest manifest) => await FuncExtensions.ToActionResultAsync(() => _this.AddNewManifestAsync(manifest));
 
         #endregion
 
@@ -67,14 +67,14 @@ namespace Server.Controllers
         /// Tries to delete the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [HttpDelete("{manifestId}")]
-        public async Task<IActionResult> DeleteManifestAsync(string manifestId) => await ToActionResult(() => _this.DeleteManifestAsync(manifestId));
+        public async Task<IActionResult> DeleteManifestAsync(string manifestId) => await FuncExtensions.ToActionResultAsync(() => _this.DeleteManifestAsync(manifestId));
 
         /// <summary>
         /// Get the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [AllowAnonymous]
         [HttpGet("{manifestId}")]
-        public async Task<IActionResult> GetManifestAsync(string manifestId) => await ToActionResult(() => _this.GetManifestAsync(manifestId));
+        public async Task<IActionResult> GetManifestAsync(string manifestId) => await FuncExtensions.ToActionResultAsync(() => _this.GetManifestAsync(manifestId));
 
         #endregion
 
@@ -84,14 +84,14 @@ namespace Server.Controllers
         /// Tries to add a new <see cref="Slice"/> to associate with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [HttpPost("{manifestId}/slices")]
-        public async Task<IActionResult> AddNewSliceAsync(string manifestId, [FromBody] Slice slice) => await ToActionResult(() => _this.AddNewSliceAsync(manifestId, slice));
+        public async Task<IActionResult> AddNewSliceAsync(string manifestId, [FromBody] Slice slice) => await FuncExtensions.ToActionResultAsync(() => _this.AddNewSliceAsync(manifestId, slice));
 
         /// <summary>
         /// Gets a listing of all <see cref="Slice"/> IDs associated with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>
         /// </summary>
         [AllowAnonymous]
         [HttpGet("{manifestId}/slices")]
-        public async Task<IActionResult> GetSliceIdsAsync(string manifestId) => await ToActionResult(() => _this.GetSliceIdsAsync(manifestId));
+        public async Task<IActionResult> GetSliceIdsAsync(string manifestId) => await FuncExtensions.ToActionResultAsync(() => _this.GetSliceIdsAsync(manifestId));
         
         #endregion
 
@@ -101,14 +101,14 @@ namespace Server.Controllers
         /// Tries to delete the <see cref="Slice"/> associated with the <see cref="Manifest"/> having the given <paramref name="manifestId"/>, and which has the given <paramref name="sliceId"/>
         /// </summary>
         [HttpDelete("{manifestId}/slices/{sliceId}")]
-        public async Task<IActionResult> DeleteSliceAsync(string manifestId, string sliceId) => await ToActionResult(() => _this.DeleteSliceAsync(manifestId, sliceId));
+        public async Task<IActionResult> DeleteSliceAsync(string manifestId, string sliceId) => await FuncExtensions.ToActionResultAsync(() => _this.DeleteSliceAsync(manifestId, sliceId));
 
         /// <summary>
         /// Gets the <see cref="Slice"/> associated with the given <paramref name="manifestId"/> and having the given <paramref name="sliceId"/>
         /// </summary>
         [AllowAnonymous]
         [HttpGet("{manifestId}/slices/{sliceId}")]
-        public async Task<IActionResult> GetSliceAsync(string manifestId, string sliceId) => await ToActionResult(() => _this.GetSliceAsync(manifestId, sliceId));
+        public async Task<IActionResult> GetSliceAsync(string manifestId, string sliceId) => await FuncExtensions.ToActionResultAsync(() => _this.GetSliceAsync(manifestId, sliceId));
 
         #endregion
 
@@ -162,36 +162,6 @@ namespace Server.Controllers
                 throw HttpException.GenerateException(HttpStatusCode.NotFound);
             return slice;
         });
-
-        #endregion
-
-        #region Static methods
-
-        private static async Task<IActionResult> ToActionResult<T>(Func<Task<T>> asyncFunc)
-        {
-            try
-            {
-                var result = await asyncFunc();
-                return new OkObjectResult(result);
-            }
-            catch (HttpException e)
-            {
-                return new StatusCodeResult((int)e.StatusCode);
-            }
-        }
-
-        private static async Task<IActionResult> ToActionResult(Func<Task> asyncFunc)
-        {
-            try
-            {
-                await asyncFunc();
-                return new OkResult();
-            }
-            catch (HttpException e)
-            {
-                return new StatusCodeResult((int)e.StatusCode);
-            }
-        }
 
         #endregion
     }
