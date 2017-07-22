@@ -35,14 +35,19 @@
 
         #region Public methods
 
-        public void Run()
+        private void Run()
         {
-            "Pick one".Choose(new Dictionary<string, Action>
+            var shouldLoop = true;
+            while (shouldLoop)
             {
-                { "List available manifests", ListAvailableManifests },
-                { "Manage owned servers", ManageOwnedServers },
-                { "Upload file", UploadFile }
-            });
+                "Pick one".Choose(new Dictionary<string, Action>
+                {
+                    { "List available manifests", ListAvailableManifests },
+                    { "Manage owned servers", ManageOwnedServers },
+                    { "Upload file", UploadFile },
+                    { "Exit", () => shouldLoop = false }
+                });
+            }
         }
 
         #endregion
