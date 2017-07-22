@@ -1,5 +1,6 @@
 ﻿namespace Client
 {
+    using System.Threading.Tasks;
     using Autofac;
 
     // ReSharper disable once UnusedMember.Global
@@ -13,7 +14,7 @@
             using (var container = builder.Build())
             {
                 var program = container.Resolve<Program>();
-                program.Run();
+                Task.Run(program.RunAsync).Wait();
             }
         }
     }

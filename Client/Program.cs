@@ -2,10 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Threading.Tasks;
     using DistributedStorage.Authentication;
-    using DistributedStorage.Common;
     using DistributedStorage.Storage.Containers;
     using Remote;
 
@@ -35,18 +34,25 @@
 
         #region Public methods
 
-        private void Run()
+        private async Task RunAsync()
         {
             var shouldLoop = true;
             while (shouldLoop)
             {
-                "Pick one".Choose(new Dictionary<string, Action>
+                try
                 {
-                    { "List available manifests", ListAvailableManifests },
-                    { "Manage owned servers", ManageOwnedServers },
-                    { "Upload file", UploadFile },
-                    { "Exit", () => shouldLoop = false }
-                });
+                    await "Pick one".ChooseAsync(new Dictionary<string, Func<Task>>
+                    {
+                        {"List available manifests", ListAvailableManifests},
+                        {"Manage owned servers", ManageOwnedServersAsync},
+                        {"Upload file", UploadFileAsync},
+                        {"Exit", () => Task.Run(() => shouldLoop = false)}
+                    });
+                }
+                catch (Exception e)
+                {
+                    e.Message.Say();
+                }
             }
         }
 
@@ -54,56 +60,61 @@
 
         #region Private methods
 
-        private void AddAServer()
+        private async Task AddAServerAsync()
         {
             Uri baseAddress;
             while (!Uri.TryCreate("Base address?".Ask(), UriKind.Absolute, out baseAddress)) { }
             if (!_credentialContainer.TryGet(baseAddress, out var credential))
             {
                 "No credential could be found for this server, so I'll grab one from this server for you...".Say();
-                GetAndSaveCredentialFor(baseAddress);
+                await GetAndSaveCredentialForAsync(baseAddress);
             }
             var server = _remoteServerFactory.Create(baseAddress, credential);
             if (!_serverContainer.TryAdd(baseAddress, server))
                 "Failed to add this server".Say();
         }
 
-        private void DeleteServer(Uri serverUri) => _serverContainer.TryRemove(serverUri);
+        private Task DeleteServerAsync(Uri serverUri) => Task.Run(() => _serverContainer.TryRemove(serverUri));
 
-        private void GetAndSaveCredentialFor(Uri address)
+        private async Task GetAndSaveCredentialForAsync(Uri address)
         {
             Credential credential;
             using (var tempServer = _remoteServerFactory.Create(address, null))
             {
                 var credentialController = tempServer.GetCredentialController();
-                credential = credentialController.GenerateCredentialAsync().WaitAndGet();
+                credential = await credentialController.GenerateCredentialAsync();
                 SayPublicKeyOfCredential(credential);
             }
             if (!_credentialContainer.TryAdd(address, credential))
                 "Failed to save this credential, even though just a little bit ago there was no credential for this server".Say();
         }
-
-        [SuppressMessage("ReSharper", "UnusedVariable")]
-        private void ListAvailableManifests()
+        
+        private async Task ListAvailableManifests()
         {
             foreach (var kvp in _serverContainer.GetKeysAndValues())
             {
                 var serverName = kvp.Key;
                 var server = kvp.Value;
+
+                $"These are the manifests at {serverName}:".Say();
+                var manifestsController = server.GetManifestsController();
+                foreach (var manifestId in await manifestsController.GetManifestIdsAsync())
+                {
+                    manifestId.Say();
+                }
             }
         }
 
-        private void ListServers()
+        private async Task ListServersAsync()
         {
-            var choices = _serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Action(() =>
+            var choices = _serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Func<Task>(async () =>
             {
                 var serverName = kvp.Key;
-                // ReSharper disable once UnusedVariable
                 var server = kvp.Value;
-                "Do what with this server?".Choose(new Dictionary<string, Action>
+                await "Do what with this server?".ChooseAsync(new Dictionary<string, Func<Task>>
                 {
-                    {"Delete it", () => DeleteServer(serverName)},
-                    { "View associated credential", () => ViewCredentialFor(serverName) }
+                    { "Delete it", () => DeleteServerAsync(serverName) },
+                    { "View associated credential", () => ViewCredentialForAsync(serverName) }
                 });
             }));
             if (choices.Count == 0)
@@ -111,23 +122,23 @@
                 "You have no saved servers".Say();
                 return;
             }
-            "Pick one".Choose(choices);
+            await "Pick one".ChooseAsync(choices);
         }
 
-        private void ManageOwnedServers()
+        private async Task ManageOwnedServersAsync()
         {
-            "Do what with servers?".Choose(new Dictionary<string, Action>
+            await "Do what with servers?".ChooseAsync(new Dictionary<string, Func<Task>>
             {
-                { "List servers", ListServers },
-                { "Add a server", AddAServer }
+                { "List servers", ListServersAsync },
+                { "Add a server", AddAServerAsync }
             });
         }
 
         private void SayPublicKeyOfCredential(Credential credential) => $"The credential's ID is {Convert.ToBase64String(credential.Public)}".Say();
 
-        private void UploadFile() => throw new NotImplementedException();
+        private Task UploadFileAsync() => throw new NotImplementedException();
 
-        private void ViewCredentialFor(Uri serverAddress)
+        private async Task ViewCredentialForAsync(Uri serverAddress)
         {
             if (_credentialContainer.TryGet(serverAddress, out var credential))
             {
@@ -135,10 +146,10 @@
             }
             else
             {
-                "You have no credential for this server. Would you like to get one?".Choose(new Dictionary<string, Action>
+                await "You have no credential for this server. Would you like to get one?".ChooseAsync(new Dictionary<string, Func<Task>>
                 {
-                    {"Yes", () => GetAndSaveCredentialFor(serverAddress)},
-                    {"No", () => { }}
+                    {"Yes", () => GetAndSaveCredentialForAsync(serverAddress)},
+                    {"No", () => Task.CompletedTask }
                 });
             }
         }

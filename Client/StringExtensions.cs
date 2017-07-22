@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     internal static class StringExtensions
     {
@@ -12,7 +13,7 @@
             return Console.ReadLine();
         }
 
-        public static void Choose(this string prompt, Dictionary<string, Action> choices)
+        public static async Task ChooseAsync(this string prompt, Dictionary<string, Func<Task>> choices)
         {
             while (true)
             {
@@ -35,7 +36,7 @@
                 {
                     var choice = numberToChoice[number];
                     var action = choices[choice];
-                    action();
+                    await action();
                     return;
                 }
 
