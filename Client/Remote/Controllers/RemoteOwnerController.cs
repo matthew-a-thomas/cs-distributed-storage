@@ -5,6 +5,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using DistributedStorage.Networking.Controllers;
+    using DistributedStorage.Networking.Http;
     using Networking.Http;
     using Newtonsoft.Json;
 
@@ -19,23 +20,23 @@
             _sendRequestAsync = sendRequestAsync;
         }
 
-        public async Task<string> GetOwnerAsync()
+        public async Task<StatusResponse<string>> GetOwnerAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl);
             var response = await _sendRequestAsync(request);
-            var ownerIdentity = await response.GetContentsAsync<string>();
-            return ownerIdentity;
+            var statusResponse = await response.GetContentsAsStatusResponseAsync<string>();
+            return statusResponse;
         }
 
-        public async Task<bool> PutOwnerAsync(string owner)
+        public async Task<StatusResponse<bool>> PutOwnerAsync(string owner)
         {
             var request = new HttpRequestMessage(HttpMethod.Put, BaseUrl)
             {
                 Content = new StringContent(JsonConvert.SerializeObject(owner), Encoding.UTF8, "application/json")
             };
             var response = await _sendRequestAsync(request);
-            var wasSuccessful = await response.GetContentsAsync<bool>();
-            return wasSuccessful;
+            var statusResponse = await response.GetContentsAsStatusResponseAsync<bool>();
+            return statusResponse;
         }
     }
 }

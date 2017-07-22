@@ -6,7 +6,6 @@
     using System.Net;
     using System.Threading.Tasks;
     using DistributedStorage.Authentication;
-    using DistributedStorage.Networking.Http.Exceptions;
     using DistributedStorage.Storage.Containers;
     using Remote;
 
@@ -91,16 +90,9 @@
             using (var tempServer = _remoteServerFactory.Create(address, null))
             {
                 var ownerController = tempServer.GetOwnerController();
-                string existingOwner;
-                try
-                {
-                    existingOwner = await ownerController.GetOwnerAsync();
-                }
-                catch (HttpException e) when (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    existingOwner = null;
-                }
-                if (existingOwner != null)
+                var getExistingOwnerResponse = await ownerController.GetOwnerAsync();
+                var existingOwner = getExistingOwnerResponse.Value;
+                if (getExistingOwnerResponse.StatusCode == HttpStatusCode.OK)
                 {
                     $"This server is already set up for the owner {existingOwner}".Say();
                     return;
@@ -108,12 +100,23 @@
 
                 "This server has no existing owner yet. We'll try to make you the owner".Say();
                 var credentialController = tempServer.GetCredentialController();
-                credential = await credentialController.GenerateCredentialAsync();
-                SayPublicKeyOfCredential(credential);
-                var tookOwnership = await ownerController.PutOwnerAsync(Convert.ToBase64String(credential.Public));
-                if (!tookOwnership)
+                var generateCredentialResponse = await credentialController.GenerateCredentialAsync();
+                if (generateCredentialResponse.StatusCode != HttpStatusCode.OK)
                 {
-                    "Failed to make you the owner of this server".Say();
+                    $"Failed to generate a credential from this server. It returned status code {(int) generateCredentialResponse.StatusCode} ({generateCredentialResponse.StatusCode})".Say();
+                    return;
+                }
+                credential = generateCredentialResponse.Value;
+                SayPublicKeyOfCredential(credential);
+                var tookOwnershipResponse = await ownerController.PutOwnerAsync(Convert.ToBase64String(credential.Public));
+                if (tookOwnershipResponse.StatusCode != HttpStatusCode.OK)
+                {
+                    $"Failed to take ownership of this server. It returned status code {(int)tookOwnershipResponse.StatusCode} ({tookOwnershipResponse.StatusCode})".Say();
+                    return;
+                }
+                if (!tookOwnershipResponse.Value)
+                {
+                    "Failed to make you the owner of this server. It returned an OK status code but still failed to make you the owner for some reason".Say();
                     return;
                 }
             }
@@ -131,7 +134,13 @@
 
                 $"These are the manifests at {serverName}:".Say();
                 var manifestsController = server.GetManifestsController();
-                foreach (var manifestId in await manifestsController.GetManifestIdsAsync())
+                var getManifestIdsResponse = await manifestsController.GetManifestIdsAsync();
+                if (getManifestIdsResponse.StatusCode != HttpStatusCode.OK)
+                {
+                    $"Failed to get the manifest IDs from this server. It responded with status code {(int) getManifestIdsResponse.StatusCode} ({getManifestIdsResponse.StatusCode})".Say();
+                    continue;
+                }
+                foreach (var manifestId in getManifestIdsResponse.Value)
                 {
                     manifestId.Say();
                 }
@@ -143,7 +152,6 @@
             var choices = _serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Func<Task>(async () =>
             {
                 var serverName = kvp.Key;
-                var server = kvp.Value;
                 await "Do what with this server?".ChooseAsync(new Dictionary<string, Func<Task>>
                 {
                     { "Delete it", () => DeleteServerAsync(serverName) },

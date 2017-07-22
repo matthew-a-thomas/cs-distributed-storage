@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using DistributedStorage.Authentication;
     using DistributedStorage.Networking.Controllers;
-    using DistributedStorage.Networking.Http.Exceptions;
+    using DistributedStorage.Networking.Http;
     using Microsoft.AspNetCore.Mvc;
     using Models.Authentication;
     using Models.Networking.Http;
@@ -23,12 +23,12 @@
         }
 
         [HttpGet]
-        public Task<IActionResult> GenerateTokenAsync() => FuncExtensions.ToActionResultAsync(_this.GenerateCredentialAsync);
+        public async Task<IActionResult> GenerateTokenAsync() => (await _this.GenerateCredentialAsync()).ToActionResult();
 
-        Task<Credential> ICredentialController.GenerateCredentialAsync() => Task.Run(() =>
+        Task<StatusResponse<Credential>> ICredentialController.GenerateCredentialAsync() => Task.Run(() =>
         {
             var credential = _credentialFactory.CreateNewCredential();
-            return credential ?? throw HttpException.GenerateException(HttpStatusCode.NotFound);
+            return new StatusResponse<Credential>(credential == null ? HttpStatusCode.NotFound : HttpStatusCode.OK, credential);
         });
     }
 }

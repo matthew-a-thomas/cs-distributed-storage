@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using DistributedStorage.Authentication;
     using DistributedStorage.Networking.Controllers;
+    using DistributedStorage.Networking.Http;
     using Networking.Http;
 
     public sealed class RemoteCredentialsController : ICredentialController
@@ -16,12 +17,12 @@
             _sendRequestAsyncDelegate = sendRequestAsyncDelegate;
         }
 
-        public async Task<Credential> GenerateCredentialAsync()
+        public async Task<StatusResponse<Credential>> GenerateCredentialAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/credential");
             var response = await _sendRequestAsyncDelegate(request);
-            var credential = await response.GetContentsAsync<Credential>();
-            return credential;
+            var statusResponse = await response.GetContentsAsStatusResponseAsync<Credential>();
+            return statusResponse;
         }
     }
 }

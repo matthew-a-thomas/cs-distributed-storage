@@ -2,9 +2,10 @@
 {
     using System.Threading.Tasks;
     using Authentication;
+    using Http;
 
     public interface ICredentialController
     {
-        Task<Credential> GenerateCredentialAsync();
+        Task<StatusResponse<Credential>> GenerateCredentialAsync();
     }
 }

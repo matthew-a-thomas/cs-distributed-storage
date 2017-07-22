@@ -3,7 +3,7 @@ namespace Server.Controllers
     using System.Net;
     using System.Threading.Tasks;
     using DistributedStorage.Networking.Controllers;
-    using DistributedStorage.Networking.Http.Exceptions;
+    using DistributedStorage.Networking.Http;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Models;
@@ -29,22 +29,22 @@ namespace Server.Controllers
         }
 
         [HttpGet]
-        public Task<IActionResult> GetOwner() => FuncExtensions.ToActionResultAsync(_this.GetOwnerAsync);
+        public async Task<IActionResult> GetOwner() => (await _this.GetOwnerAsync()).ToActionResult();
 
         [HttpPut]
-        public Task<IActionResult> PutOwner([FromBody] string owner) => FuncExtensions.ToActionResultAsync(() => _this.PutOwnerAsync(owner));
+        public async Task<IActionResult> PutOwner([FromBody] string owner) => (await _this.PutOwnerAsync(owner)).ToActionResult();
 
-        Task<string> IOwnerController.GetOwnerAsync() => Task.Run(() => _ownerRepository.TryGetOwner(out var owner) ? owner : throw HttpException.GenerateException(HttpStatusCode.NotFound));
+        Task<StatusResponse<string>> IOwnerController.GetOwnerAsync() => Task.Run(() => new StatusResponse<string>(_ownerRepository.TryGetOwner(out var owner) ? HttpStatusCode.OK : HttpStatusCode.NotFound, owner));
 
-        async Task<bool> IOwnerController.PutOwnerAsync(string owner)
+        async Task<StatusResponse<bool>> IOwnerController.PutOwnerAsync(string owner)
         {
             // See if the current owner has already been set and the current user isn't authorized to replace it
             if (_ownerRepository.TryGetOwner(out _) && !await _authorizationService.AuthorizeAsync(User, OwnerOnlyPolicyFactory.PolicyName))
-                throw HttpException.GenerateException(HttpStatusCode.Unauthorized); // The current user isn't authorized to replace the current owner
+                return new StatusResponse<bool>(HttpStatusCode.Unauthorized, false); // The current user isn't authorized to replace the current owner
 
             // The current owner hasn't yet been set so anyone can initialize it, or the current user is authorized to replace the current owner
             var didSet = _ownerRepository.TrySetOwner(owner); // Try setting it
-            return didSet;
+            return StatusResponse.CreateOk(didSet);
         }
     }
 }

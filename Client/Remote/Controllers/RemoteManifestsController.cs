@@ -2,10 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using DistributedStorage.Encoding;
     using DistributedStorage.Networking.Controllers;
+    using DistributedStorage.Networking.Http;
     using Networking.Http;
 
     public sealed class RemoteManifestsController : IManifestsController
@@ -17,26 +19,26 @@
             _sendRequestAsyncDelegate = sendRequestAsyncDelegate;
         }
 
-        public async Task<IReadOnlyList<string>> GetManifestIdsAsync()
+        public async Task<StatusResponse<IReadOnlyList<string>>> GetManifestIdsAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/manifests");
             var response = await _sendRequestAsyncDelegate(request);
-            var list = await response.GetContentsAsync<IReadOnlyList<string>>();
-            return list;
+            var statusResponse = await response.GetContentsAsStatusResponseAsync<IReadOnlyList<string>>();
+            return statusResponse;
         }
 
-        public Task AddNewManifestAsync(Manifest manifest) => throw new NotImplementedException();
+        public Task<HttpStatusCode> AddNewManifestAsync(Manifest manifest) => throw new NotImplementedException();
 
-        public Task DeleteManifestAsync(string manifestId) => throw new NotImplementedException();
+        public Task<HttpStatusCode> DeleteManifestAsync(string manifestId) => throw new NotImplementedException();
 
-        public Task<Manifest> GetManifestAsync(string manifestId) => throw new NotImplementedException();
+        public Task<StatusResponse<Manifest>> GetManifestAsync(string manifestId) => throw new NotImplementedException();
 
-        public Task AddNewSliceAsync(string manifestId, Slice slice) => throw new NotImplementedException();
+        public Task<HttpStatusCode> AddNewSliceAsync(string manifestId, Slice slice) => throw new NotImplementedException();
 
-        public Task<IReadOnlyList<string>> GetSliceIdsAsync(string manifestId) => throw new NotImplementedException();
+        public Task<StatusResponse<IReadOnlyList<string>>> GetSliceIdsAsync(string manifestId) => throw new NotImplementedException();
 
-        public Task DeleteSliceAsync(string manifestId, string sliceId) => throw new NotImplementedException();
+        public Task<HttpStatusCode> DeleteSliceAsync(string manifestId, string sliceId) => throw new NotImplementedException();
 
-        public Task<Slice> GetSliceAsync(string manifestId, string sliceId) => throw new NotImplementedException();
+        public Task<StatusResponse<Slice>> GetSliceAsync(string manifestId, string sliceId) => throw new NotImplementedException();
     }
 }
