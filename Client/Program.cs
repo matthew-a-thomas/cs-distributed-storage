@@ -13,8 +13,7 @@
     {
         #region Private fields
 
-        private readonly IAddableContainer<Uri, Credential> _credentialContainer;
-        private readonly IAddableContainer<Uri, IRemoteServer> _serverContainer;
+        private readonly IAddableContainer<Uri, Credential> _credentialsContainerForOwnedServers;
         private readonly RemoteServer.Factory _remoteServerFactory;
 
         #endregion
@@ -22,13 +21,11 @@
         #region Constructor
 
         public Program(
-            IAddableContainer<Uri, IRemoteServer> serverContainer,
-            RemoteServer.Factory remoteServerFactory,
-            IAddableContainer<Uri, Credential> credentialContainer)
+            IAddableContainer<Uri, Credential> credentialsContainerForOwnedServers,
+            RemoteServer.Factory remoteServerFactory)
         {
-            _serverContainer = serverContainer;
+            _credentialsContainerForOwnedServers = credentialsContainerForOwnedServers;
             _remoteServerFactory = remoteServerFactory;
-            _credentialContainer = credentialContainer;
         }
 
         #endregion
@@ -65,24 +62,18 @@
         {
             Uri baseAddress;
             while (!Uri.TryCreate("Base address?".Ask(), UriKind.Absolute, out baseAddress)) { }
-            if (_serverContainer.TryGet(baseAddress, out _))
+            if (_credentialsContainerForOwnedServers.TryGet(baseAddress, out _))
             {
-                "This server has already been added. Delete it first".Say();
+                "You already own this server.".Say();
                 return;
             }
-            if (!_credentialContainer.TryGet(baseAddress, out var credential))
-            {
-                "No credential could be found for this server, so I'll grab one from this server for you...".Say();
-                await GetAndSaveOwnershipCredentialForAsync(baseAddress);
-                if (!_credentialContainer.TryGet(baseAddress, out credential))
-                    return;
-            }
-            var server = _remoteServerFactory.Create(baseAddress, credential);
-            if (!_serverContainer.TryAdd(baseAddress, server))
+            "You don't yet own this server, so I'll try to get ownership for you...".Say();
+            await GetAndSaveOwnershipCredentialForAsync(baseAddress);
+            if (!_credentialsContainerForOwnedServers.TryGet(baseAddress, out _))
                 "Failed to add this server".Say();
         }
 
-        private Task DeleteServerAsync(Uri serverUri) => Task.Run(() => _serverContainer.TryRemove(serverUri));
+        private Task DeleteCredentialsForOwnedServer(Uri serverUri) => Task.Run(() => _credentialsContainerForOwnedServers.TryRemove(serverUri));
 
         private async Task GetAndSaveOwnershipCredentialForAsync(Uri address)
         {
@@ -121,40 +112,42 @@
                 }
             }
             "You are now the owner of this server".Say();
-            if (!_credentialContainer.TryAdd(address, credential))
+            if (!_credentialsContainerForOwnedServers.TryAdd(address, credential))
                 "Failed to save this credential, even though just a little bit ago there was no credential for this server".Say();
         }
         
         private async Task ListAvailableManifests()
         {
-            foreach (var kvp in _serverContainer.GetKeysAndValues())
+            foreach (var kvp in _credentialsContainerForOwnedServers.GetKeysAndValues())
             {
-                var serverName = kvp.Key;
-                var server = kvp.Value;
-
-                $"These are the manifests at {serverName}:".Say();
-                var manifestsController = server.GetManifestsController();
-                var getManifestIdsResponse = await manifestsController.GetManifestIdsAsync();
-                if (getManifestIdsResponse.StatusCode != HttpStatusCode.OK)
+                var serverUri = kvp.Key;
+                var credential = kvp.Value;
+                using (var server = _remoteServerFactory.Create(serverUri, credential))
                 {
-                    $"Failed to get the manifest IDs from this server. It responded with status code {(int) getManifestIdsResponse.StatusCode} ({getManifestIdsResponse.StatusCode})".Say();
-                    continue;
-                }
-                foreach (var manifestId in getManifestIdsResponse.Value)
-                {
-                    manifestId.Say();
+                    $"These are the manifests at {serverUri}:".Say();
+                    var manifestsController = server.GetManifestsController();
+                    var getManifestIdsResponse = await manifestsController.GetManifestIdsAsync();
+                    if (getManifestIdsResponse.StatusCode != HttpStatusCode.OK)
+                    {
+                        $"Failed to get the manifest IDs from this server. It responded with status code {(int) getManifestIdsResponse.StatusCode} ({getManifestIdsResponse.StatusCode})".Say();
+                        continue;
+                    }
+                    foreach (var manifestId in getManifestIdsResponse.Value)
+                    {
+                        manifestId.Say();
+                    }
                 }
             }
         }
 
         private async Task ListServersAsync()
         {
-            var choices = _serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Func<Task>(async () =>
+            var choices = _credentialsContainerForOwnedServers.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Func<Task>(async () =>
             {
                 var serverName = kvp.Key;
                 await "Do what with this server?".ChooseAsync(new Dictionary<string, Func<Task>>
                 {
-                    { "Delete it", () => DeleteServerAsync(serverName) },
+                    { "Delete it", () => DeleteCredentialsForOwnedServer(serverName) },
                     { "View associated credential", () => ViewCredentialForAsync(serverName) }
                 });
             }));
@@ -181,7 +174,7 @@
 
         private async Task ViewCredentialForAsync(Uri serverAddress)
         {
-            if (_credentialContainer.TryGet(serverAddress, out var credential))
+            if (_credentialsContainerForOwnedServers.TryGet(serverAddress, out var credential))
             {
                 SayPublicKeyOfCredential(credential);
             }
