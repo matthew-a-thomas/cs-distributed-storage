@@ -4,6 +4,6 @@
 
     public static class ClaimsPrincipalExtensions
     {
-        public static bool ClaimsToBeThisOwner(this ClaimsPrincipal claims, Owner owner) => claims.HasClaim(c => c.Type == ClaimTypes.Email && c.Value == owner.Identity);
+        public static bool ClaimsToBeThisOwner(this ClaimsPrincipal claims, string owner) => claims.HasClaim(c => c.Type == ClaimTypes.Email && c.Value == owner);
     }
 }

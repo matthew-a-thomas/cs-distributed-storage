@@ -1,5 +1,7 @@
 ﻿namespace Server.Models
 {
+    using System.IO;
+    using DistributedStorage.Common;
     using DistributedStorage.Storage.Containers;
     using DistributedStorage.Storage.FileSystem;
 
@@ -26,7 +28,7 @@
             _options = options;
         }
 
-        public bool TryGetOwner(out Owner owner)
+        public bool TryGetOwner(out string owner)
         {
             owner = null;
             if (!OwnerFile.TryOpenRead(out var stream))
@@ -35,7 +37,7 @@
                 return stream.TryRead(out owner);
         }
 
-        public bool TrySetOwner(Owner owner)
+        public bool TrySetOwner(string owner)
         {
             if (!OwnerFile.TryOpenWrite(out var stream))
                 return false;
