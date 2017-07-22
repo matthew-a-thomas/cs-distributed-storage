@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using System.Net;
     using DistributedStorage.Authentication;
     using DistributedStorage.Common;
     using DistributedStorage.Storage.Containers;
@@ -52,22 +51,19 @@
 
         private void AddAServer()
         {
-            IPAddress ipAddress;
-            int port;
-            while (!IPAddress.TryParse("IP address?".Ask(), out ipAddress)) { }
-            while (!int.TryParse("Port?".Ask(), out port)) { }
-            var endpoint = new IPEndPoint(ipAddress, port);
-            if (!_credentialContainer.TryGet(endpoint.ToString(), out var credential))
+            Uri baseAddress;
+            while (!Uri.TryCreate("Base address?".Ask(), UriKind.Absolute, out baseAddress)) { }
+            if (!_credentialContainer.TryGet(baseAddress.ToString(), out var credential))
             {
                 "No credential could be found for this server, so I'll grab one from this server for you...".Say();
-                using (var tempServer = _remoteServerFactory.Create(endpoint, null))
+                using (var tempServer = _remoteServerFactory.Create(baseAddress, null))
                 {
                     var credentialController = tempServer.GetCredentialController();
                     credential = credentialController.GenerateCredentialAsync().WaitAndGet();
                     $"The credential's ID is {Convert.ToBase64String(credential.Public)}".Say();
                 }
             }
-            var server = _remoteServerFactory.Create(endpoint, credential);
+            var server = _remoteServerFactory.Create(baseAddress, credential);
             if (!_serverContainer.TryAdd(server.ToString(), server))
                 "Failed to add this server".Say();
         }

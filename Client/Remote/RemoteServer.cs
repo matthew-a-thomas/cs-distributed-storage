@@ -1,15 +1,14 @@
 ﻿namespace Client.Remote
 {
     using System;
-    using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Reflection;
     using System.Security.Cryptography;
     using System.Threading.Tasks;
     using Controllers;
     using DistributedStorage.Authentication;
     using DistributedStorage.Networking.Controllers;
-    using Microsoft.Net.Http.Headers;
     using Networking.Http;
 
     public sealed class RemoteServer : IRemoteServer
@@ -23,7 +22,7 @@
                 _httpRequestMessageAuthorizer = httpRequestMessageAuthorizer;
             }
 
-            public RemoteServer Create(IPEndPoint endpoint, Credential credential) => new RemoteServer(endpoint, credential, _httpRequestMessageAuthorizer);
+            public RemoteServer Create(Uri baseAddress, Credential credential) => new RemoteServer(baseAddress, credential, _httpRequestMessageAuthorizer);
         }
 
         #region Public properties
@@ -40,15 +39,16 @@
 
         #region Constructor
 
-        public RemoteServer(IPEndPoint endpoint, Credential credential, HttpRequestMessageAuthorizer httpRequestMessageAuthorizer)
+        public RemoteServer(Uri baseAddress, Credential credential, HttpRequestMessageAuthorizer httpRequestMessageAuthorizer)
         {
             // Set up the client based on the given endpoint
             _client = new HttpClient {
-                BaseAddress = new Uri($"http://{endpoint}")
+                BaseAddress = baseAddress
             };
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "Matt's distributed storage client");
+            var assemblyName = Assembly.GetEntryAssembly().GetName();
+            _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(assemblyName.Name, assemblyName.Version.ToString()));
 
             // Store credentials
             _credential = credential;
