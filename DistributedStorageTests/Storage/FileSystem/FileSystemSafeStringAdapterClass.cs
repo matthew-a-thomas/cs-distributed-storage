@@ -33,7 +33,8 @@
             foreach (var testString in new[]
             {
                 @"/../../..",
-                @"\..\..\.."
+                @"\..\..\..",
+                @"http://localhost:50165/api/credential"
             })
             {
                 var goodString = FileSystemSafeStringAdapter.MakeSafe(testString);
