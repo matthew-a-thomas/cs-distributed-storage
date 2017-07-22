@@ -93,7 +93,7 @@
 
         public void Dispose() => _client.Dispose();
 
-        public ICredentialController GetCredentialController() => throw new NotImplementedException();
+        public ICredentialController GetCredentialController() => new RemoteCredentialsController(SendRequestAsync);
 
         public IManifestsController GetManifestsController() => new RemoteManifestsController(SendRequestAsync);
 
