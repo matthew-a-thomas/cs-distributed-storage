@@ -87,16 +87,22 @@
 
         private void ListServers()
         {
-            "Pick one".Choose(_serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Action(() =>
+            var choices = _serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Action(() =>
             {
                 var serverName = kvp.Key;
                 // ReSharper disable once UnusedVariable
                 var server = kvp.Value;
                 "Do what with this server?".Choose(new Dictionary<string, Action>
                 {
-                    { "Delete it", () => DeleteServer(serverName) }
+                    {"Delete it", () => DeleteServer(serverName)}
                 });
-            })));
+            }));
+            if (choices.Count == 0)
+            {
+                "You have no saved servers".Say();
+                return;
+            }
+            "Pick one".Choose(choices);
         }
 
         private void ManageOwnedServers()
