@@ -16,16 +16,18 @@
         {
             get
             {
+                if (_requestMessage.Content == null)
+                    return null;
                 var task = _requestMessage.Content.ReadAsByteArrayAsync();
                 task.Wait();
                 return task.Result;
             }
         }
 
-        public string ContentType => _requestMessage.Content.Headers.ContentType.Parameters.FirstOrDefault()?.Value;
+        public string ContentType => _requestMessage.Content?.Headers.ContentType.Parameters.FirstOrDefault()?.Value;
         public string Host => _requestMessage.Headers.Host;
         public string Method => _requestMessage.Method.Method;
-        public string PathAndQuery => _requestMessage.RequestUri.PathAndQuery;
+        public string PathAndQuery => _requestMessage.RequestUri.IsAbsoluteUri ? _requestMessage.RequestUri.PathAndQuery : _requestMessage.RequestUri.OriginalString;
 
         #endregion
 

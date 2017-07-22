@@ -1,5 +1,6 @@
 ﻿namespace Client.Networking.Http
 {
+    using System;
     using System.Net.Http;
     using System.Threading.Tasks;
     using DistributedStorage.Networking.Http.Exceptions;
@@ -23,6 +24,8 @@
         {
             response.AssertSuccess();
             var responseString = await response.Content.ReadAsStringAsync();
+            if (typeof(string) == typeof(T))
+                return (T)(object)responseString;
             var deserialized = JsonConvert.DeserializeObject<T>(responseString);
             return deserialized;
         }

@@ -3,8 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using DistributedStorage.Authentication;
+    using DistributedStorage.Networking.Http.Exceptions;
     using DistributedStorage.Storage.Containers;
     using Remote;
 
@@ -64,10 +66,17 @@
         {
             Uri baseAddress;
             while (!Uri.TryCreate("Base address?".Ask(), UriKind.Absolute, out baseAddress)) { }
+            if (_serverContainer.TryGet(baseAddress, out _))
+            {
+                "This server has already been added. Delete it first".Say();
+                return;
+            }
             if (!_credentialContainer.TryGet(baseAddress, out var credential))
             {
                 "No credential could be found for this server, so I'll grab one from this server for you...".Say();
-                await GetAndSaveCredentialForAsync(baseAddress);
+                await GetAndSaveOwnershipCredentialForAsync(baseAddress);
+                if (!_credentialContainer.TryGet(baseAddress, out credential))
+                    return;
             }
             var server = _remoteServerFactory.Create(baseAddress, credential);
             if (!_serverContainer.TryAdd(baseAddress, server))
@@ -76,15 +85,39 @@
 
         private Task DeleteServerAsync(Uri serverUri) => Task.Run(() => _serverContainer.TryRemove(serverUri));
 
-        private async Task GetAndSaveCredentialForAsync(Uri address)
+        private async Task GetAndSaveOwnershipCredentialForAsync(Uri address)
         {
             Credential credential;
             using (var tempServer = _remoteServerFactory.Create(address, null))
             {
+                var ownerController = tempServer.GetOwnerController();
+                string existingOwner;
+                try
+                {
+                    existingOwner = await ownerController.GetOwnerAsync();
+                }
+                catch (HttpException e) when (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    existingOwner = null;
+                }
+                if (existingOwner != null)
+                {
+                    $"This server is already set up for the owner {existingOwner}".Say();
+                    return;
+                }
+
+                "This server has no existing owner yet. We'll try to make you the owner".Say();
                 var credentialController = tempServer.GetCredentialController();
                 credential = await credentialController.GenerateCredentialAsync();
                 SayPublicKeyOfCredential(credential);
+                var tookOwnership = await ownerController.PutOwnerAsync(Convert.ToBase64String(credential.Public));
+                if (!tookOwnership)
+                {
+                    "Failed to make you the owner of this server".Say();
+                    return;
+                }
             }
+            "You are now the owner of this server".Say();
             if (!_credentialContainer.TryAdd(address, credential))
                 "Failed to save this credential, even though just a little bit ago there was no credential for this server".Say();
         }
@@ -148,7 +181,7 @@
             {
                 await "You have no credential for this server. Would you like to get one?".ChooseAsync(new Dictionary<string, Func<Task>>
                 {
-                    {"Yes", () => GetAndSaveCredentialForAsync(serverAddress)},
+                    {"Yes", () => GetAndSaveOwnershipCredentialForAsync(serverAddress)},
                     {"No", () => Task.CompletedTask }
                 });
             }

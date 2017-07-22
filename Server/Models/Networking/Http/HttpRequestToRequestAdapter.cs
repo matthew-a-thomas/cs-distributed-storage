@@ -19,14 +19,14 @@
                 using (var memoryStream = new MemoryStream())
                 {
                     _request.Body.CopyTo(memoryStream);
-                    return memoryStream.ToArray();
+                    return memoryStream.Length == 0 ? null : memoryStream.ToArray();
                 }
             }
         }
         public string ContentType => _request.ContentType;
         public string Host => _request.Host.ToString();
         public string Method => _request.Method;
-        public string PathAndQuery => $"{_request.Path}?{_request.QueryString}";
+        public string PathAndQuery => $"{_request.Path}{(_request.QueryString.HasValue ? $"?{_request.QueryString}" : "")}";
 
         #endregion
 

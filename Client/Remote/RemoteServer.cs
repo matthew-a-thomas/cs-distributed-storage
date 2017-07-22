@@ -9,6 +9,7 @@
     using Controllers;
     using DistributedStorage.Authentication;
     using DistributedStorage.Networking.Controllers;
+    using DistributedStorage.Networking.Http;
     using Networking.Http;
 
     public sealed class RemoteServer : IRemoteServer
@@ -64,6 +65,10 @@
         /// </summary>
         private async Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage request)
         {
+            // Add the host header to the request if it isn't already there
+            if (request.Headers.Host == null)
+                request.Headers.Host = _client.BaseAddress.ToHostHeaderValue();
+
             // Add authorization to this request if we have a credential
             Credential credential; // Prevent race condition of _credential maybe changing to null after we perform a null check (in case I want to make _credential non-readonly later)
             if ((credential = _credential) != null)

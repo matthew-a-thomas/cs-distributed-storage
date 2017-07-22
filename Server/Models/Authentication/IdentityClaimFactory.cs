@@ -10,7 +10,7 @@
         /// <summary>
         /// The claim type
         /// </summary>
-        private const string ClaimType = "Identity";
+        private const string ClaimType = ClaimTypes.Sid;
 
         /// <summary>
         /// Creates a <see cref="Claim"/> of the given <paramref name="identity"/>

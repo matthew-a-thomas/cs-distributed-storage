@@ -2,9 +2,11 @@
 {
     using System;
     using System.Net.Http;
+    using System.Text;
     using System.Threading.Tasks;
     using DistributedStorage.Networking.Controllers;
     using Networking.Http;
+    using Newtonsoft.Json;
 
     public sealed class RemoteOwnerController : IOwnerController
     {
@@ -27,7 +29,10 @@
 
         public async Task<bool> PutOwnerAsync(string owner)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, BaseUrl);
+            var request = new HttpRequestMessage(HttpMethod.Put, BaseUrl)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(owner), Encoding.UTF8, "application/json")
+            };
             var response = await _sendRequestAsync(request);
             var wasSuccessful = await response.GetContentsAsync<bool>();
             return wasSuccessful;

@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Security.Cryptography;
     using Networking.Http;
+    using Common;
 
     public sealed class RequestToAuthorizationTokenFactory
     {
@@ -30,10 +31,10 @@
                     request.ContentType // Write the request content type
                 })
                 {
-                    var bytes = System.Text.Encoding.UTF8.GetBytes(part);
-                    stream.Write(bytes, 0, bytes.Length);
+                    var bytes = part == null ? null : System.Text.Encoding.UTF8.GetBytes(part);
+                    stream.Write(bytes);
                 }
-                stream.Write(request.Body.ToArray(), 0, request.Body.Count); // Copy the request body
+                stream.Write(request.Body?.ToArray()); // Copy the request body
 
                 // Compute the HMAC of those things using the given credential
                 stream.Position = 0;
