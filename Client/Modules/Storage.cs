@@ -1,5 +1,6 @@
 ﻿namespace Client.Modules
 {
+    using System;
     using Autofac;
     using DistributedStorage.Authentication;
     using DistributedStorage.Storage.Containers;
@@ -10,7 +11,7 @@
         protected override void Load(ContainerBuilder builder)
         {
             // Use in-memory storage of remote servers
-            builder.RegisterType<MemoryAddableContainer<string, IRemoteServer>>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<MemoryAddableContainer<Uri, IRemoteServer>>().AsImplementedInterfaces().SingleInstance();
 
             // Use in-memory storage of credentials
             builder.RegisterType<MemoryAddableContainer<string, Credential>>().AsImplementedInterfaces().SingleInstance();

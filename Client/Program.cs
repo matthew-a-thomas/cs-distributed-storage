@@ -14,7 +14,7 @@
         #region Private fields
 
         private readonly IAddableContainer<string, Credential> _credentialContainer;
-        private readonly IAddableContainer<string, IRemoteServer> _serverContainer;
+        private readonly IAddableContainer<Uri, IRemoteServer> _serverContainer;
         private readonly RemoteServer.Factory _remoteServerFactory;
 
         #endregion
@@ -22,7 +22,7 @@
         #region Constructor
 
         public Program(
-            IAddableContainer<string, IRemoteServer> serverContainer,
+            IAddableContainer<Uri, IRemoteServer> serverContainer,
             RemoteServer.Factory remoteServerFactory,
             IAddableContainer<string, Credential> credentialContainer)
         {
@@ -69,11 +69,11 @@
                 }
             }
             var server = _remoteServerFactory.Create(baseAddress, credential);
-            if (!_serverContainer.TryAdd(server.ToString(), server))
+            if (!_serverContainer.TryAdd(baseAddress, server))
                 "Failed to add this server".Say();
         }
 
-        private void DeleteServer(string serverName) => _serverContainer.TryRemove(serverName);
+        private void DeleteServer(Uri serverUri) => _serverContainer.TryRemove(serverUri);
 
         [SuppressMessage("ReSharper", "UnusedVariable")]
         private void ListAvailableManifests()
@@ -87,7 +87,7 @@
 
         private void ListServers()
         {
-            "Pick one".Choose(_serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key, kvp => new Action(() =>
+            "Pick one".Choose(_serverContainer.GetKeysAndValues().ToDictionary(kvp => kvp.Key.ToString(), kvp => new Action(() =>
             {
                 var serverName = kvp.Key;
                 // ReSharper disable once UnusedVariable
