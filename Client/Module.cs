@@ -1,7 +1,6 @@
 ﻿namespace Client
 {
     using Autofac;
-    using Modules;
     using Modules.RemoteServer;
     using Modules.RequestAuthorization;
 
@@ -9,7 +8,7 @@
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterModule<Storage>();
+            builder.RegisterModule<Modules.Storage>();
             builder.RegisterType<Program>().SingleInstance();
             builder.RegisterModule<RemoteServerModule>();
             builder.RegisterModule<RequestAuthorizationModule>();

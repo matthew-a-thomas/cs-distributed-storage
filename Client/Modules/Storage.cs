@@ -1,16 +1,14 @@
 ﻿namespace Client.Modules
 {
-    using System;
     using Autofac;
-    using DistributedStorage.Authentication;
-    using DistributedStorage.Storage.Containers;
+    using Client.Storage;
 
     public sealed class Storage : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            // Use in-memory storage of credentials
-            builder.RegisterType<MemoryAddableContainer<Uri, Credential>>().AsImplementedInterfaces().SingleInstance();
+            // Use on-disk storage of credentials
+            builder.RegisterType<UriToCredentialFileBasedContainer>().AsImplementedInterfaces().SingleInstance();
         }
     }
 }
