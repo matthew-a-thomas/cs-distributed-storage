@@ -1,6 +1,5 @@
 ﻿namespace Server.Models
 {
-    using System.IO;
     using DistributedStorage.Common;
     using DistributedStorage.Storage.Containers;
     using DistributedStorage.Storage.FileSystem;

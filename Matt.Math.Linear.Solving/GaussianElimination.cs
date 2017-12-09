@@ -1,13 +1,12 @@
-﻿namespace DistributedStorage.Solving
+﻿namespace Matt.Math.Linear.Solving
 {
     using System;
     using System.Collections.Generic;
-    using Common;
 
     /// <summary>
     /// Solves a system of equations
     /// </summary>
-    internal class GaussianElimination
+    public sealed class GaussianElimination
     {
         #region Private fields
 
@@ -116,6 +115,13 @@
             }
             return solution;
         }
+        
+        private static void Swap<T>(IList<T> list, int from, int to)
+        {
+            var temp = list[from];
+            list[from] = list[to];
+            list[to] = temp;
+        }
 
         /// <summary>
         /// Swaps the coefficients and solutions between the two given rows
@@ -126,10 +132,32 @@
                 throw new Exception($"Are you sure you want to swap row {fromRow} with itself?");
 
             // Swap coefficients
-            _coefficients.Swap(fromRow, toRow);
+            Swap(_coefficients, fromRow, toRow);
 
             // Swap solutions
-            _solutions.Swap(fromRow, toRow);
+            Swap(_solutions, fromRow, toRow);
+        }
+        
+        /// <summary>
+        /// Modifies this byte array by XOR'ing all the bytes with the given array
+        /// </summary>
+        private static void Xor(byte[] array, byte[] with)
+        {
+            if (array.Length != with.Length)
+                throw new ArgumentException("The arrays must have the same length");
+            for (var i = 0; i < array.Length; ++i)
+                array[i] ^= with[i];
+        }
+
+        /// <summary>
+        /// Modifies this boolean array by XOR'ing all the bits with the given array
+        /// </summary>
+        private static void Xor(bool[] array, bool[] with)
+        {
+            if (array.Length != with.Length)
+                throw new ArgumentException("The arrays must have the same length");
+            for (var i = 0; i < array.Length; ++i)
+                array[i] ^= with[i];
         }
 
         /// <summary>
@@ -141,10 +169,10 @@
                 throw new Exception($"Are you sure you want to XOR row {fromRow} with itself?");
 
             // XOR coefficients
-            _coefficients[toRow].Xor(_coefficients[fromRow]);
+            Xor(_coefficients[toRow], _coefficients[fromRow]);
 
             // XOR solutions
-            _solutions[toRow].Xor(_solutions[fromRow]);
+            Xor(_solutions[toRow], _solutions[fromRow]);
         }
 
         #endregion

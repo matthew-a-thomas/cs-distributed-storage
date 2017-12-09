@@ -1,7 +1,7 @@
 ﻿namespace DistributedStorageTests.Solving
 {
     using System.Collections.Generic;
-    using DistributedStorage.Solving;
+    using Matt.Math.Linear.Solving;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
