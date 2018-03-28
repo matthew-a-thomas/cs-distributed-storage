@@ -1,4 +1,6 @@
 # cs-distributed-storage
+
+[![Join the chat at https://gitter.im/matthew-a-thomas/cs-distributed-storage](https://badges.gitter.im/matthew-a-thomas/cs-distributed-storage.svg)](https://gitter.im/matthew-a-thomas/cs-distributed-storage?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Fountain Code-based distributed data storage for C# .Net Core.
 
 Based on the [Random Subset Fountain Code](https://github.com/matthew-a-thomas/cs-fountain-codes#random-subset).
